@@ -38,7 +38,7 @@ const Header = () => {
         </div>
 
         {/* Desktop Menu */}
-        <nav className="hidden lg:flex gap-6 font-medium text-gray-700 uppercase text-sm">
+        <nav className="hidden lg:flex gap-6 font-medium text-gray-700 uppercase text-sm items-center">
           <a href="/" className="hover:text-[#004e92] transition-colors border-b-2 border-transparent hover:border-[#004e92] pb-1">Trang Chủ</a>
           <a href="#" className="hover:text-[#004e92] transition-colors pb-1">Giới thiệu</a>
           <a href="#" className="hover:text-[#004e92] transition-colors pb-1">Khám Chữa Bệnh</a>
@@ -46,6 +46,9 @@ const Header = () => {
           <a href="#" className="hover:text-[#004e92] transition-colors pb-1">Hoạt Động</a>
           <a href="#" className="hover:text-[#004e92] transition-colors pb-1">Thủ Tục Hành Chính</a>
           <a href="#" className="hover:text-[#004e92] transition-colors pb-1">Liên Hệ</a>
+          <div className="h-4 w-px bg-gray-300 mx-1"></div>
+          <a href="/login" className="hover:text-[#004e92] transition-colors pb-1 text-[#004e92] font-bold">Đăng Nhập</a>
+          <a href="/register" className="bg-[#004e92] text-white px-4 py-2 rounded-md hover:bg-blue-800 transition-colors">Đăng Ký</a>
         </nav>
 
         {/* Mobile Menu Button */}
@@ -72,6 +75,8 @@ const Header = () => {
           <a href="#" className="p-4 border-b border-gray-200 hover:bg-gray-100">Đào Tạo</a>
           <a href="#" className="p-4 border-b border-gray-200 hover:bg-gray-100">Hoạt Động</a>
           <a href="#" className="p-4 border-b border-gray-200 hover:bg-gray-100">Thủ Tục Hành Chính</a>
+          <a href="/login" className="p-4 border-b border-gray-200 hover:bg-gray-100 text-[#004e92] font-bold">Đăng Nhập</a>
+          <a href="/register" className="p-4 border-b border-gray-200 hover:bg-gray-100 text-[#004e92] font-bold">Đăng Ký</a>
         </div>
       )}
     </header>

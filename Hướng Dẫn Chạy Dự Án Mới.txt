@@ -1,5 +1,5 @@
 Hướng Dẫn Chạy Dự Án 
-Vì dự án đã chia làm 2 phần, bạn sẽ cần chạy riêng biệt cả hai:
+dự án đã chia làm 2 phần, bạn sẽ cần chạy riêng biệt cả hai:
 
 Chạy Backend (Cổng 5000 mặc định):
 
