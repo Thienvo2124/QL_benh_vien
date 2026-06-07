@@ -9,6 +9,7 @@ import Services from './components/Services';
 import News from './components/News';
 import Footer from './components/Footer';
 import AdminLayout from './layouts/AdminLayout';
+import Chatbot from './components/Chatbot';
 
 // Pages
 import Login from './pages/Login';
@@ -20,7 +21,7 @@ import Pricing from './pages/Pricing';
 
 
 const LandingPage = () => (
-  <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-800">
+  <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-800 relative">
     <Header />
     <main className="flex-grow">
       <Hero />
@@ -44,25 +45,30 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/booking" element={<Booking />} />
-          <Route path="/doctors" element={<Doctors />} />
-          <Route path="/pricing" element={<Pricing />} />
+        <div className="relative">
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/booking" element={<Booking />} />
+            <Route path="/doctors" element={<Doctors />} />
+            <Route path="/pricing" element={<Pricing />} />
 
-          {/* Protected Admin/Doctor Routes */}
-          <Route path="/dashboard" element={
-            <PrivateRoute>
-              <AdminLayout />
-            </PrivateRoute>
-          }>
-            <Route index element={<Dashboard />} />
-            {/* Thêm các route khác như /dashboard/patients ở đây sau này */}
-          </Route>
-        </Routes>
+            {/* Protected Admin/Doctor Routes */}
+            <Route path="/dashboard" element={
+              <PrivateRoute>
+                <AdminLayout />
+              </PrivateRoute>
+            }>
+              <Route index element={<Dashboard />} />
+              {/* Thêm các route khác như /dashboard/patients ở đây sau này */}
+            </Route>
+          </Routes>
+          
+          {/* Nhúng Chatbot toàn cục */}
+          <Chatbot />
+        </div>
       </AuthProvider>
     </BrowserRouter>
   );

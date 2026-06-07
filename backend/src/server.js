@@ -17,12 +17,14 @@ const io = new Server(server, {
 // Routes
 
 const authRoutes = require("./routes/authRoutes");
+const chatRoutes = require("./routes/chatRoutes");
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
+app.use("/api/chat", chatRoutes);
 
 // Socket.io Setup for real-time notifications/chat
 io.on("connection", (socket) => {
