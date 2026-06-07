@@ -31,7 +31,9 @@ const Chatbot = () => {
 
     try {
       // Chuyển lịch sử sang định dạng Gemini cần (chỉ lấy role user/model và text)
-      const history = messages.map(msg => ({
+      // Gemini yêu cầu message đầu tiên TRONG LỊCH SỬ phải là user, nên ta sẽ bỏ qua câu chào đầu tiên của model
+      const historyToPass = messages.slice(1);
+      const history = historyToPass.map(msg => ({
         role: msg.role,
         parts: [{ text: msg.text }]
       }));
