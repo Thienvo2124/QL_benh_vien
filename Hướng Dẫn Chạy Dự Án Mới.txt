@@ -3,7 +3,7 @@ dự án đã chia làm 2 phần, bạn sẽ cần chạy riêng biệt cả hai
 
 Chạy Backend (Cổng 5000 mặc định):
 
-cd c:\Users\ADMIN\Documents\GitHub\QL_benh_vien\backend
+cd backend
 
 node src/server.js
 
