@@ -15,6 +15,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Booking from './pages/Booking';
+import Doctors from './pages/Doctors';
+import Pricing from './pages/Pricing';
 
 
 const LandingPage = () => (
@@ -48,6 +50,8 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/booking" element={<Booking />} />
+          <Route path="/doctors" element={<Doctors />} />
+          <Route path="/pricing" element={<Pricing />} />
 
           {/* Protected Admin/Doctor Routes */}
           <Route path="/dashboard" element={

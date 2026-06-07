@@ -28,7 +28,7 @@ const Hero = () => {
             >
             Đặt Hẹn Khám
             </Link>
-            <a href="#" className="bg-white hover:bg-gray-100 text-[#004e92] font-bold py-3 px-8 rounded-full shadow-lg transition-transform transform hover:-translate-y-1">
+            <a href="/doctors" className="bg-white hover:bg-gray-100 text-[#004e92] font-bold py-3 px-8 rounded-full shadow-lg transition-transform transform hover:-translate-y-1">
               Tìm Bác Sĩ
             </a>
           </div>
