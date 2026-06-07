@@ -14,6 +14,8 @@ import AdminLayout from './layouts/AdminLayout';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import Booking from './pages/Booking';
+
 
 const LandingPage = () => (
   <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-800">
@@ -45,6 +47,7 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/booking" element={<Booking />} />
 
           {/* Protected Admin/Doctor Routes */}
           <Route path="/dashboard" element={

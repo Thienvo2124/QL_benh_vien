@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const Hero = () => {
   return (
@@ -21,9 +22,12 @@ const Hero = () => {
             Bệnh viện Đa khoa loại I trực thuộc Sở Y tế TP.HCM. Chăm sóc sức khỏe toàn diện, tận tâm và chuyên nghiệp.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-            <a href="#" className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-transform transform hover:-translate-y-1">
-              Đặt Hẹn Khám
-            </a>
+            <Link
+              to="/booking"
+              className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-transform transform hover:-translate-y-1"
+            >
+            Đặt Hẹn Khám
+            </Link>
             <a href="#" className="bg-white hover:bg-gray-100 text-[#004e92] font-bold py-3 px-8 rounded-full shadow-lg transition-transform transform hover:-translate-y-1">
               Tìm Bác Sĩ
             </a>
