@@ -11,7 +11,7 @@ const Services = () => {
         </svg>
       ),
       color: "bg-blue-500",
-      link: "#"
+      link: "/procedures"
     },
     {
       title: "Lịch khám chữa bệnh",
