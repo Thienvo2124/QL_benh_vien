@@ -16,6 +16,7 @@ import Doctors from './pages/Doctors';
 import Pricing from './pages/Pricing';
 import Procedures from './pages/Procedures';
 import Training from './pages/Training';
+import DepartmentDetail from './pages/DepartmentDetail';
 
 const LandingPage = () => (
   <>
@@ -48,6 +49,7 @@ export default function App() {
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/procedures" element={<Procedures />} />
           <Route path="/training" element={<Training />} />
+          <Route path="/departmentdetail/:slug" element={<DepartmentDetail />}/>
 
           <Route path="/dashboard" element={
             <PrivateRoute>
