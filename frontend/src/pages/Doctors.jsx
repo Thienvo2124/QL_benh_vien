@@ -23,16 +23,16 @@ const Doctors = () => {
           <h1 className="text-4xl font-extrabold text-white uppercase tracking-wide mb-3">Đội Ngũ Bác Sĩ</h1>
           <p className="text-blue-100 text-lg mb-6">Chuyên môn cao, tận tâm với người bệnh</p>
           <input
-  type="text"
-  placeholder="🔍 Tìm kiếm tên bác sĩ..."
-  value={search}
-  onChange={e => setSearch(e.target.value)}
-  className="w-full max-w-md px-5 py-3 rounded-full 
-  bg-transparent text-white placeholder-white
-  border border-white
-  focus:outline-none focus:ring-2 focus:ring-white/50
-  transition-all"
-/>
+            type="text"
+            placeholder="🔍 Tìm kiếm tên bác sĩ..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full max-w-md px-5 py-3 rounded-full 
+            bg-transparent text-white placeholder-white
+            border border-white
+            focus:outline-none focus:ring-2 focus:ring-white/50
+            transition-all"
+          />
         </div>
       </section>
 

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from "react-router-dom";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -42,7 +43,9 @@ const Header = () => {
           <a href="/" className="hover:text-[#004e92] transition-colors border-b-2 border-transparent hover:border-[#004e92] pb-1">Trang Chủ</a>
           <a href="#" className="hover:text-[#004e92] transition-colors pb-1">Giới thiệu</a>
           <a href="#" className="hover:text-[#004e92] transition-colors pb-1">Khám Chữa Bệnh</a>
-          <a href="#" className="hover:text-[#004e92] transition-colors pb-1">Đào Tạo</a>
+          <Link to="/training" className="hover:text-[#004e92] transition-colors pb-1">
+  Đào Tạo
+</Link>
           <a href="#" className="hover:text-[#004e92] transition-colors pb-1">Hoạt Động</a>
           <a href="#" className="hover:text-[#004e92] transition-colors pb-1">Thủ Tục Hành Chính</a>
           <a href="#" className="hover:text-[#004e92] transition-colors pb-1">Liên Hệ</a>
@@ -72,7 +75,9 @@ const Header = () => {
           <a href="/" className="p-4 border-b border-gray-200 hover:bg-gray-100">Trang Chủ</a>
           <a href="#" className="p-4 border-b border-gray-200 hover:bg-gray-100">Giới thiệu</a>
           <a href="#" className="p-4 border-b border-gray-200 hover:bg-gray-100">Khám Chữa Bệnh</a>
-          <a href="#" className="p-4 border-b border-gray-200 hover:bg-gray-100">Đào Tạo</a>
+          <Link to="/training" className="p-4 border-b border-gray-200 hover:bg-gray-100">
+  Đào Tạo
+</Link>
           <a href="#" className="p-4 border-b border-gray-200 hover:bg-gray-100">Hoạt Động</a>
           <a href="#" className="p-4 border-b border-gray-200 hover:bg-gray-100">Thủ Tục Hành Chính</a>
           <a href="/login" className="p-4 border-b border-gray-200 hover:bg-gray-100 text-[#004e92] font-bold">Đăng Nhập</a>

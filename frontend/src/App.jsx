@@ -15,6 +15,7 @@ import Booking from './pages/Booking';
 import Doctors from './pages/Doctors';
 import Pricing from './pages/Pricing';
 import Procedures from './pages/Procedures';
+import Training from './pages/Training';
 
 const LandingPage = () => (
   <>
@@ -46,6 +47,7 @@ export default function App() {
           <Route path="/doctors" element={<Doctors />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/procedures" element={<Procedures />} />
+          <Route path="/training" element={<Training />} />
 
           <Route path="/dashboard" element={
             <PrivateRoute>
