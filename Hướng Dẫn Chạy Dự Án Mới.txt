@@ -1,18 +1,44 @@
-Hướng Dẫn Chạy Dự Án 
-dự án đã chia làm 2 phần, bạn sẽ cần chạy riêng biệt cả hai:
+HƯỚNG DẪN CHẠY DỰ ÁN
 
-Chạy Backend (Cổng 5000 mặc định):
+Dự án chia làm 2 phần: backend và frontend. Cần chạy riêng 2 terminal.
+
+1. Biến môi trường backend
+
+Tạo file backend/.env với nội dung mẫu:
+
+PORT=5000
+MONGO_URI=mongodb://localhost:27017/ql_benhvien
+JWT_SECRET=doi_chuoi_bi_mat_nay
+GEMINI_API_KEY=your_gemini_api_key
+
+2. Chạy backend
 
 cd backend
+npm install
+npm start
 
-node src/server.js
+Backend mặc định chạy ở:
+http://localhost:5000
 
+3. Biến môi trường frontend
 
-Chạy Frontend (Cổng Vite 5173 mặc định): Mở một cửa sổ Terminal MỚI:
+Tạo file frontend/.env nếu muốn cấu hình API URL:
+
+VITE_API_URL=http://localhost:5000
+
+4. Chạy frontend
 
 cd frontend
-
+npm install
 npm run dev
 
+Frontend Vite thường chạy ở:
+http://localhost:5173
 
-có thể mở đường dẫn hiển thị trên Terminal của Vite (thường là http://localhost:5173) để xem giao diện trang Dashboard React + Tailwind mới nhất!
+5. Kiểm tra nhanh
+
+- Trang chủ: http://localhost:5173
+- Đăng ký: http://localhost:5173/register
+- Đăng nhập: http://localhost:5173/login
+- Đặt lịch: http://localhost:5173/booking
+- API backend: http://localhost:5000
