@@ -18,6 +18,7 @@ const io = new Server(server, {
 
 const authRoutes = require("./routes/authRoutes");
 const chatRoutes = require("./routes/chatRoutes");
+const patientRoutes = require("./routes/patientRoutes");
 
 // Middleware
 app.use(cors());
@@ -25,6 +26,7 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/patients", patientRoutes);
 
 // Socket.io Setup for real-time notifications/chat
 io.on("connection", (socket) => {
