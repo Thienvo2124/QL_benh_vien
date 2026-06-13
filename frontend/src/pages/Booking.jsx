@@ -23,6 +23,7 @@ const Booking = () => {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(initialForm);
   const [code, setCode] = useState('');
+  const [error, setError] = useState('');
 
   const set = (key, value) => setForm((current) => ({ ...current, [key]: value }));
   const selectedDept = departments.find((dept) => dept.name === form.dept);
@@ -126,7 +127,18 @@ const Booking = () => {
                       <label className="block text-sm font-semibold text-gray-700 mb-1">Mô tả triệu chứng</label>
                       <textarea rows={3} placeholder="Mô tả tình trạng sức khỏe của bạn..." className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#004e92] resize-none" value={form.reason} onChange={(e) => set('reason', e.target.value)} />
                     </div>
-                    <button onClick={() => setStep(2)} className="w-full bg-[#004e92] hover:bg-blue-800 text-white font-bold py-3 rounded-xl transition-colors">
+                    {error && step === 1 && <div className="text-red-500 text-sm font-medium">{error}</div>}
+                    <button 
+                      onClick={() => {
+                        if (!form.name.trim() || !form.phone.trim()) {
+                          setError('Vui lòng điền đầy đủ Họ và tên và Điện thoại!');
+                          return;
+                        }
+                        setError('');
+                        setStep(2);
+                      }} 
+                      className="w-full bg-[#004e92] hover:bg-blue-800 text-white font-bold py-3 rounded-xl transition-colors mt-2 shadow-md"
+                    >
                       Tiếp theo →
                     </button>
                   </div>
@@ -150,12 +162,25 @@ const Booking = () => {
                         </select>
                       </div>
                     )}
-                    <div className="bg-blue-50 border-l-4 border-[#004e92] rounded-r-lg p-4 text-sm text-gray-600">
+                    <div className="bg-blue-50 border-l-4 border-[#004e92] rounded-r-lg p-4 text-sm text-gray-600 mb-2">
                       AI sẽ gợi ý bác sĩ phù hợp dựa trên triệu chứng nếu bạn không chỉ định cụ thể.
                     </div>
+                    {error && step === 2 && <div className="text-red-500 text-sm font-medium">{error}</div>}
                     <div className="flex gap-3">
-                      <button onClick={() => setStep(1)} className="flex-1 border-2 border-[#004e92] text-[#004e92] font-bold py-3 rounded-xl hover:bg-blue-50 transition-colors">← Quay lại</button>
-                      <button onClick={() => setStep(3)} className="flex-[2] bg-[#004e92] hover:bg-blue-800 text-white font-bold py-3 rounded-xl transition-colors">Tiếp theo →</button>
+                      <button onClick={() => { setError(''); setStep(1); }} className="flex-1 border-2 border-[#004e92] text-[#004e92] font-bold py-3 rounded-xl hover:bg-blue-50 transition-colors">← Quay lại</button>
+                      <button 
+                        onClick={() => {
+                          if (!form.dept) {
+                            setError('Vui lòng chọn Chuyên khoa!');
+                            return;
+                          }
+                          setError('');
+                          setStep(3);
+                        }} 
+                        className="flex-[2] bg-[#004e92] hover:bg-blue-800 text-white font-bold py-3 rounded-xl transition-colors shadow-md"
+                      >
+                        Tiếp theo →
+                      </button>
                     </div>
                   </div>
                 )}
@@ -176,9 +201,22 @@ const Booking = () => {
                         ))}
                       </div>
                     </div>
-                    <div className="flex gap-3">
-                      <button onClick={() => setStep(2)} className="flex-1 border-2 border-[#004e92] text-[#004e92] font-bold py-3 rounded-xl hover:bg-blue-50 transition-colors">← Quay lại</button>
-                      <button onClick={() => setStep(4)} className="flex-[2] bg-[#004e92] hover:bg-blue-800 text-white font-bold py-3 rounded-xl transition-colors">Xem xác nhận →</button>
+                    {error && step === 3 && <div className="text-red-500 text-sm font-medium">{error}</div>}
+                    <div className="flex gap-3 mt-4">
+                      <button onClick={() => { setError(''); setStep(2); }} className="flex-1 border-2 border-[#004e92] text-[#004e92] font-bold py-3 rounded-xl hover:bg-blue-50 transition-colors">← Quay lại</button>
+                      <button 
+                        onClick={() => {
+                          if (!form.date || !form.time) {
+                            setError('Vui lòng chọn Ngày khám và Khung giờ!');
+                            return;
+                          }
+                          setError('');
+                          setStep(4);
+                        }} 
+                        className="flex-[2] bg-[#004e92] hover:bg-blue-800 text-white font-bold py-3 rounded-xl transition-colors shadow-md"
+                      >
+                        Xem xác nhận →
+                      </button>
                     </div>
                   </div>
                 )}

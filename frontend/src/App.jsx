@@ -18,6 +18,7 @@ import Pricing from './pages/Pricing';
 import Register from './pages/Register';
 import Schedule from './pages/Schedule';
 import Procedures from './pages/Procedures';
+import SpecialtyDetail from './pages/SpecialtyDetail';
 
 const LandingPage = () => (
   <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-800 relative">
@@ -55,6 +56,7 @@ function App() {
             <Route path="/procedures" element={<Procedures />} />
             <Route path="/doctors" element={<Doctors />} />
             <Route path="/pricing" element={<Pricing />} />
+            <Route path="/chuyen-khoa/:slug" element={<SpecialtyDetail />} />
 
             <Route
               path="/dashboard"
