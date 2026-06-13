@@ -22,6 +22,27 @@ const createUniqueAppointmentCode = async () => {
   return `BV${Date.now().toString().slice(-8)}`;
 };
 
+const normalizeText = (value) => (typeof value === "string" ? value.trim() : "");
+
+const startOfDay = (date) => {
+  const normalizedDate = new Date(date);
+  normalizedDate.setHours(0, 0, 0, 0);
+  return normalizedDate;
+};
+
+const parseDate = (value) => {
+  if (!value) {
+    return null;
+  }
+
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const [year, month, day] = value.split("-").map(Number);
+    return new Date(year, month - 1, day);
+  }
+
+  return new Date(value);
+};
+
 const validateRequiredFields = ({ name, phone, dept, date, time }) => {
   const missingFields = [];
 
@@ -36,9 +57,19 @@ const validateRequiredFields = ({ name, phone, dept, date, time }) => {
 
 router.post("/", async (req, res) => {
   try {
-    const { name, phone, dob, gender, dept, doctor, date, time, reason } = req.body;
-    const missingFields = validateRequiredFields({ name, phone, dept, date, time });
+    const payload = {
+      name: normalizeText(req.body.name),
+      phone: normalizeText(req.body.phone),
+      dob: req.body.dob,
+      gender: normalizeText(req.body.gender),
+      dept: normalizeText(req.body.dept),
+      doctor: normalizeText(req.body.doctor),
+      date: req.body.date,
+      time: normalizeText(req.body.time),
+      reason: normalizeText(req.body.reason),
+    };
 
+    const missingFields = validateRequiredFields(payload);
     if (missingFields.length > 0) {
       return res.status(400).json({
         message: "Vui lòng nhập đầy đủ thông tin đặt lịch.",
@@ -46,21 +77,46 @@ router.post("/", async (req, res) => {
       });
     }
 
-    const appointmentDate = new Date(date);
-    if (Number.isNaN(appointmentDate.getTime())) {
+    const appointmentDate = parseDate(payload.date);
+    if (!appointmentDate || Number.isNaN(appointmentDate.getTime())) {
       return res.status(400).json({ message: "Ngày khám không hợp lệ." });
     }
 
+    const today = startOfDay(new Date());
+    const normalizedAppointmentDate = startOfDay(appointmentDate);
+    if (normalizedAppointmentDate < today) {
+      return res.status(400).json({ message: "Không thể đặt lịch trong quá khứ." });
+    }
+
+    const dob = payload.dob ? parseDate(payload.dob) : undefined;
+    if (dob && Number.isNaN(dob.getTime())) {
+      return res.status(400).json({ message: "Ngày sinh không hợp lệ." });
+    }
+
+    const duplicateAppointment = await Appointment.exists({
+      dept: payload.dept,
+      doctor: payload.doctor,
+      date: normalizedAppointmentDate,
+      time: payload.time,
+      status: { $ne: "rejected" },
+    });
+
+    if (duplicateAppointment) {
+      return res.status(409).json({
+        message: "Khung giờ này đã có lịch hẹn. Vui lòng chọn thời gian khác.",
+      });
+    }
+
     const appointment = await Appointment.create({
-      name,
-      phone,
-      dob: dob ? new Date(dob) : undefined,
-      gender: gender || "",
-      dept,
-      doctor: doctor || "",
-      date: appointmentDate,
-      time,
-      reason: reason || "",
+      name: payload.name,
+      phone: payload.phone,
+      dob,
+      gender: payload.gender || "",
+      dept: payload.dept,
+      doctor: payload.doctor,
+      date: normalizedAppointmentDate,
+      time: payload.time,
+      reason: payload.reason,
       appointmentCode: await createUniqueAppointmentCode(),
     });
 
@@ -70,6 +126,10 @@ router.post("/", async (req, res) => {
       appointment,
     });
   } catch (error) {
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ message: "Dữ liệu đặt lịch không hợp lệ.", error: error.message });
+    }
+
     return res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 });
@@ -77,6 +137,8 @@ router.post("/", async (req, res) => {
 router.get("/", protect, adminOrDoctorOnly, async (req, res) => {
   try {
     const { status, date } = req.query;
+    const dept = normalizeText(req.query.dept);
+    const doctor = normalizeText(req.query.doctor);
     const filter = {};
 
     if (status) {
@@ -87,14 +149,23 @@ router.get("/", protect, adminOrDoctorOnly, async (req, res) => {
     }
 
     if (date) {
-      const start = new Date(date);
-      if (Number.isNaN(start.getTime())) {
+      const start = parseDate(date);
+      if (!start || Number.isNaN(start.getTime())) {
         return res.status(400).json({ message: "Ngày lọc không hợp lệ." });
       }
 
-      const end = new Date(start);
+      const normalizedStart = startOfDay(start);
+      const end = new Date(normalizedStart);
       end.setDate(end.getDate() + 1);
-      filter.date = { $gte: start, $lt: end };
+      filter.date = { $gte: normalizedStart, $lt: end };
+    }
+
+    if (dept) {
+      filter.dept = dept;
+    }
+
+    if (doctor) {
+      filter.doctor = doctor;
     }
 
     const appointments = await Appointment.find(filter)
