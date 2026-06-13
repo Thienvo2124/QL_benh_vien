@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import API_BASE_URL from '../config/api';
 import departments from '../data/departments';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -23,13 +24,39 @@ const Booking = () => {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(initialForm);
   const [code, setCode] = useState('');
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const set = (key, value) => setForm((current) => ({ ...current, [key]: value }));
+  const set = (key, value) => {
+    setError('');
+    setForm((current) => ({ ...current, [key]: value }));
+  };
   const selectedDept = departments.find((dept) => dept.name === form.dept);
 
-  const handleConfirm = () => {
-    setCode(`BV${Math.floor(Math.random() * 900000 + 100000)}`);
-    setStep(5);
+  const handleConfirm = async () => {
+    setError('');
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/appointments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Không thể đặt lịch khám. Vui lòng thử lại.');
+      }
+
+      setCode(data.appointmentCode);
+      setStep(5);
+    } catch (err) {
+      setError(err.message || 'Không thể kết nối đến máy chủ. Vui lòng thử lại.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const StepDot = ({ n }) => {
@@ -204,9 +231,16 @@ const Booking = () => {
                     <div className="bg-green-50 border-l-4 border-green-500 rounded-r-lg p-4 text-sm text-green-700 mb-6">
                       Sau khi xác nhận, hệ thống sẽ gửi thông tin lịch hẹn qua SMS và email trong vòng 5 phút.
                     </div>
+                    {error && (
+                      <div className="bg-red-50 border-l-4 border-red-500 rounded-r-lg p-4 text-sm text-red-700 mb-6">
+                        {error}
+                      </div>
+                    )}
                     <div className="flex gap-3">
-                      <button onClick={() => setStep(3)} className="flex-1 border-2 border-[#004e92] text-[#004e92] font-bold py-3 rounded-xl hover:bg-blue-50 transition-colors">← Quay lại</button>
-                      <button onClick={handleConfirm} className="flex-[2] bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-colors">Xác nhận đặt lịch</button>
+                      <button onClick={() => setStep(3)} disabled={isSubmitting} className="flex-1 border-2 border-[#004e92] text-[#004e92] font-bold py-3 rounded-xl hover:bg-blue-50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">← Quay lại</button>
+                      <button onClick={handleConfirm} disabled={isSubmitting} className="flex-[2] bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+                        {isSubmitting ? 'Đang gửi...' : 'Xác nhận đặt lịch'}
+                      </button>
                     </div>
                   </div>
                 )}
@@ -229,7 +263,7 @@ const Booking = () => {
                 Vui lòng đến trước giờ hẹn <strong>15 phút</strong> để làm thủ tục.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button onClick={() => { setStep(1); setForm(initialForm); }} className="px-6 py-3 border-2 border-[#004e92] text-[#004e92] font-bold rounded-xl hover:bg-blue-50 transition-colors">
+                <button onClick={() => { setStep(1); setForm(initialForm); setCode(''); setError(''); }} className="px-6 py-3 border-2 border-[#004e92] text-[#004e92] font-bold rounded-xl hover:bg-blue-50 transition-colors">
                   Đặt lịch khác
                 </button>
                 <Link to="/" className="px-6 py-3 bg-[#004e92] text-white font-bold rounded-xl hover:bg-blue-800 transition-colors">
