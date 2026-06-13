@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 const navItems = [
   ['/', 'Trang chủ'],
   ['/booking', 'Đặt lịch'],
+  ['/schedule', 'Lịch khám chữa bệnh'],
   ['/doctors', 'Bác sĩ'],
   ['/pricing', 'Bảng giá'],
 ];

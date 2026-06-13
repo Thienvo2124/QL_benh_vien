@@ -16,6 +16,7 @@ import Doctors from './pages/Doctors';
 import Login from './pages/Login';
 import Pricing from './pages/Pricing';
 import Register from './pages/Register';
+import Schedule from './pages/Schedule';
 
 const LandingPage = () => (
   <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-800 relative">
@@ -49,6 +50,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/booking" element={<Booking />} />
+            <Route path="/schedule" element={<Schedule />} />
             <Route path="/doctors" element={<Doctors />} />
             <Route path="/pricing" element={<Pricing />} />
 
