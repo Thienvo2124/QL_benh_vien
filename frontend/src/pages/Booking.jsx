@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import departments from '../data/departments';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 const steps = ['Thông tin cá nhân', 'Chọn khoa & bác sĩ', 'Chọn lịch', 'Xác nhận'];
 const times = ['07:30', '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '13:30', '14:00', '14:30', '15:00', '15:30'];
@@ -53,9 +55,11 @@ const Booking = () => {
   };
 
   return (
-    <>
-      <section className="bg-gradient-to-r from-[#004e92] to-[#1565c0] py-14 px-4">
-        <div className="container mx-auto">
+    <div className="min-h-screen flex flex-col font-sans text-gray-800">
+      <Header />
+      <div className="flex-grow">
+        <section className="bg-gradient-to-r from-[#004e92] to-[#1565c0] py-14 px-4">
+          <div className="container mx-auto">
           <h1 className="text-4xl font-extrabold text-white uppercase tracking-wide mb-2">Đặt lịch khám</h1>
           <p className="text-blue-100">Đặt hẹn trực tuyến nhanh chóng, nhận xác nhận qua SMS hoặc email</p>
         </div>
@@ -234,9 +238,11 @@ const Booking = () => {
               </div>
             </div>
           )}
-        </div>
-      </section>
-    </>
+          </div>
+        </section>
+      </div>
+      <Footer />
+    </div>
   );
 };
 
