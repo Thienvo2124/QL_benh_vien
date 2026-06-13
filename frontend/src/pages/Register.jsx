@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 import API_BASE_URL from '../config/api';
 
 const Register = () => {
@@ -38,8 +40,10 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+    <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
+      <Header />
+      <main className="flex-grow flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <Link to="/" className="flex justify-center text-3xl font-extrabold text-[#004e92]">
           Bệnh viện Nhân Dân
         </Link>
@@ -116,8 +120,10 @@ const Register = () => {
               </Link>
             </div>
           </div>
+          </div>
         </div>
-      </div>
+      </main>
+      <Footer />
     </div>
   );
 };
