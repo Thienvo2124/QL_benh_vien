@@ -7,6 +7,7 @@ import Hero from './components/Hero';
 import Services from './components/Services';
 import News from './components/News';
 import Footer from './components/Footer';
+import SocialWidget from './components/SocialWidget';
 
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -17,6 +18,7 @@ import Pricing from './pages/Pricing';
 import Procedures from './pages/Procedures';
 import Training from './pages/Training';
 import DepartmentDetail from './pages/DepartmentDetail';
+
 
 const LandingPage = () => (
   <>
@@ -58,6 +60,7 @@ export default function App() {
           } />
 
         </Routes>
+        <SocialWidget/>
       </AuthProvider>
     </BrowserRouter>
   );
