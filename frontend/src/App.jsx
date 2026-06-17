@@ -19,6 +19,10 @@ import Register from './pages/Register';
 import Schedule from './pages/Schedule';
 import Procedures from './pages/Procedures';
 import SpecialtyDetail from './pages/SpecialtyDetail';
+import Patients from './pages/Patients';
+import Appointments from './pages/Appointments';
+import Settings from './pages/Settings';
+import Users from './pages/Users';
 
 const LandingPage = () => (
   <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-800 relative">
@@ -67,6 +71,10 @@ function App() {
               }
             >
               <Route index element={<Dashboard />} />
+              <Route path="users" element={<Users />} />
+              <Route path="patients" element={<Patients />} />
+              <Route path="appointments" element={<Appointments />} />
+              <Route path="settings" element={<Settings />} />
             </Route>
           </Routes>
 
