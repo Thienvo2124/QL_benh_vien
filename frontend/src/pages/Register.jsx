@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import API_BASE_URL from '../config/api';
@@ -8,12 +9,25 @@ const Register = () => {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (password !== confirmPassword) {
+      setError('Mật khẩu xác nhận không khớp.');
+      return;
+    }
+    if (!agreeTerms) {
+      setError('Bạn cần đồng ý với các Điều khoản sử dụng.');
+      return;
+    }
+    
     setError('');
     setLoading(true);
 
@@ -85,13 +99,68 @@ const Register = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700">Mật khẩu</label>
-              <input
-                type="password"
-                required
-                className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#004e92] focus:border-[#004e92] sm:text-sm"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <div className="relative mt-1">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  className="appearance-none block w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#004e92] focus:border-[#004e92] sm:text-sm transition-colors"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-500"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Xác nhận mật khẩu</label>
+              <div className="relative mt-1">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  required
+                  className="appearance-none block w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#004e92] focus:border-[#004e92] sm:text-sm transition-colors"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-500"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="terms"
+                  name="terms"
+                  type="checkbox"
+                  className="focus:ring-[#004e92] h-4 w-4 text-[#004e92] border-gray-300 rounded cursor-pointer"
+                  checked={agreeTerms}
+                  onChange={(e) => setAgreeTerms(e.target.checked)}
+                />
+              </div>
+              <div className="ml-2 text-sm">
+                <label htmlFor="terms" className="text-gray-600 cursor-pointer">
+                  Tôi đồng ý với các{' '}
+                  <a href="#" className="font-medium text-[#004e92] hover:text-blue-500">
+                    Điều khoản sử dụng
+                  </a>
+                  {' '}và{' '}
+                  <a href="#" className="font-medium text-[#004e92] hover:text-blue-500">
+                    Chính sách bảo mật
+                  </a>
+                  .
+                </label>
+              </div>
             </div>
 
             <button
