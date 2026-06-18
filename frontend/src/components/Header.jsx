@@ -41,7 +41,12 @@ const Header = () => {
         {/* Desktop Menu */}
         <nav className="hidden lg:flex gap-6 font-medium text-gray-700 uppercase text-sm items-center">
           <a href="/" className="hover:text-[#004e92] transition-colors border-b-2 border-transparent hover:border-[#004e92] pb-1">Trang Chủ</a>
-          <a href="#" className="hover:text-[#004e92] transition-colors pb-1">Giới thiệu</a>
+          <Link
+  to="/aboutpage"
+  className="hover:text-[#004e92] transition-colors pb-1"
+>
+  Giới thiệu
+</Link>
           <Link to="/departmentdetail/tim-mach">
   Khám Chữa Bệnh
 </Link>
@@ -75,7 +80,12 @@ const Header = () => {
       {isMenuOpen && (
         <div className="lg:hidden bg-gray-50 border-t border-gray-200 flex flex-col uppercase text-sm font-semibold text-gray-700">
           <a href="/" className="p-4 border-b border-gray-200 hover:bg-gray-100">Trang Chủ</a>
-          <a href="#" className="p-4 border-b border-gray-200 hover:bg-gray-100">Giới thiệu</a>
+          <Link
+  to="/aboutpage"
+  className="p-4 border-b border-gray-200 hover:bg-gray-100"
+>
+  Giới thiệu
+</Link>
           <Link to="/departmentdetail/tim-mach">
   Khám Chữa Bệnh
 </Link>

@@ -13,13 +13,17 @@ const steps = [
 
 const Procedures = () => (
   <>
-    <section className="bg-gradient-to-r from-[#004e92] to-[#1565c0] py-14 px-4">
-      <div className="container mx-auto">
-        <h1 className="text-4xl font-extrabold text-white uppercase tracking-wide mb-2">Quy Trình Khám Bệnh</h1>
-        <p className="text-blue-100">7 bước đơn giản, rõ ràng, nhanh chóng</p>
-      </div>
-    </section>
+    <section className="bg-gradient-to-r from-[#004e92] to-[#1565c0] py-8 px-4">
+  <div className="container mx-auto">
+    <h1 className="text-4xl font-extrabold text-white uppercase tracking-wide mb-2">
+      QUY TRÌNH KHÁM BỆNH
+    </h1>
 
+    <p className="text-blue-100 text-lg">
+      7 bước đơn giản, rõ ràng, nhanh chóng
+    </p>
+  </div>
+</section>
     <div className="bg-gray-100 px-4 py-3 text-sm text-gray-500 border-b">
       <div className="container mx-auto">
         <Link to="/" className="hover:text-[#004e92]">Trang chủ</Link>

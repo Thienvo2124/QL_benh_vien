@@ -12,12 +12,16 @@ const categories = [
 
 const Pricing = () => (
   <>
-    <section className="bg-gradient-to-r from-[#004e92] to-[#1565c0] py-14 px-4">
-      <div className="container mx-auto">
-        <h1 className="text-4xl font-extrabold text-white uppercase tracking-wide mb-2">Bảng Giá Dịch Vụ</h1>
-        <p className="text-blue-100">Minh bạch, hợp lý theo quy định Bộ Y tế</p>
-      </div>
-    </section>
+    <section className="bg-gradient-to-r from-[#004e92] to-[#1565c0] py-6 px-4">
+  <div className="container mx-auto">
+    <h1 className="text-4xl font-extrabold text-white uppercase tracking-wide mb-3">
+      Bảng Giá Dịch Vụ
+    </h1>
+    <p className="text-blue-100 text-lg">
+      Minh bạch, hợp lý theo quy định Bộ Y tế
+    </p>
+  </div>
+</section>
 
     <div className="bg-gray-100 px-4 py-3 text-sm text-gray-500 border-b">
       <div className="container mx-auto">

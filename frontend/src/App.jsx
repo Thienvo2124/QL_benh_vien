@@ -18,15 +18,14 @@ import Pricing from './pages/Pricing';
 import Procedures from './pages/Procedures';
 import Training from './pages/Training';
 import DepartmentDetail from './pages/DepartmentDetail';
+import AboutPage from './pages/AboutPage';
 
 
 const LandingPage = () => (
   <>
-    <Header />
     <Hero />
     <Services />
     <News />
-    <Footer />
   </>
 );
 
@@ -39,6 +38,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <Header />
         <Routes>
 
           <Route path="/" element={<LandingPage />} />
@@ -52,6 +52,7 @@ export default function App() {
           <Route path="/procedures" element={<Procedures />} />
           <Route path="/training" element={<Training />} />
           <Route path="/departmentdetail/:slug" element={<DepartmentDetail />}/>
+          <Route path="/aboutpage" element={<AboutPage />} />
 
           <Route path="/dashboard" element={
             <PrivateRoute>
@@ -61,6 +62,7 @@ export default function App() {
 
         </Routes>
         <SocialWidget/>
+         <Footer />
       </AuthProvider>
     </BrowserRouter>
   );

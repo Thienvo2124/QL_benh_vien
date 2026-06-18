@@ -1,27 +1,65 @@
 /* ================================================================
-   SocialWidget.css  —  Floating social buttons
-   FIX: dùng will-change + isolation để scale KHÔNG ảnh hưởng trang
-   3 nút trên: rung lắc + pulse ring
-   Nút AI: đứng yên hoàn toàn
+   SocialWidget.css — v3
+   FIX: chat window absolute, không đẩy nút, không bị khuất
 ================================================================ */
 
-/* ── Wrapper toàn bộ widget — isolate khỏi trang ── */
+/* ── Wrapper: chỉ chứa 4 nút, cố định góc phải ── */
 .sw-root {
   position: fixed;
-  bottom: 88px;      /* trên mobile bottom bar */
+  bottom: 88px;
   right: 16px;
   z-index: 9999;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  /* QUAN TRỌNG: isolate stacking context, ngăn scale lan ra ngoài */
+  gap: 10px;
   isolation: isolate;
   contain: layout style;
 }
 
 @media (min-width: 1024px) {
   .sw-root { bottom: 24px; }
+}
+
+/* ── Chat window: TÁCH KHỎI FLOW — absolute từ góc phải dưới ── */
+.sw-chat {
+  position: fixed;           /* fixed, không phụ thuộc sw-root */
+  bottom: 88px;
+  right: 76px;               /* cạnh trái của cột nút (52px nút + 12px gap + 12px margin) */
+  width: 360px;
+  max-width: calc(100vw - 92px);
+  height: 500px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  z-index: 9998;             /* dưới nút 1 bậc để không che tooltip */
+  animation: sw-slide-in 0.22s cubic-bezier(0.34,1.2,0.64,1);
+  transform-origin: bottom right;
+}
+
+@media (min-width: 1024px) {
+  .sw-chat { bottom: 24px; }
+}
+
+/* mobile: chat full chiều ngang */
+@media (max-width: 480px) {
+  .sw-chat {
+    width: calc(100vw - 20px);
+    right: 10px;
+    bottom: 160px;
+    max-height: 70vh;
+    height: auto;
+    min-height: 380px;
+  }
+}
+
+@keyframes sw-slide-in {
+  from { opacity:0; transform: scale(0.88) translateX(20px); }
+  to   { opacity:1; transform: scale(1)    translateX(0);    }
 }
 
 /* ── Nút chung ── */
@@ -37,77 +75,69 @@
   border: none;
   text-decoration: none;
   flex-shrink: 0;
-  /* will-change giúp browser tạo composite layer riêng → scale không ảnh hưởng layout */
   will-change: transform;
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1);
 }
 
-.sw-btn:hover {
-  transform: scale(1.12);
-}
+.sw-btn:hover { transform: scale(1.12); }
 
-/* ── Màu từng nút ── */
+/* Màu nút */
 .sw-btn-phone {
   background: #004e92;
-  box-shadow: 0 6px 20px rgba(0, 78, 146, 0.45);
+  box-shadow: 0 5px 18px rgba(0,78,146,0.45);
   color: white;
 }
-
 .sw-btn-messenger {
   background: transparent;
-  box-shadow: 0 6px 20px rgba(0, 132, 255, 0.35);
+  box-shadow: 0 5px 18px rgba(0,132,255,0.35);
   padding: 0;
   overflow: hidden;
 }
-
 .sw-btn-zalo {
   background: transparent;
-  box-shadow: 0 6px 20px rgba(0, 104, 255, 0.35);
+  box-shadow: 0 5px 18px rgba(0,104,255,0.35);
   padding: 0;
   overflow: hidden;
 }
-
+.sw-btn-chat-closed {
+  background: linear-gradient(135deg,#004e92 0%,#0099ff 100%);
+  box-shadow: 0 5px 18px rgba(0,78,146,0.45);
+  color: white;
+}
 .sw-btn-chat-open {
   background: #ef4444;
-  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.45);
+  box-shadow: 0 5px 18px rgba(239,68,68,0.45);
   color: white;
 }
 
-.sw-btn-chat-closed {
-  background: linear-gradient(135deg, #004e92 0%, #0099ff 100%);
-  box-shadow: 0 6px 20px rgba(0, 78, 146, 0.45);
-  color: white;
-}
-
-/* ── HIỆU ỨNG RUNG LẮC — chỉ áp dụng cho 3 nút đầu ── */
+/* ── Rung lắc 3 nút đầu ── */
 @keyframes sw-shake {
-  0%, 80%, 100% { transform: rotate(0deg); }
-  83%            { transform: rotate(-13deg); }
-  86%            { transform: rotate(13deg); }
-  89%            { transform: rotate(-9deg); }
-  92%            { transform: rotate(9deg); }
-  95%            { transform: rotate(-4deg); }
-  98%            { transform: rotate(4deg); }
+  0%,80%,100% { transform:rotate(0deg); }
+  83%          { transform:rotate(-13deg); }
+  86%          { transform:rotate(13deg); }
+  89%          { transform:rotate(-9deg); }
+  92%          { transform:rotate(9deg); }
+  95%          { transform:rotate(-4deg); }
+  98%          { transform:rotate(4deg); }
 }
 
-/* Khi hover thì pause rung, chỉ scale */
 .sw-shake {
   animation: sw-shake 3s ease-in-out infinite;
-  transform-origin: center center;
+  transform-origin: center;
 }
 .sw-shake:hover {
   animation: none;
   transform: scale(1.12);
 }
 
-.sw-btn-phone     { animation-delay: 0s;    }
-.sw-btn-messenger { animation-delay: 0.9s;  }
-.sw-btn-zalo      { animation-delay: 1.8s;  }
+.sw-btn-phone     { animation-delay: 0s;   }
+.sw-btn-messenger { animation-delay: 0.9s; }
+.sw-btn-zalo      { animation-delay: 1.8s; }
 
-/* ── VÒNG SÓNG PULSE — chỉ 3 nút rung ── */
+/* ── Vòng pulse ── */
 @keyframes sw-pulse {
-  0%   { transform: scale(1);    opacity: 0.6; }
-  100% { transform: scale(2.1);  opacity: 0;   }
+  0%   { transform:scale(1);   opacity:0.6; }
+  100% { transform:scale(2.1); opacity:0;   }
 }
 
 .sw-pulse-wrap {
@@ -115,12 +145,10 @@
   inset: 0;
   border-radius: 9999px;
   pointer-events: none;
-  /* pseudo-element sóng */
 }
-
 .sw-pulse-wrap::before,
 .sw-pulse-wrap::after {
-  content: "";
+  content:"";
   position: absolute;
   inset: -6px;
   border-radius: 9999px;
@@ -128,229 +156,183 @@
   animation: sw-pulse 2s ease-out infinite;
   pointer-events: none;
 }
+.sw-pulse-wrap::after { animation-delay: 1s; }
 
-.sw-pulse-wrap::after {
-  animation-delay: 1s;
-}
+.sw-btn-phone     .sw-pulse-wrap { color: rgba(0,78,146,0.5);   }
+.sw-btn-messenger .sw-pulse-wrap { color: rgba(0,132,255,0.45); }
+.sw-btn-zalo      .sw-pulse-wrap { color: rgba(0,104,255,0.45); }
 
-/* Màu sóng từng nút */
-.sw-btn-phone   .sw-pulse-wrap { color: rgba(0, 78, 146, 0.5); }
-.sw-btn-messenger .sw-pulse-wrap { color: rgba(0, 132, 255, 0.45); }
-.sw-btn-zalo    .sw-pulse-wrap { color: rgba(0, 104, 255, 0.45); }
-
-/* ── TOOLTIP ── */
+/* ── Tooltip ── */
 .sw-tooltip {
   position: absolute;
-  right: calc(100% + 12px);
+  right: calc(100% + 10px);
   top: 50%;
   transform: translateY(-50%);
   background: #1e293b;
   color: #fff;
   font-size: 11px;
   font-weight: 600;
-  font-family: system-ui, sans-serif;
   white-space: nowrap;
   padding: 5px 10px;
   border-radius: 7px;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.18s;
-  will-change: opacity;
+  transition: opacity 0.15s;
+  font-family: system-ui,sans-serif;
 }
-
 .sw-tooltip::after {
-  content: "";
+  content:"";
   position: absolute;
-  left: 100%;
-  top: 50%;
+  left: 100%; top: 50%;
   transform: translateY(-50%);
   border: 5px solid transparent;
   border-left-color: #1e293b;
 }
+.sw-btn:hover .sw-tooltip { opacity: 1; }
 
-.sw-btn:hover .sw-tooltip {
-  opacity: 1;
-}
-
-/* ── BADGE AI ── */
+/* ── Badge AI ── */
 .sw-badge {
   position: absolute;
-  top: -4px;
-  right: -4px;
-  width: 18px;
-  height: 18px;
+  top: -4px; right: -4px;
+  width: 18px; height: 18px;
   background: #ef4444;
   color: #fff;
-  font-size: 8px;
-  font-weight: 900;
+  font-size: 8px; font-weight: 900;
   border-radius: 9999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
   pointer-events: none;
   box-shadow: 0 2px 6px rgba(239,68,68,0.5);
-  font-family: system-ui, sans-serif;
+  font-family: system-ui,sans-serif;
 }
 
-/* ── CHATBOT WINDOW ── */
-.sw-chat {
-  width: 360px;
-  max-width: calc(100vw - 32px);
-  height: 500px;
-  background: #fff;
-  border-radius: 18px;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.18);
-  border: 1px solid #e5e7eb;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 12px;
-  /* Animation xuất hiện */
-  animation: sw-slide-up 0.22s ease-out;
-  transform-origin: bottom right;
-}
-
-@keyframes sw-slide-up {
-  from { opacity: 0; transform: scale(0.92) translateY(12px); }
-  to   { opacity: 1; transform: scale(1)    translateY(0);    }
-}
-
+/* ── Chat header ── */
 .sw-chat-header {
-  background: linear-gradient(90deg, #004e92 0%, #0066cc 100%);
+  background: linear-gradient(90deg,#004e92 0%,#0066cc 100%);
   padding: 14px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: flex; align-items: center; justify-content: space-between;
   flex-shrink: 0;
 }
 
+/* ── Messages area ── */
 .sw-chat-messages {
   flex: 1;
   padding: 14px;
   overflow-y: auto;
   background: #f4f7fb;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: flex; flex-direction: column; gap: 10px;
 }
 
-.sw-msg-bot  { display: flex; justify-content: flex-start; gap: 8px; }
-.sw-msg-user { display: flex; justify-content: flex-end; }
+.sw-msg-bot  { display:flex; justify-content:flex-start; gap:8px; }
+.sw-msg-user { display:flex; justify-content:flex-end; }
 
 .sw-bubble {
   max-width: 78%;
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: 13px; line-height: 1.6;
   white-space: pre-wrap;
   padding: 10px 14px;
   border-radius: 18px;
-  font-family: system-ui, sans-serif;
+  font-family: system-ui,sans-serif;
 }
-
 .sw-bubble-bot {
-  background: #fff;
-  color: #1f2937;
+  background: #fff; color: #1f2937;
   border-radius: 4px 18px 18px 18px;
   border: 1px solid #e5e7eb;
   box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
-
 .sw-bubble-user {
-  background: #004e92;
-  color: #fff;
+  background: #004e92; color: #fff;
   border-radius: 18px 4px 18px 18px;
 }
 
 .sw-avatar {
-  width: 28px;
-  height: 28px;
+  width: 28px; height: 28px;
   border-radius: 9999px;
   background: #004e92;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  align-self: flex-start;
-  margin-top: 2px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; align-self: flex-start; margin-top: 2px;
 }
 
-.sw-chat-input-row {
-  padding: 10px 12px;
-  background: #fff;
-  border-top: 1px solid #f0f0f0;
-  display: flex;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
+/* ── Quick reply bar ── */
 .sw-quick-bar {
   padding: 8px 12px;
   background: #fff;
   border-top: 1px solid #f0f0f0;
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  flex-shrink: 0;
+  display: flex; gap: 6px;
+  overflow-x: auto; flex-shrink: 0;
+  scrollbar-width: none;
 }
+.sw-quick-bar::-webkit-scrollbar { display: none; }
 
 .sw-quick-chip {
   flex-shrink: 0;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 11px; font-weight: 600;
   border: 1.5px solid #004e92;
-  color: #004e92;
-  background: transparent;
+  color: #004e92; background: transparent;
   border-radius: 9999px;
   padding: 4px 12px;
   cursor: pointer;
-  font-family: system-ui, sans-serif;
+  font-family: system-ui,sans-serif;
   transition: background 0.15s;
 }
-
 .sw-quick-chip:hover { background: #eff6ff; }
+
+/* ── Input row ── */
+.sw-chat-input-row {
+  padding: 10px 12px;
+  background: #fff;
+  border-top: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
 
 .sw-input {
   flex: 1;
   background: #f4f7fb;
   border: 1.5px solid #e5e7eb;
   border-radius: 9999px;
-  padding: 8px 16px;
+  padding: 9px 16px;
   font-size: 13px;
-  font-family: system-ui, sans-serif;
+  font-family: system-ui,sans-serif;
   outline: none;
   transition: border 0.15s;
   color: #1f2937;
+  width: 100%;
+  box-sizing: border-box;
 }
-
 .sw-input:focus { border-color: #004e92; }
 
 .sw-send-btn {
-  width: 36px;
-  height: 36px;
+  width: 36px; height: 36px;
   border-radius: 9999px;
-  background: #004e92;
-  color: #fff;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: #004e92; color: #fff;
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
   transition: background 0.15s;
 }
+.sw-send-btn:hover   { background: #003a6f; }
+.sw-send-btn:disabled { opacity:0.4; cursor:not-allowed; }
 
-.sw-send-btn:hover { background: #003a6f; }
-.sw-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-/* Typing dots */
+/* ── Typing dots ── */
 .sw-dot {
-  width: 7px;
-  height: 7px;
+  width: 7px; height: 7px;
   border-radius: 9999px;
   background: #9ca3af;
   animation: sw-bounce 1s infinite;
 }
 @keyframes sw-bounce {
-  0%, 80%, 100% { transform: translateY(0); }
-  40%            { transform: translateY(-5px); }
+  0%,80%,100% { transform:translateY(0); }
+  40%          { transform:translateY(-5px); }
+}
+
+/* ════════════════════════════════════════════════
+   FIX: đảm bảo chat window luôn hiện được, không bị
+   cha (.contain) clip mất khi chatOpen=true
+════════════════════════════════════════════════ */
+.sw-chat {
+  z-index: 10000 !important;  /* cao hơn .sw-root để chắc chắn nổi trên cùng */
+}
+
+/* Đảm bảo không bị ảnh hưởng bởi contain ở .sw-root cũ */
+.sw-root {
+  contain: none !important;   /* contain: layout có thể làm fixed con bị lệch trên Safari/Chrome cũ */
 }

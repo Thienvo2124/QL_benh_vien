@@ -39,7 +39,7 @@ const Booking = () => {
   return (
     <>
       {/* Hero */}
-      <section className="bg-gradient-to-r from-[#004e92] to-[#1565c0] py-14 px-4">
+      <section className="bg-gradient-to-r from-[#004e92] to-[#1565c0] py-6 px-4">
         <div className="container mx-auto">
           <h1 className="text-4xl font-extrabold text-white uppercase tracking-wide mb-2">Đặt Lịch Khám</h1>
           <p className="text-blue-100">Đặt hẹn trực tuyến nhanh chóng – nhận xác nhận qua SMS/Email</p>
@@ -47,13 +47,6 @@ const Booking = () => {
       </section>
 
       {/* Breadcrumb */}
-      <div className="bg-gray-100 px-4 py-3 text-sm text-gray-500 border-b">
-        <div className="container mx-auto">
-          <Link to="/" className="hover:text-[#004e92]">Trang chủ</Link>
-          <span className="mx-2">/</span>
-          <span className="text-gray-700 font-medium">Đặt lịch khám</span>
-        </div>
-      </div>
 
       <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-4 max-w-2xl">
