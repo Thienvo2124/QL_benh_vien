@@ -1,7 +1,6 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import departments from '../data/departments';
-import Breadcrumb from '../components/Breadcrumb';
 
 const DepartmentDetail = () => {
   const { slug } = useParams();
