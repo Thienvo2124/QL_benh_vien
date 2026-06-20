@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 
 const serviceItems = [
   {
-    title: 'Quy trình khám bệnh',
+    title: 'Chuyên khoa',
     description: 'Hướng dẫn chi tiết từng bước',
     color: 'bg-blue-500',
     link: '/procedures',

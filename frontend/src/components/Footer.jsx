@@ -42,7 +42,7 @@ const Footer = () => {
           <div>
             <h3 className="text-white text-lg font-bold mb-6 uppercase">Khám chữa bệnh</h3>
             <ul className="space-y-3 text-sm">
-              <li><Link to="/booking" className="hover:text-white hover:translate-x-1 inline-block transition-transform">Quy trình khám bệnh</Link></li>
+              <li><Link to="/procedures" className="hover:text-white hover:translate-x-1 inline-block transition-transform">Chuyên khoa</Link></li>
               <li><Link to="/doctors" className="hover:text-white hover:translate-x-1 inline-block transition-transform">Lịch bác sĩ</Link></li>
               <li><Link to="/booking" className="hover:text-white hover:translate-x-1 inline-block transition-transform">Đăng ký khám bệnh</Link></li>
               <li><Link to="/pricing" className="hover:text-white hover:translate-x-1 inline-block transition-transform">Chi phí dịch vụ</Link></li>

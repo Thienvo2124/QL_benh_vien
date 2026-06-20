@@ -1,10 +1,11 @@
 import { useContext } from 'react';
-import { Link, Outlet } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import { Activity, Calendar, Home, LogOut, Settings, Users } from 'lucide-react';
 import { AuthContext } from '../contexts/AuthContext';
 
 const AdminLayout = () => {
   const { user, logout } = useContext(AuthContext);
+  const location = useLocation();
 
   return (
     <div className="min-h-screen bg-gray-100 flex font-sans">
@@ -15,19 +16,23 @@ const AdminLayout = () => {
         </div>
 
         <nav className="flex-1 px-4 py-6 space-y-2">
-          <Link to="/dashboard" className="flex items-center px-4 py-3 bg-blue-800 rounded-lg transition-colors">
+          <Link to="/dashboard" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
             <Home className="w-5 h-5 mr-3" />
             Tổng quan
           </Link>
-          <Link to="/dashboard/patients" className="flex items-center px-4 py-3 hover:bg-blue-800 rounded-lg transition-colors">
+          <Link to="/dashboard/users" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/users' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
+            <Users className="w-5 h-5 mr-3" />
+            Người dùng
+          </Link>
+          <Link to="/dashboard/patients" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/patients' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
             <Users className="w-5 h-5 mr-3" />
             Bệnh nhân
           </Link>
-          <Link to="/dashboard/appointments" className="flex items-center px-4 py-3 hover:bg-blue-800 rounded-lg transition-colors">
+          <Link to="/dashboard/appointments" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/appointments' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
             <Calendar className="w-5 h-5 mr-3" />
             Lịch hẹn
           </Link>
-          <Link to="/dashboard/settings" className="flex items-center px-4 py-3 hover:bg-blue-800 rounded-lg transition-colors">
+          <Link to="/dashboard/settings" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/settings' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
             <Settings className="w-5 h-5 mr-3" />
             Cài đặt
           </Link>
