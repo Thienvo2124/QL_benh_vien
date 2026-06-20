@@ -21,6 +21,7 @@ import DepartmentDetail from './pages/DepartmentDetail';
 import AboutPage from './pages/AboutPage';
 import SchedulePage from './pages/SchedulePage';
 import Contact from './pages/Contact';
+import AdminProcedures from './pages/AdminProcedures';
 
 
 const LandingPage = () => (
@@ -57,6 +58,7 @@ export default function App() {
           <Route path="/aboutpage" element={<AboutPage />} />
           <Route path="/schedulepage" element={<SchedulePage />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/adminprocedures" element={<AdminProcedures />} />
 
 
           <Route path="/dashboard" element={

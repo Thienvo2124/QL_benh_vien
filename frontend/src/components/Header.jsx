@@ -54,7 +54,9 @@ const Header = () => {
           Đào Tạo
           </Link>
           <a href="#" className="hover:text-[#004e92] transition-colors pb-1">Hoạt Động</a>
-          <a href="#" className="hover:text-[#004e92] transition-colors pb-1">Thủ Tục Hành Chính</a>
+           <Link to="/adminprocedures" className="hover:text-[#004e92] transition-colors pb-1">
+          Thủ tục hành chính
+          </Link>
           <Link to="/contact" className="hover:text-[#004e92] transition-colors pb-1">
          Liên hệ
           </Link>
@@ -95,7 +97,9 @@ const Header = () => {
             Đào Tạo
           </Link>
            <a href="#" className="p-4 border-b border-gray-200 hover:bg-gray-100">Hoạt động</a>
-          <a href="#" className="p-4 border-b border-gray-200 hover:bg-gray-100">Thủ Tục Hành Chính</a>
+          <Link to="/adminprocedures" className="p-4 border-b border-gray-200 hover:bg-gray-100">
+            Thủ tục hành chính
+          </Link>
           <a href="/login" className="p-4 border-b border-gray-200 hover:bg-gray-100 text-[#004e92] font-bold">Đăng Nhập</a>
           <a href="/register" className="p-4 border-b border-gray-200 hover:bg-gray-100 text-[#004e92] font-bold">Đăng Ký</a>
         </div>
