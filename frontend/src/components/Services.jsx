@@ -21,7 +21,7 @@ const Services = () => {
         </svg>
       ),
       color: "bg-teal-500",
-      link: "#"
+      link: "/schedulepage"
     },
     {
       title: "Bảng giá dịch vụ",

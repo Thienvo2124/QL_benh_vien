@@ -42,20 +42,22 @@ const Header = () => {
         <nav className="hidden lg:flex gap-6 font-medium text-gray-700 uppercase text-sm items-center">
           <a href="/" className="hover:text-[#004e92] transition-colors border-b-2 border-transparent hover:border-[#004e92] pb-1">Trang Chủ</a>
           <Link
-  to="/aboutpage"
-  className="hover:text-[#004e92] transition-colors pb-1"
->
-  Giới thiệu
-</Link>
+            to="/aboutpage"
+            className="hover:text-[#004e92] transition-colors pb-1"
+          >
+          Giới thiệu
+          </Link>
           <Link to="/departmentdetail/tim-mach">
-  Khám Chữa Bệnh
-</Link>
+            Khám Chữa Bệnh
+          </Link>
           <Link to="/training" className="hover:text-[#004e92] transition-colors pb-1">
-  Đào Tạo
-</Link>
+          Đào Tạo
+          </Link>
           <a href="#" className="hover:text-[#004e92] transition-colors pb-1">Hoạt Động</a>
           <a href="#" className="hover:text-[#004e92] transition-colors pb-1">Thủ Tục Hành Chính</a>
-          <a href="#" className="hover:text-[#004e92] transition-colors pb-1">Liên Hệ</a>
+          <Link to="/contact" className="hover:text-[#004e92] transition-colors pb-1">
+         Liên hệ
+          </Link>
           <div className="h-4 w-px bg-gray-300 mx-1"></div>
           <a href="/login" className="hover:text-[#004e92] transition-colors pb-1 text-[#004e92] font-bold">Đăng Nhập</a>
           <a href="/register" className="bg-[#004e92] text-white px-4 py-2 rounded-md hover:bg-blue-800 transition-colors">Đăng Ký</a>
@@ -81,18 +83,18 @@ const Header = () => {
         <div className="lg:hidden bg-gray-50 border-t border-gray-200 flex flex-col uppercase text-sm font-semibold text-gray-700">
           <a href="/" className="p-4 border-b border-gray-200 hover:bg-gray-100">Trang Chủ</a>
           <Link
-  to="/aboutpage"
-  className="p-4 border-b border-gray-200 hover:bg-gray-100"
->
-  Giới thiệu
-</Link>
+            to="/aboutpage"
+            className="p-4 border-b border-gray-200 hover:bg-gray-100"
+          >
+          Giới thiệu
+          </Link>
           <Link to="/departmentdetail/tim-mach">
-  Khám Chữa Bệnh
-</Link>
+            Khám Chữa Bệnh
+          </Link>
           <Link to="/training" className="p-4 border-b border-gray-200 hover:bg-gray-100">
-  Đào Tạo
-</Link>
-          <a href="#" className="p-4 border-b border-gray-200 hover:bg-gray-100">Hoạt Động</a>
+            Đào Tạo
+          </Link>
+           <a href="#" className="p-4 border-b border-gray-200 hover:bg-gray-100">Hoạt động</a>
           <a href="#" className="p-4 border-b border-gray-200 hover:bg-gray-100">Thủ Tục Hành Chính</a>
           <a href="/login" className="p-4 border-b border-gray-200 hover:bg-gray-100 text-[#004e92] font-bold">Đăng Nhập</a>
           <a href="/register" className="p-4 border-b border-gray-200 hover:bg-gray-100 text-[#004e92] font-bold">Đăng Ký</a>

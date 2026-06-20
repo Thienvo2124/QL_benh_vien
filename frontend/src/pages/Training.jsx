@@ -12,17 +12,17 @@ function Training() {
     <div style={{ fontFamily: "Arial, sans-serif" }}>
 
       {/* HERO */}
-      <section className="bg-gradient-to-r from-[#004e92] to-[#1565c0] py-6 px-4">
+      
+<section className="bg-gradient-to-r from-[#004e92] to-[#1565c0] py-6 px-4">
   <div className="container mx-auto">
     <h1 className="text-4xl font-extrabold text-white uppercase tracking-wide mb-3">
-      ĐÀO TẠO
+     ĐÀO TẠO
     </h1>
     <p className="text-blue-100 text-lg">
-      Nâng cao chuyên môn đội ngũ y tế
+     Nâng cao chuyên môn đội ngũ y tế
     </p>
   </div>
 </section>
-
       {/* CONTENT */}
       <div style={{ padding: "40px", background: "#f5f7fb" }}>
         <h2 style={{ fontSize: 24, fontWeight: "bold", marginBottom: 8 }}>

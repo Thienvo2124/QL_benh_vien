@@ -19,6 +19,8 @@ import Procedures from './pages/Procedures';
 import Training from './pages/Training';
 import DepartmentDetail from './pages/DepartmentDetail';
 import AboutPage from './pages/AboutPage';
+import SchedulePage from './pages/SchedulePage';
+import Contact from './pages/Contact';
 
 
 const LandingPage = () => (
@@ -53,6 +55,9 @@ export default function App() {
           <Route path="/training" element={<Training />} />
           <Route path="/departmentdetail/:slug" element={<DepartmentDetail />}/>
           <Route path="/aboutpage" element={<AboutPage />} />
+          <Route path="/schedulepage" element={<SchedulePage />} />
+          <Route path="/contact" element={<Contact />} />
+
 
           <Route path="/dashboard" element={
             <PrivateRoute>
