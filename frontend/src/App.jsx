@@ -8,6 +8,8 @@ import Services from './components/Services';
 import News from './components/News';
 import Footer from './components/Footer';
 import SocialWidget from './components/SocialWidget';
+import WhyChooseUs from './components/Whychooseus';
+import Testimonials from './components/Testimonials';
 
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -22,13 +24,16 @@ import AboutPage from './pages/AboutPage';
 import SchedulePage from './pages/SchedulePage';
 import Contact from './pages/Contact';
 import AdminProcedures from './pages/AdminProcedures';
+import Activities from './pages/Activities';
 
 
 const LandingPage = () => (
   <>
     <Hero />
     <Services />
+    <WhyChooseUs />
     <News />
+    <Testimonials />
   </>
 );
 
@@ -59,6 +64,7 @@ export default function App() {
           <Route path="/schedulepage" element={<SchedulePage />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/adminprocedures" element={<AdminProcedures />} />
+          <Route path="/activities" element={<Activities />} />
 
 
           <Route path="/dashboard" element={
