@@ -24,10 +24,7 @@ const AdminLayout = () => {
             <Users className="w-5 h-5 mr-3" />
             Người dùng
           </Link>
-          <Link to="/dashboard/patients" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/patients' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
-            <Users className="w-5 h-5 mr-3" />
-            Bệnh nhân
-          </Link>
+
           <Link to="/dashboard/appointments" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/appointments' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
             <Calendar className="w-5 h-5 mr-3" />
             Lịch hẹn
