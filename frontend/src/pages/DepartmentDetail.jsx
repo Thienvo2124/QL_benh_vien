@@ -44,18 +44,6 @@ const DepartmentDetail = () => {
         </div>
       </section>
 
-      <Breadcrumb
-        items={[
-          {
-            label: 'Khám chữa bệnh',
-            to: '/'
-          },
-          {
-            label: dept.name
-          }
-        ]}
-      />
-
       <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

@@ -28,56 +28,73 @@ const Header = ({
       </div>
 
       {/* Main Navbar */}
-      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+      <div className="container mx-auto px-4 h-24 flex justify-between items-center">
         {/* Logo Area */}
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-[#004e92] border-2 border-[#004e92]">
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-          </div>
-          <div>
-            <h1 className="text-xl md:text-2xl font-bold text-[#004e92] leading-tight uppercase tracking-wide">
-              Bệnh viện<br />Nhân dân
-            </h1>
-          </div>
+        <Link
+          to="/"
+          className="flex items-center gap-3 hover:opacity-90 transition"
+        >
+        <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-[#004e92] border-2 border-[#004e92]">
+        <svg
+          className="w-8 h-8"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+        />
+        </svg>
         </div>
 
-        {/* Desktop Menu */}
-        <nav className="hidden lg:flex gap-6 font-medium text-gray-700 uppercase text-sm items-center">
-          <Link
-  to="/"
-  className="p-4 border-b border-gray-200 hover:bg-gray-100"
->
-  Trang Chủ
-</Link>
-          <Link
-            to="/aboutpage"
-            className="hover:text-[#004e92] transition-colors pb-1"
-          >
-          Giới thiệu
-          </Link>
-          <Link to="/departmentdetail/tim-mach">
-            Khám Chữa Bệnh
-          </Link>
-          <Link to="/training" className="hover:text-[#004e92] transition-colors pb-1">
-          Đào Tạo
-          </Link>
-          <Link to="/activities" className="hover:text-[#004e92] transition-colors pb-1">
-          Hoạt động
-          </Link>
-           <Link to="/adminprocedures" className="hover:text-[#004e92] transition-colors pb-1">
-          Thủ tục hành chính
-          </Link>
-          <Link to="/contact" className="hover:text-[#004e92] transition-colors pb-1">
-         Liên hệ
-          </Link>
-          <div className="h-4 w-px bg-gray-300 mx-1"></div>
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold text-[#004e92] leading-tight uppercase tracking-wide">
+            Bệnh viện<br />
+            Nhân dân
+          </h1>
+        </div>
+        </Link>
 
-<button
-  onClick={onLogin}
-  className="bg-[#004e92] text-white px-5 py-2 rounded-lg hover:bg-blue-800 transition-all duration-300 font-semibold"
->
-  Đăng nhập
-</button>
+        {/* Desktop Menu */}
+        <nav className="hidden lg:flex items-center gap-8 font-medium text-gray-700 uppercase text-sm">
+          <Link to="/" className="hover:text-[#004e92] transition-colors">
+            Trang Chủ
+          </Link>
+
+          <Link to="/aboutpage" className="hover:text-[#004e92] transition-colors">
+            Giới thiệu
+          </Link>
+
+          <Link to="/departmentdetail/tim-mach" className="hover:text-[#004e92] transition-colors">
+            Khám chữa bệnh
+          </Link>
+
+          <Link to="/training" className="hover:text-[#004e92] transition-colors">
+            Đào tạo
+          </Link>
+
+          <Link to="/activities" className="hover:text-[#004e92] transition-colors">
+            Hoạt động
+          </Link>
+
+          <Link to="/adminprocedures" className="hover:text-[#004e92] transition-colors">
+            Thủ tục hành chính
+          </Link>
+
+          <Link to="/contact" className="hover:text-[#004e92] transition-colors">
+            Liên hệ
+          </Link>
+
+          <div className="h-4 w-px bg-gray-300 mx-1"></div>
+          <button
+            onClick={onLogin}
+            className="bg-[#004e92] text-white px-5 py-2 rounded-lg hover:bg-blue-800 transition-all duration-300 font-semibold"
+          >
+          Đăng nhập
+          </button>
         </nav>
 
         {/* Mobile Menu Button */}
@@ -99,11 +116,11 @@ const Header = ({
       {isMenuOpen && (
         <div className="lg:hidden bg-gray-50 border-t border-gray-200 flex flex-col uppercase text-sm font-semibold text-gray-700">
           <Link
-  to="/"
-  className="hover:text-[#004e92] transition-colors border-b-2 border-transparent hover:border-[#004e92] pb-1"
->
-  Trang Chủ
-</Link>
+            to="/"
+            className="hover:text-[#004e92] transition-colors border-b-2 border-transparent hover:border-[#004e92] pb-1"
+          >
+          Trang Chủ
+          </Link>
           <Link
             to="/aboutpage"
             className="p-4 border-b border-gray-200 hover:bg-gray-100"
@@ -123,20 +140,20 @@ const Header = ({
             Thủ tục hành chính
           </Link>
           <Link
-  to="/contact"
-  className="p-4 border-b border-gray-200 hover:bg-gray-100"
->
-  Liên hệ
-</Link>
+            to="/contact"
+            className="p-4 border-b border-gray-200 hover:bg-gray-100"
+          >
+          Liên hệ
+          </Link>
           <button
-  onClick={() => {
-    onLogin();
-    setIsMenuOpen(false);
-  }}
-  className="m-4 bg-[#004e92] text-white p-3 rounded-lg font-bold hover:bg-blue-800"
->
-  Đăng Nhập
-</button>
+            onClick={() => {
+            onLogin();
+            setIsMenuOpen(false);
+            }}
+            className="m-4 bg-[#004e92] text-white p-3 rounded-lg font-bold hover:bg-blue-800"
+          >
+          Đăng Nhập
+          </button>
         </div>
       )}
     </header>
