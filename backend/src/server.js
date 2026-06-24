@@ -21,6 +21,7 @@ const chatRoutes = require("./routes/chatRoutes");
 const patientRoutes = require("./routes/patientRoutes");
 const appointmentRoutes = require("./routes/appointmentRoutes");
 const userRoutes = require("./routes/userRoutes");
+const medicineRoutes = require("./routes/medicineRoutes");
 
 // Middleware
 app.use(cors());
@@ -31,6 +32,7 @@ app.use("/api/chat", chatRoutes);
 app.use("/api/patients", patientRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/medicines", medicineRoutes);
 
 // Socket.io Setup for real-time notifications/chat
 io.on("connection", (socket) => {

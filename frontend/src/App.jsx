@@ -23,6 +23,7 @@ import Patients from './pages/Patients';
 import Appointments from './pages/Appointments';
 import Settings from './pages/Settings';
 import Users from './pages/Users';
+import Medicines from './pages/Medicines';
 
 const LandingPage = () => (
   <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-800 relative">
@@ -74,6 +75,7 @@ function App() {
               <Route path="users" element={<Users />} />
               <Route path="patients" element={<Patients />} />
               <Route path="appointments" element={<Appointments />} />
+              <Route path="medicines" element={<Medicines />} />
               <Route path="settings" element={<Settings />} />
             </Route>
           </Routes>

@@ -35,7 +35,7 @@ const handleChat = async (req, res) => {
     });
   } catch (error) {
     console.error("Chatbot error:", error);
-    return res.status(500).json({ success: false, message: "Lỗi khi gọi AI. Vui lòng thử lại sau." });
+    return res.status(500).json({ success: false, message: `Lỗi khi gọi AI (${error.message || error}). Vui lòng kiểm tra lại Key hoặc kết nối mạng.` });
   }
 };
 
