@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { Activity, Calendar, Home, LogOut, Settings, Users } from 'lucide-react';
+import { Activity, Calendar, Home, LogOut, Settings, Users, Pill } from 'lucide-react';
 import { AuthContext } from '../contexts/AuthContext';
 
 const AdminLayout = () => {
@@ -24,13 +24,13 @@ const AdminLayout = () => {
             <Users className="w-5 h-5 mr-3" />
             Người dùng
           </Link>
-          <Link to="/dashboard/patients" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/patients' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
-            <Users className="w-5 h-5 mr-3" />
-            Bệnh nhân
-          </Link>
           <Link to="/dashboard/appointments" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/appointments' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
             <Calendar className="w-5 h-5 mr-3" />
             Lịch hẹn
+          </Link>
+          <Link to="/dashboard/medicines" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/medicines' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
+            <Pill className="w-5 h-5 mr-3" />
+            Kho thuốc
           </Link>
           <Link to="/dashboard/settings" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/settings' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
             <Settings className="w-5 h-5 mr-3" />

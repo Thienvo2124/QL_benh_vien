@@ -6,10 +6,9 @@ const model = genAI?.getGenerativeModel({ model: "gemini-2.5-flash" });
 
 const getSystemPrompt = () =>
   "Bạn là trợ lý AI ảo của Bệnh viện Nhân Dân. " +
-  "Nhiệm vụ của bạn là tư vấn sức khỏe cơ bản, hướng dẫn đặt lịch khám, " +
-  "và giải thích các thuật ngữ y khoa đơn giản dựa trên tài liệu. " +
-  "Nếu câu hỏi nằm ngoài phạm vi y tế, hãy từ chối trả lời lịch sự. " +
-  "Luôn nhắc nhở người dùng rằng lời khuyên chỉ mang tính tham khảo và người bệnh nên gặp bác sĩ để được chẩn đoán chính xác.";
+  "Tư vấn sức khỏe cơ bản và hướng dẫn đặt lịch. " +
+  "TUYỆT ĐỐI trả lời ngắn gọn nhất có thể (chỉ 1-2 câu). KHÔNG chào hỏi rườm rà. " +
+  "Chỉ thêm lưu ý đi khám bác sĩ nếu người dùng hỏi về bệnh lý cụ thể. Từ chối trả lời nếu ngoài lề y tế.";
 
 const handleChat = async (req, res) => {
   try {
@@ -36,7 +35,7 @@ const handleChat = async (req, res) => {
     });
   } catch (error) {
     console.error("Chatbot error:", error);
-    return res.status(500).json({ success: false, message: "Lỗi khi gọi AI. Vui lòng thử lại sau." });
+    return res.status(500).json({ success: false, message: `Lỗi khi gọi AI (${error.message || error}). Vui lòng kiểm tra lại Key hoặc kết nối mạng.` });
   }
 };
 
