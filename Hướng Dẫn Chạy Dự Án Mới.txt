@@ -18,28 +18,13 @@ npm install
 npm start
 node src/server.js
 
-Backend mặc định chạy ở:
-http://localhost:5000
-
-3. Biến môi trường frontend
-
-Tạo file frontend/.env nếu muốn cấu hình API URL:
-
-VITE_API_URL=http://localhost:5000
-
-4. Chạy frontend
+3. Chạy frontend
 
 cd frontend
 npm install
 npm run dev
 
-Frontend Vite thường chạy ở:
-http://localhost:5173
+4. mật khẩu admin
 
-5. Kiểm tra nhanh
-
-- Trang chủ: http://localhost:5173
-- Đăng ký: http://localhost:5173/register
-- Đăng nhập: http://localhost:5173/login
-- Đặt lịch: http://localhost:5173/booking
-- API backend: http://localhost:5000
+admin123@gmail.com
+123456
