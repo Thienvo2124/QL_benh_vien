@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
+import { AuthContext } from '../contexts/AuthContext';
 
 const navItems = [
   ['/', 'Trang chủ'],
@@ -11,6 +12,7 @@ const navItems = [
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, logout } = useContext(AuthContext);
 
   return (
     <header className="w-full font-sans shadow-md bg-white sticky top-0 z-50">
@@ -54,8 +56,30 @@ const Header = () => {
             </Link>
           ))}
           <div className="h-4 w-px bg-gray-300 mx-1" />
-          <Link to="/login" className="hover:text-[#004e92] transition-colors pb-1 text-[#004e92] font-bold">Đăng nhập</Link>
-          <Link to="/register" className="bg-[#004e92] text-white px-4 py-2 rounded-md hover:bg-blue-800 transition-colors">Đăng ký</Link>
+          {user ? (
+            <div className="flex items-center gap-4">
+              <div className="text-sm normal-case text-gray-600 font-semibold">
+                Xin chào, <span className="text-[#004e92]">{user.fullName || user.email?.split('@')[0] || 'Tài khoản'}</span>
+              </div>
+              <Link
+                to={user.role === 'admin' || user.role === 'doctor' ? '/dashboard' : '/booking'}
+                className="bg-[#004e92] text-white px-4 py-2 rounded-md hover:bg-blue-800 transition-colors font-bold text-xs uppercase shadow-sm"
+              >
+                {user.role === 'admin' || user.role === 'doctor' ? 'Bảng điều khiển' : 'Hồ sơ của tôi'}
+              </Link>
+              <button
+                onClick={logout}
+                className="border border-red-500 text-red-600 hover:bg-red-50 px-3 py-2 rounded-md transition-colors font-bold text-xs uppercase"
+              >
+                Đăng xuất
+              </button>
+            </div>
+          ) : (
+            <>
+              <Link to="/login" className="hover:text-[#004e92] transition-colors pb-1 text-[#004e92] font-bold">Đăng nhập</Link>
+              <Link to="/register" className="bg-[#004e92] text-white px-4 py-2 rounded-md hover:bg-blue-800 transition-colors">Đăng ký</Link>
+            </>
+          )}
         </nav>
 
         <button
@@ -80,8 +104,31 @@ const Header = () => {
               {label}
             </Link>
           ))}
-          <Link to="/login" onClick={() => setIsMenuOpen(false)} className="p-4 border-b border-gray-200 hover:bg-gray-100 text-[#004e92] font-bold">Đăng nhập</Link>
-          <Link to="/register" onClick={() => setIsMenuOpen(false)} className="p-4 border-b border-gray-200 hover:bg-gray-100 text-[#004e92] font-bold">Đăng ký</Link>
+          {user ? (
+            <>
+              <div className="p-4 border-b border-gray-200 bg-blue-50 normal-case text-gray-700 font-semibold">
+                Xin chào, <span className="text-[#004e92]">{user.fullName || user.email?.split('@')[0] || 'Tài khoản'}</span>
+              </div>
+              <Link
+                to={user.role === 'admin' || user.role === 'doctor' ? '/dashboard' : '/booking'}
+                onClick={() => setIsMenuOpen(false)}
+                className="p-4 border-b border-gray-200 hover:bg-gray-100 text-[#004e92] font-bold"
+              >
+                {user.role === 'admin' || user.role === 'doctor' ? 'Bảng điều khiển' : 'Hồ sơ của tôi'}
+              </Link>
+              <button
+                onClick={() => { logout(); setIsMenuOpen(false); }}
+                className="w-full text-left p-4 border-b border-gray-200 hover:bg-gray-100 text-red-600 font-bold"
+              >
+                Đăng xuất
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" onClick={() => setIsMenuOpen(false)} className="p-4 border-b border-gray-200 hover:bg-gray-100 text-[#004e92] font-bold">Đăng nhập</Link>
+              <Link to="/register" onClick={() => setIsMenuOpen(false)} className="p-4 border-b border-gray-200 hover:bg-gray-100 text-[#004e92] font-bold">Đăng ký</Link>
+            </>
+          )}
         </div>
       )}
     </header>
