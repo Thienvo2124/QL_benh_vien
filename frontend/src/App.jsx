@@ -24,6 +24,8 @@ import SchedulePage from "./pages/SchedulePage";
 import Contact from "./pages/Contact";
 import AdminProcedures from "./pages/AdminProcedures";
 import Activities from "./pages/Activities";
+import Appointments from "./pages/Appointments";
+
 
 const LandingPage = () => (
   <>
@@ -66,6 +68,8 @@ export default function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/adminprocedures" element={<AdminProcedures />} />
           <Route path="/activities" element={<Activities />} />
+          <Route path="/appointments" element={<Appointments />} />
+
 
           <Route
             path="/dashboard"
