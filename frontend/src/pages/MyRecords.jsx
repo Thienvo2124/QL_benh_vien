@@ -1,5 +1,5 @@
 import { useState, useContext } from 'react';
-import { FileText, Calendar, Clock, User, Pill, CheckCircle, Search, Award, Printer, ShieldPlus } from 'lucide-react';
+import { FileText, Calendar, Clock, User, Pill, CheckCircle, Search, Award, Printer, ShieldPlus, X } from 'lucide-react';
 import { AuthContext } from '../contexts/AuthContext';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -22,12 +22,12 @@ const sampleRecords = [
     orderCode: '000000432904',
     treatCode: '000000128400',
     medicines: [
-      { name: 'Cetirizine 10mg (Cetimed 10mg)', qty: '20', unit: 'Viên', usage: 'uống tối 1 viên sau ăn' },
-      { name: 'Hightamine 5.0mg + 25mg... (Vitamin A+D2+B1+B2+PP+B6+B12+C+E + B5 + acid folic)', qty: '40', unit: 'Viên', usage: 'uống ngày 2 lần sáng chiều mỗi lần 1 viên' },
-      { name: 'Kẽm (dưới dạng kẽm gluconat 10mg) (Conipa pure 10ml)', qty: '20', unit: 'Ống', usage: 'uống sáng 1 ống' },
-      { name: 'Mometason furoat 0.1% (Locgoda 0.1% 15g)', qty: '02', unit: 'Tuýp', usage: 'bôi chỗ ngứa ngày 2 lần sáng chiều, bôi mỏng trong 7-10 ngày' }
+      { name: 'Cetirizine 10mg (Cetimed 10mg)', qty: '20', unit: 'Viên', usage: 'Uống tối 1 viên sau ăn' },
+      { name: 'Hightamine 5.0mg + 25mg... (Vitamin A+D2+B1+B2+PP+B6+B12+C+E + B5 + acid folic)', qty: '40', unit: 'Viên', usage: 'Uống ngày 2 lần sáng chiều mỗi lần 1 viên' },
+      { name: 'Kẽm (dưới dạng kẽm gluconat 10mg) (Conipa pure 10ml)', qty: '20', unit: 'Ống', usage: 'Uống sáng 1 ống' },
+      { name: 'Mometason furoat 0.1% (Locgoda 0.1% 15g)', qty: '02', unit: 'Tuýp', usage: 'Bôi chỗ ngứa ngày 2 lần sáng chiều, bôi mỏng trong 7-10 ngày' }
     ],
-    advice: 'đã tư vấn kỹ cho bệnh nhân về đơn thuốc và đơn tư vấn và bệnh nhân đồng ý sử dụng, khám lại sau 3 tuần.'
+    advice: 'Đã tư vấn kỹ cho bệnh nhân về đơn thuốc và đơn tư vấn và bệnh nhân đồng ý sử dụng, khám lại sau 3 tuần.'
   },
   {
     id: 'HS-2025-102',
@@ -46,8 +46,8 @@ const sampleRecords = [
     orderCode: '000000432888',
     treatCode: '000000128555',
     medicines: [
-      { name: 'Amlodipine 5mg (Amlor 5mg)', qty: '30', unit: 'Viên', usage: 'uống 1 viên vào buổi sáng sau ăn' },
-      { name: 'Magnesium B6 (Magnerot 500mg)', qty: '60', unit: 'Viên', usage: 'uống ngày 2 lần sáng tối, mỗi lần 1 viên' }
+      { name: 'Amlodipine 5mg (Amlor 5mg)', qty: '30', unit: 'Viên', usage: 'Uống 1 viên vào buổi sáng sau ăn' },
+      { name: 'Magnesium B6 (Magnerot 500mg)', qty: '60', unit: 'Viên', usage: 'Uống ngày 2 lần sáng tối, mỗi lần 1 viên' }
     ],
     advice: 'Kiểm tra huyết áp đều đặn mỗi sáng, hạn chế ăn mặn và tập thể dục nhẹ nhàng 30 phút mỗi ngày.'
   }
@@ -244,15 +244,28 @@ const MyRecords = () => {
         </div>
       </main>
 
-      {/* MODAL ĐƠN THUỐC CHUẨN FORM BỘ Y TẾ (SIÊU ĐỈNH - ĐƯỢC THIẾT KẾ ĐỂ IN A4) */}
+      {/* MODAL ĐƠN THUỐC CHUẨN FORM BỘ Y TẾ (ĐÃ SỬA FONT VÀ THIẾT KẾ UX CUỘN/THOÁT CHUẨN MỰC) */}
       {isPrescriptionModalOpen && selectedRecord && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto animate-fadeIn print:absolute print:inset-0 print:bg-white print:p-0">
-          
-          <div className="bg-white text-gray-900 max-w-4xl w-full rounded-2xl shadow-2xl p-8 sm:p-12 border border-gray-200 my-8 relative print:shadow-none print:border-none print:m-0 print:p-6 print:w-full">
-            
-            {/* Control bar (bị ẩn khi in) */}
-            <div className="flex items-center justify-between bg-gray-100 p-4 rounded-xl mb-8 print:hidden border border-gray-200">
-              <span className="text-sm font-bold text-gray-700 flex items-center gap-2">
+        <div 
+          onClick={() => setIsPrescriptionModalOpen(false)}
+          className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-start justify-center p-4 sm:p-6 z-[70] overflow-y-auto animate-fadeIn print:absolute print:inset-0 print:bg-white print:p-0"
+        >
+          {/* Nút tắt X to đùng nổi bần bật ngoài góc phải màn hình */}
+          <button 
+            onClick={() => setIsPrescriptionModalOpen(false)}
+            className="fixed top-4 right-4 z-[80] bg-white text-gray-900 hover:bg-red-600 hover:text-white p-3 rounded-full shadow-2xl border border-gray-200 transition-all print:hidden flex items-center justify-center group"
+            title="Đóng cửa sổ"
+          >
+            <X className="w-6 h-6 transform group-hover:rotate-90 transition-transform" />
+          </button>
+
+          <div 
+            onClick={(e) => e.stopPropagation()} 
+            className="bg-white text-gray-900 max-w-4xl w-full rounded-3xl shadow-2xl p-8 sm:p-12 border border-gray-200 my-8 sm:my-12 relative print:shadow-none print:border-none print:m-0 print:p-6 print:w-full font-sans"
+          >
+            {/* Thanh Control bar sticky nổi ngay trên đỉnh biểu mẫu */}
+            <div className="sticky top-0 z-50 bg-gray-100/95 backdrop-blur-md p-4 rounded-2xl mb-8 print:hidden border border-gray-200 shadow-md flex flex-wrap items-center justify-between gap-4">
+              <span className="text-sm font-bold text-gray-800 flex items-center gap-2">
                 <Printer className="w-5 h-5 text-[#004e92]" /> Mẫu in Đơn Thuốc Chuẩn Cơ sở Y tế (A4)
               </span>
               <div className="flex items-center gap-3">
@@ -264,15 +277,15 @@ const MyRecords = () => {
                 </button>
                 <button
                   onClick={() => setIsPrescriptionModalOpen(false)}
-                  className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold px-4 py-2.5 rounded-xl transition-colors text-sm"
+                  className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold px-5 py-2.5 rounded-xl transition-colors text-sm flex items-center gap-1.5"
                 >
-                  Đóng
+                  <X className="w-4 h-4" /> Đóng
                 </button>
               </div>
             </div>
 
-            {/* BẢNG BIỂU ĐƠN THUỐC CHÍNH */}
-            <div className="space-y-6 font-serif">
+            {/* BẢNG BIỂU ĐƠN THUỐC CHÍNH (SỬ DỤNG FONT-SANS ĐẢM BẢO KHÔNG BAO GIỜ BỊ LỖI DẤU TIẾNG VIỆT) */}
+            <div className="space-y-6 font-sans">
               
               {/* HEADER BIỂU MẪU */}
               <div className="flex justify-between items-start border-b-2 border-gray-800 pb-6">
@@ -309,7 +322,7 @@ const MyRecords = () => {
 
               {/* TIÊU ĐỀ CHÍNH */}
               <div className="text-center py-4">
-                <h1 className="text-3xl font-bold tracking-wider uppercase text-gray-900">ĐƠN THUỐC</h1>
+                <h1 className="text-3xl font-extrabold tracking-wider uppercase text-gray-900 font-sans">ĐƠN THUỐC</h1>
               </div>
 
               {/* THÔNG TIN HÀNH CHÍNH BỆNH NHÂN */}
@@ -342,14 +355,14 @@ const MyRecords = () => {
                   {selectedRecord.medicines.map((med, index) => (
                     <div key={index} className="flex items-start justify-between gap-6 text-sm">
                       <div className="space-y-1 flex-1">
-                        <div className="font-bold text-gray-900 text-base">
+                        <div className="font-bold text-gray-900 text-base font-sans">
                           {index + 1}. {med.name}
                         </div>
-                        <div className="text-xs text-gray-700 italic pl-4">
+                        <div className="text-xs text-gray-700 italic pl-4 font-sans">
                           {med.usage}
                         </div>
                       </div>
-                      <div className="font-bold text-base text-gray-900 flex items-center gap-6 flex-shrink-0 pt-1">
+                      <div className="font-bold text-base text-gray-900 flex items-center gap-6 flex-shrink-0 pt-1 font-sans">
                         <span className="w-16 text-right">X {med.qty}</span>
                         <span className="w-12 text-left">{med.unit}</span>
                       </div>
@@ -360,11 +373,11 @@ const MyRecords = () => {
 
               {/* LỜI DẶN BÁC SĨ */}
               <div className="pt-8 space-y-2 border-t border-gray-300">
-                <div className="font-bold text-sm text-gray-900 underline underline-offset-2">
+                <div className="font-bold text-sm text-gray-900 underline underline-offset-2 font-sans">
                   Lời dặn bác sĩ:
                 </div>
-                <div className="text-sm text-gray-800 italic pl-6 leading-relaxed">
-                  {selectedRecord.advice || 'đã tư vấn kỹ cho bệnh nhân về đơn thuốc và đơn tư vấn và bệnh nhân đồng ý sử dụng, khám lại sau 3 tuần.'}
+                <div className="text-sm text-gray-800 italic pl-6 leading-relaxed font-sans">
+                  {selectedRecord.advice || 'Đã tư vấn kỹ cho bệnh nhân về đơn thuốc và đơn tư vấn và bệnh nhân đồng ý sử dụng, khám lại sau 3 tuần.'}
                 </div>
               </div>
 
@@ -374,19 +387,29 @@ const MyRecords = () => {
                   <div className="text-sm font-semibold text-gray-800 italic">
                     Hà Nội, Ngày 28 Tháng 06 Năm 2026
                   </div>
-                  <div className="font-bold text-base text-gray-900 pt-1">
+                  <div className="font-bold text-base text-gray-900 pt-1 font-sans">
                     Bác sĩ khám bệnh
                   </div>
                   {/* Mô phỏng chữ ký */}
                   <div className="py-6 font-mono text-2xl text-blue-800 font-bold select-none opacity-80 italic transform -rotate-12">
                     Tuấn Lâm
                   </div>
-                  <div className="font-bold text-base text-gray-900 border-t border-gray-300 pt-2">
+                  <div className="font-bold text-base text-gray-900 border-t border-gray-300 pt-2 font-sans">
                     {selectedRecord.doctor}
                   </div>
                 </div>
               </div>
 
+            </div>
+
+            {/* Thêm nút Đóng ở tận cùng phía dưới biểu mẫu để thao tác thuận tiện nhất */}
+            <div className="mt-12 pt-6 border-t border-gray-200 flex justify-center print:hidden">
+              <button
+                onClick={() => setIsPrescriptionModalOpen(false)}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold px-8 py-3 rounded-xl transition-colors text-sm flex items-center gap-2 shadow-sm"
+              >
+                <X className="w-4 h-4" /> Đóng biểu mẫu Đơn thuốc
+              </button>
             </div>
 
           </div>
