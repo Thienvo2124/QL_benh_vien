@@ -12,7 +12,7 @@ const Dashboard = () => {
   const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
       const [resAppointments, resUsers, resMedicines] = await Promise.all([
