@@ -1,6 +1,6 @@
 import { useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, User, Settings, LogOut, ChevronDown } from 'lucide-react';
+import { Shield, User, Settings, LogOut, ChevronDown, Calendar, Clock, FileText, UserCheck } from 'lucide-react';
 import { AuthContext } from '../contexts/AuthContext';
 
 const navItems = [
@@ -92,23 +92,60 @@ const Header = () => {
                   </div>
 
                   <div className="py-2 px-3 space-y-1">
-                    <Link
-                      to={user.role === 'admin' || user.role === 'doctor' ? '/dashboard' : '/booking'}
-                      onClick={() => setIsProfileMenuOpen(false)}
-                      className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
-                    >
-                      <User className="w-4 h-4 text-gray-500" />
-                      {user.role === 'admin' || user.role === 'doctor' ? 'Bảng điều khiển' : 'Hồ sơ của tôi'}
-                    </Link>
-                    { (user.role === 'admin' || user.role === 'doctor') && (
-                      <Link
-                        to="/dashboard/settings"
-                        onClick={() => setIsProfileMenuOpen(false)}
-                        className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
-                      >
-                        <Settings className="w-4 h-4 text-gray-500" />
-                        Cài đặt hệ thống
-                      </Link>
+                    {user.role === 'admin' || user.role === 'doctor' ? (
+                      <>
+                        <Link
+                          to="/dashboard"
+                          onClick={() => setIsProfileMenuOpen(false)}
+                          className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
+                        >
+                          <User className="w-4 h-4 text-gray-500" />
+                          Bảng điều khiển
+                        </Link>
+                        <Link
+                          to="/dashboard/settings"
+                          onClick={() => setIsProfileMenuOpen(false)}
+                          className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
+                        >
+                          <Settings className="w-4 h-4 text-gray-500" />
+                          Cài đặt hệ thống
+                        </Link>
+                      </>
+                    ) : (
+                      <>
+                        <Link
+                          to="/booking"
+                          onClick={() => setIsProfileMenuOpen(false)}
+                          className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
+                        >
+                          <Calendar className="w-4 h-4 text-[#004e92]" />
+                          Đặt lịch khám mới
+                        </Link>
+                        <Link
+                          to="/my-appointments"
+                          onClick={() => setIsProfileMenuOpen(false)}
+                          className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
+                        >
+                          <Clock className="w-4 h-4 text-yellow-600" />
+                          Lịch hẹn của tôi
+                        </Link>
+                        <Link
+                          to="/my-records"
+                          onClick={() => setIsProfileMenuOpen(false)}
+                          className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
+                        >
+                          <FileText className="w-4 h-4 text-green-600" />
+                          Hồ sơ bệnh án
+                        </Link>
+                        <Link
+                          to="/profile"
+                          onClick={() => setIsProfileMenuOpen(false)}
+                          className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
+                        >
+                          <UserCheck className="w-4 h-4 text-blue-600" />
+                          Quản lý tài khoản
+                        </Link>
+                      </>
                     )}
                   </div>
 
@@ -159,13 +196,46 @@ const Header = () => {
               <div className="p-4 border-b border-gray-200 bg-blue-50 normal-case text-gray-700 font-semibold">
                 Xin chào, <span className="text-[#004e92]">{user.fullName || user.email?.split('@')[0] || 'Tài khoản'}</span>
               </div>
-              <Link
-                to={user.role === 'admin' || user.role === 'doctor' ? '/dashboard' : '/booking'}
-                onClick={() => setIsMenuOpen(false)}
-                className="p-4 border-b border-gray-200 hover:bg-gray-100 text-[#004e92] font-bold"
-              >
-                {user.role === 'admin' || user.role === 'doctor' ? 'Bảng điều khiển' : 'Hồ sơ của tôi'}
-              </Link>
+              {user.role === 'admin' || user.role === 'doctor' ? (
+                <Link
+                  to="/dashboard"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="p-4 border-b border-gray-200 hover:bg-gray-100 text-[#004e92] font-bold flex items-center gap-3"
+                >
+                  <User className="w-5 h-5" /> Bảng điều khiển
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    to="/booking"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="p-4 border-b border-gray-200 hover:bg-gray-100 text-[#004e92] font-bold flex items-center gap-3"
+                  >
+                    <Calendar className="w-5 h-5 text-[#004e92]" /> Đặt lịch khám mới
+                  </Link>
+                  <Link
+                    to="/my-appointments"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="p-4 border-b border-gray-200 hover:bg-gray-100 text-yellow-700 font-bold flex items-center gap-3"
+                  >
+                    <Clock className="w-5 h-5 text-yellow-600" /> Lịch hẹn của tôi
+                  </Link>
+                  <Link
+                    to="/my-records"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="p-4 border-b border-gray-200 hover:bg-gray-100 text-green-700 font-bold flex items-center gap-3"
+                  >
+                    <FileText className="w-5 h-5 text-green-600" /> Hồ sơ bệnh án
+                  </Link>
+                  <Link
+                    to="/profile"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="p-4 border-b border-gray-200 hover:bg-gray-100 text-blue-700 font-bold flex items-center gap-3"
+                  >
+                    <UserCheck className="w-5 h-5 text-blue-600" /> Quản lý tài khoản
+                  </Link>
+                </>
+              )}
               <button
                 onClick={() => { logout(); setIsMenuOpen(false); }}
                 className="w-full text-left p-4 border-b border-gray-200 hover:bg-gray-100 text-red-600 font-bold"

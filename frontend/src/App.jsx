@@ -24,6 +24,9 @@ import Appointments from './pages/Appointments';
 import Settings from './pages/Settings';
 import Users from './pages/Users';
 import Medicines from './pages/Medicines';
+import MyAppointments from './pages/MyAppointments';
+import MyRecords from './pages/MyRecords';
+import Profile from './pages/Profile';
 
 const LandingPage = () => (
   <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-800 relative">
@@ -62,6 +65,9 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/booking" element={<Booking />} />
+            <Route path="/my-appointments" element={<MyAppointments />} />
+            <Route path="/my-records" element={<MyRecords />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/schedule" element={<Schedule />} />
             <Route path="/procedures" element={<Procedures />} />
             <Route path="/doctors" element={<Doctors />} />
