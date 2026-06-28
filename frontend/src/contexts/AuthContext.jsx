@@ -19,7 +19,13 @@ export const AuthProvider = ({ children }) => {
     setToken(userToken);
     localStorage.setItem('user', JSON.stringify(userData));
     localStorage.setItem('token', userToken);
-    navigate('/dashboard');
+    
+    // Phân luồng điều hướng: Quản trị/Bác sĩ vào Dashboard, Bệnh nhân vào trang Đặt lịch (Hồ sơ)
+    if (userData?.role === 'admin' || userData?.role === 'doctor') {
+      navigate('/dashboard');
+    } else {
+      navigate('/booking');
+    }
   };
 
   const logout = () => {

@@ -38,10 +38,15 @@ const LandingPage = () => (
 );
 
 const PrivateRoute = ({ children }) => {
-  const { token } = useContext(AuthContext);
+  const { token, user } = useContext(AuthContext);
 
   if (!token) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Bảo mật phân quyền: Nếu user là bệnh nhân (patient), tuyệt đối không cho vào Admin Dashboard
+  if (user && user.role === 'patient') {
+    return <Navigate to="/booking" replace />;
   }
 
   return children;
