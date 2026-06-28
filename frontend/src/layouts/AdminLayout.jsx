@@ -33,6 +33,10 @@ const AdminLayout = () => {
             <Pill className="w-5 h-5 mr-3" />
             Kho thuốc
           </Link>
+          <Link to="/dashboard/patients" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/patients' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
+            <FileText className="w-5 h-5 mr-3" />
+            Hồ sơ bệnh án
+          </Link>
           <Link to="/dashboard/settings" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/settings' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
             <Settings className="w-5 h-5 mr-3" />
             Cài đặt
