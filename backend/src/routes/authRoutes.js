@@ -8,7 +8,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "super_secret_key_123";
 
 router.post("/register", async (req, res) => {
   try {
-    const { fullName, email, password, role } = req.body;
+    const { fullName, email, password } = req.body;
 
     if (!fullName || !email || !password) {
       return res.status(400).json({ message: "Vui lòng nhập đầy đủ thông tin." });
@@ -26,7 +26,7 @@ router.post("/register", async (req, res) => {
       fullName,
       email,
       password: hashedPassword,
-      role: role || "patient",
+      role: "patient", // Bảo mật tuyệt đối: Bắt buộc tài khoản đăng ký mới là bệnh nhân (patient), không cho phép tự động lên admin
     });
 
     await newUser.save();
