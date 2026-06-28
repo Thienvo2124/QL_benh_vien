@@ -1,5 +1,5 @@
 import { useState, useContext } from 'react';
-import { FileText, Calendar, Clock, User, Pill, CheckCircle, Search, Award } from 'lucide-react';
+import { FileText, Calendar, Clock, User, Pill, CheckCircle, Search, Award, Printer, ShieldPlus } from 'lucide-react';
 import { AuthContext } from '../contexts/AuthContext';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -7,29 +7,49 @@ import Footer from '../components/Footer';
 const sampleRecords = [
   {
     id: 'HS-2026-001',
-    date: '10/06/2026',
-    dept: 'Nội tổng quát',
-    doctor: 'BS. Nguyễn Văn A',
-    symptoms: 'Đau đầu, ho khan kéo dài về đêm, người mệt mỏi.',
-    diagnosis: 'Viêm họng cấp tính do virus, suy nhược cơ thể nhẹ.',
-    treatment: 'Dùng thuốc kháng viêm, viên ngậm giảm ho, bổ sung Vitamin C và nghỉ ngơi nhiều.',
+    patientName: 'Nguyễn Văn A',
+    age: 31,
+    gender: 'Nam',
+    weight: '62 kg',
+    address: 'Số 1 Nơ Trang Long, P. Gia Định, Hà Nội',
+    date: '28/06/2026',
+    dept: 'Da liễu & Dị ứng',
+    doctor: 'BS. CKII Nguyễn Tuấn Lâm',
+    symptoms: 'Mẩn ngứa quanh cổ và cánh tay, xuất hiện nhiều về đêm, da khô đỏ.',
+    diagnosis: 'Viêm da dị ứng tiếp xúc / Mề đay mãn tính.',
+    treatment: 'Dùng thuốc kháng histamin giảm ngứa, bôi kem đặc trị tại chỗ và kiêng xà phòng mạnh.',
+    patientCode: '0029187302',
+    orderCode: '000000432904',
+    treatCode: '000000128400',
     medicines: [
-      { name: 'Paracetamol 500mg', qty: '10 viên', usage: 'Uống 1 viên khi sốt trên 38.5 độ' },
-      { name: 'Vitamin C 500mg', qty: '20 viên', usage: 'Uống 1 viên/ngày sau ăn sáng' },
-      { name: 'Nước muối sinh lý 0.9%', qty: '1 chai', usage: 'Súc họng sáng và tối' }
-    ]
+      { name: 'Cetirizine 10mg (Cetimed 10mg)', qty: '20', unit: 'Viên', usage: 'uống tối 1 viên sau ăn' },
+      { name: 'Hightamine 5.0mg + 25mg... (Vitamin A+D2+B1+B2+PP+B6+B12+C+E + B5 + acid folic)', qty: '40', unit: 'Viên', usage: 'uống ngày 2 lần sáng chiều mỗi lần 1 viên' },
+      { name: 'Kẽm (dưới dạng kẽm gluconat 10mg) (Conipa pure 10ml)', qty: '20', unit: 'Ống', usage: 'uống sáng 1 ống' },
+      { name: 'Mometason furoat 0.1% (Locgoda 0.1% 15g)', qty: '02', unit: 'Tuýp', usage: 'bôi chỗ ngứa ngày 2 lần sáng chiều, bôi mỏng trong 7-10 ngày' }
+    ],
+    advice: 'đã tư vấn kỹ cho bệnh nhân về đơn thuốc và đơn tư vấn và bệnh nhân đồng ý sử dụng, khám lại sau 3 tuần.'
   },
   {
     id: 'HS-2025-102',
+    patientName: 'Nguyễn Văn A',
+    age: 31,
+    gender: 'Nam',
+    weight: '60 kg',
+    address: 'Số 1 Nơ Trang Long, P. Gia Định, Hà Nội',
     date: '15/12/2025',
     dept: 'Tim mạch',
     doctor: 'BS. Trần Thị B',
     symptoms: 'Hồi hộp, thỉnh thoảng nhói tim khi làm việc nặng.',
     diagnosis: 'Huyết áp hơi cao do căng thẳng công việc (Stress).',
     treatment: 'Điều chỉnh chế độ ăn giảm mặn, không thức khuya, theo dõi chỉ số huyết áp hàng ngày.',
+    patientCode: '0029187302',
+    orderCode: '000000432888',
+    treatCode: '000000128555',
     medicines: [
-      { name: 'Amlodipine 5mg', qty: '10 viên', usage: 'Uống 1 viên vào buổi sáng' }
-    ]
+      { name: 'Amlodipine 5mg (Amlor 5mg)', qty: '30', unit: 'Viên', usage: 'uống 1 viên vào buổi sáng sau ăn' },
+      { name: 'Magnesium B6 (Magnerot 500mg)', qty: '60', unit: 'Viên', usage: 'uống ngày 2 lần sáng tối, mỗi lần 1 viên' }
+    ],
+    advice: 'Kiểm tra huyết áp đều đặn mỗi sáng, hạn chế ăn mặn và tập thể dục nhẹ nhàng 30 phút mỗi ngày.'
   }
 ];
 
@@ -37,6 +57,7 @@ const MyRecords = () => {
   const { user } = useContext(AuthContext);
   const [selectedRecord, setSelectedRecord] = useState(sampleRecords[0]);
   const [search, setSearch] = useState('');
+  const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
 
   const filteredRecords = sampleRecords.filter(rec => 
     rec.dept.toLowerCase().includes(search.toLowerCase()) || 
@@ -44,12 +65,16 @@ const MyRecords = () => {
     rec.diagnosis.toLowerCase().includes(search.toLowerCase())
   );
 
+  const handlePrintPrescription = () => {
+    window.print();
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
       <Header />
       
       {/* Banner */}
-      <div className="bg-[#004e92] text-white py-12 px-4 sm:px-8 shadow-inner">
+      <div className="bg-[#004e92] text-white py-12 px-4 sm:px-8 shadow-inner print:hidden">
         <div className="container mx-auto max-w-6xl flex flex-wrap items-center justify-between gap-6">
           <div>
             <h1 className="text-3xl font-bold tracking-wide uppercase flex items-center gap-3">
@@ -72,7 +97,7 @@ const MyRecords = () => {
       </div>
 
       {/* Main Content */}
-      <main className="flex-grow container mx-auto max-w-6xl px-4 py-10">
+      <main className="flex-grow container mx-auto max-w-6xl px-4 py-10 print:hidden">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Cột trái: Danh sách bệnh án */}
@@ -190,7 +215,7 @@ const MyRecords = () => {
                           <div>
                             <h4 className="font-bold text-gray-900 text-base">{med.name}</h4>
                             <div className="text-xs text-[#004e92] font-bold bg-blue-50 px-2 py-0.5 rounded w-max my-1 border border-blue-100">
-                              Số lượng: {med.qty}
+                              Số lượng: {med.qty} {med.unit}
                             </div>
                             <p className="text-xs text-gray-500 font-medium">{med.usage}</p>
                           </div>
@@ -202,15 +227,15 @@ const MyRecords = () => {
 
                 <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-end gap-4">
                   <button 
-                    onClick={() => alert('Đang tạo file PDF Đơn thuốc...')}
-                    className="bg-[#004e92] hover:bg-blue-800 text-white font-bold py-3 px-6 rounded-2xl transition-colors shadow-lg flex items-center gap-2 text-sm"
+                    onClick={() => setIsPrescriptionModalOpen(true)}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-2xl transition-colors shadow-lg flex items-center gap-2 text-sm"
                   >
-                    <FileText className="w-4 h-4" /> Xuất Đơn thuốc (PDF)
+                    <Printer className="w-4 h-4" /> Xuất Đơn thuốc (PDF Bộ Y Tế)
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="bg-white p-12 rounded-3xl text-center text-gray-50- border border-gray-100 shadow-sm">
+              <div className="bg-white p-12 rounded-3xl text-center text-gray-500 border border-gray-100 shadow-sm">
                 Chọn một hồ sơ bệnh án bên trái để xem chi tiết.
               </div>
             )}
@@ -219,7 +244,158 @@ const MyRecords = () => {
         </div>
       </main>
 
-      <Footer />
+      {/* MODAL ĐƠN THUỐC CHUẨN FORM BỘ Y TẾ (SIÊU ĐỈNH - ĐƯỢC THIẾT KẾ ĐỂ IN A4) */}
+      {isPrescriptionModalOpen && selectedRecord && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto animate-fadeIn print:absolute print:inset-0 print:bg-white print:p-0">
+          
+          <div className="bg-white text-gray-900 max-w-4xl w-full rounded-2xl shadow-2xl p-8 sm:p-12 border border-gray-200 my-8 relative print:shadow-none print:border-none print:m-0 print:p-6 print:w-full">
+            
+            {/* Control bar (bị ẩn khi in) */}
+            <div className="flex items-center justify-between bg-gray-100 p-4 rounded-xl mb-8 print:hidden border border-gray-200">
+              <span className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                <Printer className="w-5 h-5 text-[#004e92]" /> Mẫu in Đơn Thuốc Chuẩn Cơ sở Y tế (A4)
+              </span>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handlePrintPrescription}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-2.5 rounded-xl transition-colors shadow-md flex items-center gap-2 text-sm"
+                >
+                  <Printer className="w-4 h-4" /> In Đơn Thuốc
+                </button>
+                <button
+                  onClick={() => setIsPrescriptionModalOpen(false)}
+                  className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold px-4 py-2.5 rounded-xl transition-colors text-sm"
+                >
+                  Đóng
+                </button>
+              </div>
+            </div>
+
+            {/* BẢNG BIỂU ĐƠN THUỐC CHÍNH */}
+            <div className="space-y-6 font-serif">
+              
+              {/* HEADER BIỂU MẪU */}
+              <div className="flex justify-between items-start border-b-2 border-gray-800 pb-6">
+                <div className="space-y-1">
+                  <div className="font-bold text-base uppercase tracking-wider text-gray-800">BỘ Y TẾ</div>
+                  <div className="font-bold text-lg uppercase tracking-wide text-[#004e92]">BỆNH VIỆN NHÂN DÂN</div>
+                  <div className="text-xs font-semibold text-gray-700 italic">PK Yêu cầu {selectedRecord.dept}</div>
+                  <div className="text-xs text-gray-600">Điện thoại: 1900 6951</div>
+                  
+                  {/* Barcode Mockup */}
+                  <div className="pt-2">
+                    <div className="font-mono text-xl tracking-[0.25em] font-black select-none text-gray-800 scale-y-150 origin-left">
+                      ||| | |||| | || | |||| ||
+                    </div>
+                    <div className="text-[10px] font-mono font-bold text-gray-700 mt-1">
+                      {selectedRecord.treatCode || '000000128400'}
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-600 pt-1">Mã điều trị:</div>
+                </div>
+
+                <div className="text-right space-y-1 flex flex-col items-end">
+                  <div className="w-14 h-14 rounded-full border-2 border-[#004e92] flex items-center justify-center text-[#004e92] font-bold mb-2 shadow-sm">
+                    <ShieldPlus className="w-8 h-8" />
+                  </div>
+                  <div className="text-xs font-bold text-gray-800">
+                    Mã BN: <span className="font-mono">{selectedRecord.patientCode || '0029187302'}</span>
+                  </div>
+                  <div className="text-xs font-bold text-gray-800">
+                    Mã y lệnh: <span className="font-mono">{selectedRecord.orderCode || '000000432904'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* TIÊU ĐỀ CHÍNH */}
+              <div className="text-center py-4">
+                <h1 className="text-3xl font-bold tracking-wider uppercase text-gray-900">ĐƠN THUỐC</h1>
+              </div>
+
+              {/* THÔNG TIN HÀNH CHÍNH BỆNH NHÂN */}
+              <div className="space-y-2 text-sm text-gray-900 border-b border-gray-300 pb-6">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex-1 min-w-[240px]">
+                    <span className="font-semibold">Họ và tên:</span> <strong className="font-bold uppercase text-base">{selectedRecord.patientName}</strong>
+                  </div>
+                  <div className="flex items-center gap-6">
+                    <div><span className="font-semibold">Tuổi:</span> <strong>{selectedRecord.age}</strong></div>
+                    <div><span className="font-semibold">Cân nặng:</span> <strong>{selectedRecord.weight || '58 kg'}</strong></div>
+                    <div><span className="font-semibold">Giới tính:</span> <strong>{selectedRecord.gender}</strong></div>
+                  </div>
+                </div>
+                <div>
+                  <span className="font-semibold">Địa chỉ liên hệ:</span> <span className="italic">{selectedRecord.address || 'Số 1 Nơ Trang Long, P. Gia Định, Hà Nội'}</span>
+                </div>
+                <div>
+                  <span className="font-semibold">Chẩn đoán chính:</span> <strong className="text-base text-gray-900">{selectedRecord.diagnosis}</strong>
+                </div>
+              </div>
+
+              {/* DANH SÁCH THUỐC */}
+              <div className="space-y-4 pt-2">
+                <div className="font-bold text-base text-gray-900 underline underline-offset-4 mb-4">
+                  Thuốc điều trị:
+                </div>
+
+                <div className="space-y-6">
+                  {selectedRecord.medicines.map((med, index) => (
+                    <div key={index} className="flex items-start justify-between gap-6 text-sm">
+                      <div className="space-y-1 flex-1">
+                        <div className="font-bold text-gray-900 text-base">
+                          {index + 1}. {med.name}
+                        </div>
+                        <div className="text-xs text-gray-700 italic pl-4">
+                          {med.usage}
+                        </div>
+                      </div>
+                      <div className="font-bold text-base text-gray-900 flex items-center gap-6 flex-shrink-0 pt-1">
+                        <span className="w-16 text-right">X {med.qty}</span>
+                        <span className="w-12 text-left">{med.unit}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* LỜI DẶN BÁC SĨ */}
+              <div className="pt-8 space-y-2 border-t border-gray-300">
+                <div className="font-bold text-sm text-gray-900 underline underline-offset-2">
+                  Lời dặn bác sĩ:
+                </div>
+                <div className="text-sm text-gray-800 italic pl-6 leading-relaxed">
+                  {selectedRecord.advice || 'đã tư vấn kỹ cho bệnh nhân về đơn thuốc và đơn tư vấn và bệnh nhân đồng ý sử dụng, khám lại sau 3 tuần.'}
+                </div>
+              </div>
+
+              {/* PHẦN CHỮ KÝ PHÍA DƯỚI */}
+              <div className="pt-12 flex justify-end items-start text-right pr-4">
+                <div className="space-y-1 text-center w-64">
+                  <div className="text-sm font-semibold text-gray-800 italic">
+                    Hà Nội, Ngày 28 Tháng 06 Năm 2026
+                  </div>
+                  <div className="font-bold text-base text-gray-900 pt-1">
+                    Bác sĩ khám bệnh
+                  </div>
+                  {/* Mô phỏng chữ ký */}
+                  <div className="py-6 font-mono text-2xl text-blue-800 font-bold select-none opacity-80 italic transform -rotate-12">
+                    Tuấn Lâm
+                  </div>
+                  <div className="font-bold text-base text-gray-900 border-t border-gray-300 pt-2">
+                    {selectedRecord.doctor}
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      <div className="print:hidden">
+        <Footer />
+      </div>
     </div>
   );
 };
