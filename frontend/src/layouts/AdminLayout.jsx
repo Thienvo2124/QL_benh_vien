@@ -1,6 +1,6 @@
 import { useContext, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { Activity, Calendar, Home, LogOut, Settings, Users, Pill, Globe, User, Shield, ChevronDown } from 'lucide-react';
+import { Activity, Calendar, Home, LogOut, Settings, Users, Pill, Globe, User, Shield, ChevronDown, Building, FileText, UserCheck } from 'lucide-react';
 import { AuthContext } from '../contexts/AuthContext';
 
 const AdminLayout = () => {
@@ -94,22 +94,61 @@ const AdminLayout = () => {
                 </div>
 
                 <div className="py-2 px-3 space-y-1">
-                  <Link
-                    to="/dashboard/settings"
-                    onClick={() => setIsProfileMenuOpen(false)}
-                    className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
-                  >
-                    <User className="w-4 h-4 text-gray-500" />
-                    Hồ sơ cá nhân
-                  </Link>
-                  <Link
-                    to="/dashboard/settings"
-                    onClick={() => setIsProfileMenuOpen(false)}
-                    className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
-                  >
-                    <Settings className="w-4 h-4 text-gray-500" />
-                    Cài đặt tài khoản
-                  </Link>
+                  {user?.role === 'admin' ? (
+                    <>
+                      <Link
+                        to="/dashboard/settings"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
+                      >
+                        <Building className="w-4 h-4 text-[#004e92]" />
+                        Cấu hình Bệnh viện
+                      </Link>
+                      <Link
+                        to="/dashboard/users"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
+                      >
+                        <Users className="w-4 h-4 text-blue-600" />
+                        Quản lý Phân quyền
+                      </Link>
+                      <Link
+                        to="/dashboard/settings"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
+                      >
+                        <FileText className="w-4 h-4 text-green-600" />
+                        Nhật ký Hệ thống
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        to="/dashboard/settings"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
+                      >
+                        <UserCheck className="w-4 h-4 text-[#004e92]" />
+                        Hồ sơ & Chứng chỉ BS
+                      </Link>
+                      <Link
+                        to="/dashboard/appointments"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
+                      >
+                        <Calendar className="w-4 h-4 text-yellow-600" />
+                        Quản lý Lịch hẹn khám
+                      </Link>
+                      <Link
+                        to="/dashboard/medicines"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
+                      >
+                        <Pill className="w-4 h-4 text-purple-600" />
+                        Danh mục Thuốc & Phác đồ
+                      </Link>
+                    </>
+                  )}
                 </div>
 
                 <div className="p-3 border-t border-gray-100">
