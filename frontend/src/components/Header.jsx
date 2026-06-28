@@ -1,5 +1,6 @@
 import { useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
+import { Shield, User, Settings, LogOut, ChevronDown } from 'lucide-react';
 import { AuthContext } from '../contexts/AuthContext';
 
 const navItems = [
@@ -12,6 +13,7 @@ const navItems = [
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const { user, logout } = useContext(AuthContext);
 
   return (
@@ -57,22 +59,70 @@ const Header = () => {
           ))}
           <div className="h-4 w-px bg-gray-300 mx-1" />
           {user ? (
-            <div className="flex items-center gap-4">
-              <div className="text-sm normal-case text-gray-600 font-semibold">
-                Xin chào, <span className="text-[#004e92]">{user.fullName || user.email?.split('@')[0] || 'Tài khoản'}</span>
-              </div>
-              <Link
-                to={user.role === 'admin' || user.role === 'doctor' ? '/dashboard' : '/booking'}
-                className="bg-[#004e92] text-white px-4 py-2 rounded-md hover:bg-blue-800 transition-colors font-bold text-xs uppercase shadow-sm"
-              >
-                {user.role === 'admin' || user.role === 'doctor' ? 'Bảng điều khiển' : 'Hồ sơ của tôi'}
-              </Link>
+            <div className="relative">
               <button
-                onClick={logout}
-                className="border border-red-500 text-red-600 hover:bg-red-50 px-3 py-2 rounded-md transition-colors font-bold text-xs uppercase"
+                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                className="flex items-center gap-2.5 hover:bg-gray-50 p-1.5 rounded-xl transition-colors border border-transparent hover:border-gray-200 focus:outline-none"
               >
-                Đăng xuất
+                <div className="text-sm normal-case text-gray-600 font-semibold hidden sm:block">
+                  Xin chào, <span className="text-[#004e92]">{user.fullName || user.email?.split('@')[0] || 'Tài khoản'}</span>
+                </div>
+                <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-[#004e92] font-bold border border-[#004e92] shadow-sm text-sm">
+                  {(user.fullName || user.email || 'U').charAt(0).toLowerCase()}
+                </div>
+                <ChevronDown className="w-4 h-4 text-gray-500" />
               </button>
+
+              {isProfileMenuOpen && (
+                <div className="absolute right-0 top-12 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 z-50 normal-case">
+                  <div className="px-5 py-3 border-b border-gray-100">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-[#004e92] font-bold border-2 border-[#004e92] text-lg shadow-inner">
+                        {(user.fullName || user.email || 'U').charAt(0).toLowerCase()}
+                      </div>
+                      <div>
+                        <div className="font-bold text-gray-900 text-base">{user.fullName || user.email?.split('@')[0] || 'Tài khoản'}</div>
+                        <div className="text-xs text-gray-500">{user.email || 'user@gmail.com'}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 bg-blue-50 text-[#004e92] text-xs font-semibold px-2.5 py-1 rounded-full w-max mt-1 border border-blue-100 shadow-sm">
+                      <Shield className="w-3.5 h-3.5" />
+                      <span>{user.role === 'admin' ? 'Quản trị viên hệ thống' : user.role === 'doctor' ? 'Bác sĩ chuyên khoa' : 'Bệnh nhân'}</span>
+                    </div>
+                  </div>
+
+                  <div className="py-2 px-3 space-y-1">
+                    <Link
+                      to={user.role === 'admin' || user.role === 'doctor' ? '/dashboard' : '/booking'}
+                      onClick={() => setIsProfileMenuOpen(false)}
+                      className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
+                    >
+                      <User className="w-4 h-4 text-gray-500" />
+                      {user.role === 'admin' || user.role === 'doctor' ? 'Bảng điều khiển' : 'Hồ sơ của tôi'}
+                    </Link>
+                    { (user.role === 'admin' || user.role === 'doctor') && (
+                      <Link
+                        to="/dashboard/settings"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
+                      >
+                        <Settings className="w-4 h-4 text-gray-500" />
+                        Cài đặt hệ thống
+                      </Link>
+                    )}
+                  </div>
+
+                  <div className="p-3 border-t border-gray-100">
+                    <button
+                      onClick={() => { setIsProfileMenuOpen(false); logout(); }}
+                      className="flex items-center w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-xl transition-colors font-bold gap-3"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Đăng xuất
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <>
