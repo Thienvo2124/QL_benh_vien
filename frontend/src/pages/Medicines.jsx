@@ -3,12 +3,12 @@ import { Search, Plus, Trash2, Edit, X, Calendar, DollarSign, Package, AlertTria
 import API_BASE_URL from '../config/api';
 
 // Fallback Mock Data Đỉnh Cao (chuẩn form Bệnh viện / Bộ Y Tế)
-// Kích hoạt ngay khi API chưa có dữ liệu hoặc lỗi kết nối
+// Đã cập nhật danh pháp chuẩn y khoa
 const fallbackMedicines = [
   {
     _id: 'MED-001',
     name: 'Paracetamol 500mg (Panadol Extra)',
-    category: 'Thuốc giảm đau, hạ sốt',
+    category: 'Giảm đau, Hạ sốt, Chống viêm',
     price: 35000,
     quantity: 450,
     unit: 'Hộp 10 vỉ x 10 viên',
@@ -19,18 +19,18 @@ const fallbackMedicines = [
   {
     _id: 'MED-002',
     name: 'Amoxicillin 500mg (Curam 500mg)',
-    category: 'Thuốc kháng sinh',
+    category: 'Thuốc Kháng khuẩn (Kháng sinh)',
     price: 120000,
     quantity: 30,
     unit: 'Hộp 2 vỉ x 10 viên',
     usage: 'Uống 1 viên/lần x 2 lần/ngày sau bữa ăn theo chỉ định của bác sĩ.',
     ingredients: 'Amoxicillin trihydrate 500mg, Axit clavulanic',
-    expiryDate: '2026-08-15' // Sắp hết hạn (cận date)
+    expiryDate: '2026-08-15'
   },
   {
     _id: 'MED-003',
     name: 'Cetirizine 10mg (Cetimed 10mg)',
-    category: 'Thuốc chống dị ứng',
+    category: 'Thuốc Kháng Histamin',
     price: 45000,
     quantity: 120,
     unit: 'Hộp 5 vỉ x 10 viên',
@@ -41,9 +41,9 @@ const fallbackMedicines = [
   {
     _id: 'MED-004',
     name: 'Amlodipine 5mg (Amlor 5mg)',
-    category: 'Thuốc tim mạch, huyết áp',
+    category: 'Thuốc Tim mạch, Huyết áp',
     price: 185000,
-    quantity: 15, // Sắp hết hàng
+    quantity: 15,
     unit: 'Hộp 3 vỉ x 10 viên',
     usage: 'Uống 1 viên vào buổi sáng sau ăn, kiểm soát huyết áp hàng ngày.',
     ingredients: 'Amlodipine besylate 5mg',
@@ -52,7 +52,7 @@ const fallbackMedicines = [
   {
     _id: 'MED-005',
     name: 'Oresol cam 27.9g (Electrolytes)',
-    category: 'Thuốc tiêu hóa',
+    category: 'Thuốc Đường tiêu hóa',
     price: 40000,
     quantity: 500,
     unit: 'Hộp 20 gói',
@@ -63,7 +63,7 @@ const fallbackMedicines = [
   {
     _id: 'MED-006',
     name: 'Kẽm Gluconat 10mg (Conipa Pure 10ml)',
-    category: 'Vitamin và Khoáng chất',
+    category: 'Vitamin & Khoáng chất',
     price: 95000,
     quantity: 80,
     unit: 'Hộp 20 ống x 10ml',
@@ -74,7 +74,7 @@ const fallbackMedicines = [
   {
     _id: 'MED-007',
     name: 'Locgoda 0.1% (Mometason Furoat 15g)',
-    category: 'Thuốc chống dị ứng',
+    category: 'Thuốc Kháng Histamin',
     price: 65000,
     quantity: 50,
     unit: 'Tuýp 15g',
@@ -85,7 +85,7 @@ const fallbackMedicines = [
   {
     _id: 'MED-008',
     name: 'Magnesium B6 (Magnerot 500mg)',
-    category: 'Vitamin và Khoáng chất',
+    category: 'Vitamin & Khoáng chất',
     price: 150000,
     quantity: 200,
     unit: 'Hộp 5 vỉ x 10 viên',
@@ -96,7 +96,7 @@ const fallbackMedicines = [
   {
     _id: 'MED-009',
     name: 'Dung dịch sát khuẩn Povidine 10%',
-    category: 'Thuốc sát khuẩn',
+    category: 'Thuốc Sát khuẩn ngoài da',
     price: 25000,
     quantity: 320,
     unit: 'Chai 20ml',
@@ -107,9 +107,9 @@ const fallbackMedicines = [
   {
     _id: 'MED-010',
     name: 'Thuốc ho Bảo Thanh (Siro thảo dược)',
-    category: 'Khác',
+    category: 'Dịch truyền & Các loại khác',
     price: 55000,
-    quantity: 8, // Rất ít hàng
+    quantity: 8,
     unit: 'Chai 125ml',
     usage: 'Uống 15ml/lần x 3 lần/ngày, giảm ho khan, ho có đờm, rát họng.',
     ingredients: 'Xuyên bối mẫu, Tỳ bà diệp, Mật ong',
@@ -136,7 +136,7 @@ const Medicines = () => {
 
   const initialForm = {
     name: '',
-    category: 'Thuốc giảm đau, hạ sốt',
+    category: 'Giảm đau, Hạ sốt, Chống viêm',
     price: '',
     quantity: '',
     unit: '',
@@ -146,16 +146,17 @@ const Medicines = () => {
   };
   const [formData, setFormData] = useState(initialForm);
 
+  // Danh mục phân loại thuốc chuẩn Y khoa
   const categories = [
     'Tất cả',
-    'Thuốc giảm đau, hạ sốt',
-    'Thuốc kháng sinh',
-    'Thuốc tiêu hóa',
-    'Thuốc chống dị ứng',
-    'Thuốc tim mạch, huyết áp',
-    'Vitamin và Khoáng chất',
-    'Thuốc sát khuẩn',
-    'Khác'
+    'Giảm đau, Hạ sốt, Chống viêm',
+    'Thuốc Kháng khuẩn (Kháng sinh)',
+    'Thuốc Đường tiêu hóa',
+    'Thuốc Kháng Histamin',
+    'Thuốc Tim mạch, Huyết áp',
+    'Vitamin & Khoáng chất',
+    'Thuốc Sát khuẩn ngoài da',
+    'Dịch truyền & Các loại khác'
   ];
 
   useEffect(() => {
@@ -443,7 +444,7 @@ const Medicines = () => {
           </div>
           
           <div className="flex items-center gap-2 text-sm text-gray-500 font-medium">
-            <Filter className="w-4 h-4 text-[#004e92]" /> Bộ lọc nhanh danh mục thuốc:
+            <Filter className="w-4 h-4 text-[#004e92]" /> Phân loại dược lý (ATC):
           </div>
         </div>
 
@@ -653,7 +654,7 @@ const Medicines = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Nhóm chuyên khoa *</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Nhóm chuyên khoa (Chuẩn Y khoa) *</label>
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
