@@ -136,7 +136,7 @@ const Chatbot = () => {
                         : 'bg-white text-gray-800 rounded-[20px] rounded-bl-sm border border-gray-100' // Nhọn ở góc dưới trái
                     }`}
                   >
-                    <p className="whitespace-pre-wrap">{msg.text}</p>
+                    <p className="whitespace-pre-wrap break-words break-all">{msg.text}</p>
                   </div>
                 </div>
 
