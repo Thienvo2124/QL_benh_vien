@@ -1,23 +1,102 @@
-import { useState, useContext } from 'react';
-import { User, Mail, Phone, Calendar, Shield, Save, Key, UserCheck, CreditCard } from 'lucide-react';
+import { useState, useContext, useEffect } from 'react';
+import { User, Mail, Phone, Calendar, Shield, Save, Key, UserCheck, CreditCard, MapPin, Briefcase, Users, FileText } from 'lucide-react';
 import { AuthContext } from '../contexts/AuthContext';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import API_BASE_URL from '../config/api';
 
 const Profile = () => {
-  const { user } = useContext(AuthContext);
+  const { user, login, token } = useContext(AuthContext);
   
-  const [fullName, setFullName] = useState(user?.fullName || 'Tài khoản Bệnh nhân');
-  const [phone, setPhone] = useState(user?.phone || '0901234567');
-  const [gender, setGender] = useState('Nam');
-  const [birthDate, setBirthDate] = useState('1995-08-15');
-  const [bhytCode, setBhytCode] = useState('DN4797931234567');
-  const [successMsg, setSuccessMsg] = useState('');
+  const [fullName, setFullName] = useState(user?.fullName || '');
+  const [phone, setPhone] = useState(user?.phone || '');
+  const [gender, setGender] = useState(user?.gender || '');
+  const [birthDate, setBirthDate] = useState(user?.birthDate || '');
+  const [bhytCode, setBhytCode] = useState(user?.bhytCode || '');
+  const [idCard, setIdCard] = useState(user?.idCard || '');
+  const [guarantorName, setGuarantorName] = useState(user?.guarantorName || '');
+  const [guarantorPhone, setGuarantorPhone] = useState(user?.guarantorPhone || '');
+  const [guarantorIdCard, setGuarantorIdCard] = useState(user?.guarantorIdCard || '');
+  const [occupation, setOccupation] = useState(user?.occupation || '');
+  const [ethnicity, setEthnicity] = useState(user?.ethnicity || 'Kinh');
+  const [country, setCountry] = useState(user?.country || 'Việt Nam');
+  const [province, setProvince] = useState(user?.province || '');
+  const [district, setDistrict] = useState(user?.district || '');
+  const [ward, setWard] = useState(user?.ward || '');
+  const [address, setAddress] = useState(user?.address || '');
 
-  const handleUpdateProfile = (e) => {
+  const [successMsg, setSuccessMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setFullName(user.fullName || '');
+      setPhone(user.phone || '');
+      setGender(user.gender || '');
+      setBirthDate(user.birthDate || '');
+      setBhytCode(user.bhytCode || '');
+      setIdCard(user.idCard || '');
+      setGuarantorName(user.guarantorName || '');
+      setGuarantorPhone(user.guarantorPhone || '');
+      setGuarantorIdCard(user.guarantorIdCard || '');
+      setOccupation(user.occupation || '');
+      setEthnicity(user.ethnicity || 'Kinh');
+      setCountry(user.country || 'Việt Nam');
+      setProvince(user.province || '');
+      setDistrict(user.district || '');
+      setWard(user.ward || '');
+      setAddress(user.address || '');
+    }
+  }, [user]);
+
+  const handleUpdateProfile = async (e) => {
     e.preventDefault();
-    setSuccessMsg('Đã cập nhật thông tin hồ sơ & Bảo hiểm Y tế thành công!');
-    setTimeout(() => setSuccessMsg(''), 5000);
+    setSuccessMsg('');
+    setErrorMsg('');
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/users/${user.id || user._id}/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          fullName,
+          phone,
+          gender,
+          birthDate,
+          bhytCode,
+          idCard,
+          guarantorName,
+          guarantorPhone,
+          guarantorIdCard,
+          occupation,
+          ethnicity,
+          country,
+          province,
+          district,
+          ward,
+          address
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSuccessMsg('Đã cập nhật thông tin hồ sơ thành công!');
+        login({ ...user, ...data.user, id: user.id || user._id }, token); // Cập nhật AuthContext
+        setTimeout(() => setSuccessMsg(''), 5000);
+      } else {
+        setErrorMsg(data.message || 'Có lỗi xảy ra khi cập nhật.');
+      }
+    } catch (err) {
+      setErrorMsg('Lỗi kết nối máy chủ.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -32,16 +111,16 @@ const Profile = () => {
               <UserCheck className="w-9 h-9 text-blue-300" /> Quản lý tài khoản & BHYT
             </h1>
             <p className="text-blue-100 text-base mt-2 max-w-xl">
-              Cập nhật thông tin định danh cá nhân, thẻ Bảo hiểm y tế (BHYT) và quản lý bảo mật mật khẩu.
+              Cập nhật thông tin định danh cá nhân, thẻ Bảo hiểm y tế (BHYT) và thông tin liên hệ bảo lãnh.
             </p>
           </div>
           <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-blue-100 text-[#004e92] flex items-center justify-center font-bold text-xl shadow-lg">
-              {fullName.charAt(0)}
+              {fullName ? fullName.charAt(0).toUpperCase() : 'U'}
             </div>
             <div>
               <div className="text-xs text-blue-200 uppercase tracking-wider font-semibold">Tài khoản</div>
-              <div className="text-lg font-bold text-white">{user?.email || 'user@gmail.com'}</div>
+              <div className="text-lg font-bold text-white">{user?.phone || 'Chưa có SĐT'}</div>
             </div>
           </div>
         </div>
@@ -77,17 +156,17 @@ const Profile = () => {
                 <div className="grid grid-cols-2 gap-4 pt-2">
                   <div>
                     <div className="text-xs text-blue-200 uppercase tracking-wider font-medium">Họ và tên</div>
-                    <div className="font-bold text-base text-white mt-0.5 truncate">{fullName}</div>
+                    <div className="font-bold text-base text-white mt-0.5 truncate">{fullName || 'Người dùng mới'}</div>
                   </div>
                   <div>
                     <div className="text-xs text-blue-200 uppercase tracking-wider font-medium">Ngày sinh</div>
-                    <div className="font-bold text-base text-white mt-0.5">{birthDate.split('-').reverse().join('/')}</div>
+                    <div className="font-bold text-base text-white mt-0.5">{birthDate ? birthDate.split('-').reverse().join('/') : 'CHƯA CẬP NHẬT'}</div>
                   </div>
                 </div>
 
                 <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs text-blue-100">
                   <span>Bệnh viện ĐK Hợp lệ</span>
-                  <span className="font-bold">BV Nhân Dân (Hà Nội)</span>
+                  <span className="font-bold">BV Nhân Dân</span>
                 </div>
               </div>
             </div>
@@ -97,7 +176,7 @@ const Profile = () => {
                 <Shield className="w-5 h-5 text-[#004e92]" /> Bảo mật tài khoản
               </h3>
               <p className="text-xs text-gray-600">
-                Mật khẩu của bạn đã được mã hóa an toàn trên máy chủ. Bạn có thể đổi mật khẩu mới nếu muốn tăng cường bảo mật.
+                Mật khẩu của bạn đã được mã hóa an toàn trên máy chủ. Bạn có thể đổi mật khẩu mới nếu muốn.
               </p>
               <button 
                 onClick={() => alert('Đang chuyển hướng sang trang Đổi Mật Khẩu...')}
@@ -112,7 +191,7 @@ const Profile = () => {
           <div className="lg:col-span-2">
             <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-6 sm:p-8">
               <h2 className="text-xl font-bold text-gray-900 mb-6 pb-4 border-b border-gray-100 flex items-center gap-2">
-                <User className="w-6 h-6 text-[#004e92]" /> Cập nhật thông tin định danh
+                <FileText className="w-6 h-6 text-[#004e92]" /> Cập nhật thông tin chi tiết
               </h2>
 
               {successMsg && (
@@ -121,96 +200,96 @@ const Profile = () => {
                   {successMsg}
                 </div>
               )}
+              {errorMsg && (
+                <div className="mb-6 bg-red-50 border border-red-200 text-red-800 p-4 rounded-2xl text-sm font-semibold flex items-center gap-3 animate-fadeIn shadow-sm">
+                  {errorMsg}
+                </div>
+              )}
 
               <form onSubmit={handleUpdateProfile} className="space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
-                      <User className="w-4 h-4 text-[#004e92]" /> Họ và tên đầy đủ
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] focus:bg-white transition-colors font-medium text-gray-900"
-                    />
+                
+                {/* Khối: Thông tin cá nhân */}
+                <div>
+                  <h3 className="text-md font-bold text-[#004e92] mb-4 uppercase tracking-wider text-xs">Thông tin cá nhân</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <input type="text" placeholder="Họ và tên (Bắt buộc)" required value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]" />
+                    </div>
+                    <div>
+                      <input type="tel" disabled value={user?.phone || ''} className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-sm text-gray-500 cursor-not-allowed" title="Số điện thoại đăng nhập không thể đổi" />
+                    </div>
+                    <div>
+                      <input type="date" placeholder="Ngày sinh" required value={birthDate} onChange={(e) => setBirthDate(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]" />
+                    </div>
+                    <div className="flex items-center px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm">
+                      <label className="mr-4 text-gray-600">Giới tính:</label>
+                      <label className="mr-4 flex items-center cursor-pointer">
+                        <input type="radio" name="gender" value="Nam" checked={gender === 'Nam'} onChange={(e) => setGender(e.target.value)} className="mr-1" /> Nam
+                      </label>
+                      <label className="mr-4 flex items-center cursor-pointer">
+                        <input type="radio" name="gender" value="Nữ" checked={gender === 'Nữ'} onChange={(e) => setGender(e.target.value)} className="mr-1" /> Nữ
+                      </label>
+                    </div>
+                    <div>
+                      <input type="text" placeholder="Nhập số CCCD hoặc mã định danh cá nhân" value={idCard} onChange={(e) => setIdCard(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]" />
+                    </div>
+                    <div>
+                      <input type="text" placeholder="Mã số Bảo hiểm Y tế (BHYT)" value={bhytCode} onChange={(e) => setBhytCode(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-mono uppercase focus:outline-none focus:border-[#004e92]" />
+                    </div>
+                    <div>
+                      <input type="text" placeholder="Nghề nghiệp" value={occupation} onChange={(e) => setOccupation(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]" />
+                    </div>
+                    <div>
+                      <input type="text" placeholder="Dân tộc (VD: Kinh)" value={ethnicity} onChange={(e) => setEthnicity(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]" />
+                    </div>
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
-                      <Mail className="w-4 h-4 text-[#004e92]" /> Địa chỉ Email (Tên đăng nhập)
-                    </label>
-                    <input
-                      type="email"
-                      disabled
-                      value={user?.email || 'user@gmail.com'}
-                      className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-2xl text-sm text-gray-500 font-medium cursor-not-allowed"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
-                      <Phone className="w-4 h-4 text-[#004e92]" /> Số điện thoại liên hệ
-                    </label>
-                    <input
-                      type="tel"
-                      required
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] focus:bg-white transition-colors font-medium text-gray-900"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
-                      <CreditCard className="w-4 h-4 text-[#004e92]" /> Mã số Bảo hiểm Y tế (BHYT)
-                    </label>
-                    <input
-                      type="text"
-                      value={bhytCode}
-                      onChange={(e) => setBhytCode(e.target.value)}
-                      placeholder="Nhập mã thẻ BHYT của bạn..."
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] focus:bg-white transition-colors font-mono font-bold text-gray-900 uppercase"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
-                      <Calendar className="w-4 h-4 text-[#004e92]" /> Ngày sinh
-                    </label>
-                    <input
-                      type="date"
-                      value={birthDate}
-                      onChange={(e) => setBirthDate(e.target.value)}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] focus:bg-white transition-colors font-medium text-gray-900"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
-                      <User className="w-4 h-4 text-[#004e92]" /> Giới tính
-                    </label>
-                    <select
-                      value={gender}
-                      onChange={(e) => setGender(e.target.value)}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] focus:bg-white transition-colors font-medium text-gray-900"
-                    >
-                      <option value="Nam">Nam</option>
-                      <option value="Nữ">Nữ</option>
-                      <option value="Khác">Khác</option>
-                    </select>
-                  </div>
-
                 </div>
 
-                <div className="pt-6 border-t border-gray-100 flex justify-end">
+                {/* Khối: Người bảo lãnh */}
+                <div>
+                  <h3 className="text-md font-bold text-[#004e92] mb-4 uppercase tracking-wider text-xs">Thông tin Người bảo lãnh</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <input type="text" placeholder="Tên người bảo lãnh (Bắt buộc nếu dưới 16 tuổi)" value={guarantorName} onChange={(e) => setGuarantorName(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]" />
+                    </div>
+                    <div>
+                      <input type="tel" placeholder="Số điện thoại người bảo lãnh" value={guarantorPhone} onChange={(e) => setGuarantorPhone(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]" />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <input type="text" placeholder="Nhập số CCCD hoặc mã định danh của người bảo lãnh" value={guarantorIdCard} onChange={(e) => setGuarantorIdCard(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Khối: Địa chỉ */}
+                <div>
+                  <h3 className="text-md font-bold text-[#004e92] mb-4 uppercase tracking-wider text-xs">Địa chỉ liên hệ</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <input type="text" placeholder="Quốc gia" value={country} onChange={(e) => setCountry(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]" />
+                    </div>
+                    <div>
+                      <input type="text" placeholder="Tỉnh/Thành phố" required value={province} onChange={(e) => setProvince(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]" />
+                    </div>
+                    <div>
+                      <input type="text" placeholder="Quận/Huyện" required value={district} onChange={(e) => setDistrict(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]" />
+                    </div>
+                    <div>
+                      <input type="text" placeholder="Xã/Phường" required value={ward} onChange={(e) => setWard(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]" />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <input type="text" placeholder="Địa chỉ cụ thể (Số nhà, Tên đường...)" required value={address} onChange={(e) => setAddress(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-gray-100 flex justify-end">
                   <button
                     type="submit"
-                    className="bg-[#004e92] hover:bg-blue-800 text-white font-bold py-3 px-8 rounded-2xl transition-colors shadow-lg flex items-center gap-2 text-sm"
+                    disabled={loading}
+                    className="w-full sm:w-auto bg-[#004e92] hover:bg-blue-800 text-white font-bold py-3 px-12 rounded-xl transition-colors shadow-lg flex items-center justify-center gap-2 text-sm disabled:opacity-70"
                   >
-                    <Save className="w-4 h-4" /> Lưu thông tin hồ sơ
+                    <Save className="w-4 h-4" /> {loading ? 'Đang lưu...' : 'Lưu thông tin hồ sơ'}
                   </button>
                 </div>
               </form>

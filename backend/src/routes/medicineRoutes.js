@@ -29,7 +29,7 @@ router.get("/", protect, adminOrDoctorOnly, async (req, res) => {
 // POST /api/medicines - Thêm thuốc mới
 router.post("/", protect, adminOrDoctorOnly, async (req, res) => {
   try {
-    const { name, category, price, quantity, unit, usage, expiryDate } = req.body;
+    const { name, category, price, importPrice, quantity, unit, usage, ingredients, expiryDate } = req.body;
 
     if (!name || !category || price === undefined || quantity === undefined || !unit || !expiryDate) {
       return res.status(400).json({ message: "Vui lòng điền đầy đủ thông tin thuốc." });
@@ -44,9 +44,11 @@ router.post("/", protect, adminOrDoctorOnly, async (req, res) => {
       name: name.trim(),
       category: category.trim(),
       price: Number(price),
+      importPrice: importPrice !== undefined && importPrice !== '' ? Number(importPrice) : null,
       quantity: Number(quantity),
       unit: unit.trim(),
       usage: usage ? usage.trim() : "",
+      ingredients: ingredients ? ingredients.trim() : "",
       expiryDate: new Date(expiryDate),
     });
 
@@ -66,16 +68,18 @@ router.put("/:id", protect, adminOrDoctorOnly, async (req, res) => {
       return res.status(400).json({ message: "ID thuốc không hợp lệ." });
     }
 
-    const { name, category, price, quantity, unit, usage, expiryDate } = req.body;
+    const { name, category, price, importPrice, quantity, unit, usage, ingredients, expiryDate } = req.body;
 
     const updatedData = {
-      name: name?.trim(),
-      category: category?.trim(),
-      price: price !== undefined ? Number(price) : undefined,
-      quantity: quantity !== undefined ? Number(quantity) : undefined,
-      unit: unit?.trim(),
-      usage: usage?.trim(),
-      expiryDate: expiryDate ? new Date(expiryDate) : undefined,
+      ...(name && { name: name.trim() }),
+      ...(category && { category: category.trim() }),
+      ...(price !== undefined && { price: Number(price) }),
+      ...(importPrice !== undefined && { importPrice: importPrice !== '' ? Number(importPrice) : null }),
+      ...(quantity !== undefined && { quantity: Number(quantity) }),
+      ...(unit && { unit: unit.trim() }),
+      ...(usage !== undefined && { usage: usage.trim() }),
+      ...(ingredients !== undefined && { ingredients: ingredients.trim() }),
+      ...(expiryDate && { expiryDate: new Date(expiryDate) }),
     };
 
     const medicine = await Medicine.findByIdAndUpdate(req.params.id, updatedData, {
@@ -88,6 +92,46 @@ router.put("/:id", protect, adminOrDoctorOnly, async (req, res) => {
     }
 
     return res.json({ message: "Cập nhật thông tin thuốc thành công.", medicine });
+  } catch (error) {
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ message: "Dữ liệu không hợp lệ.", error: error.message });
+    }
+    return res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+});
+
+// PATCH /api/medicines/:id - Cập nhật một phần thuốc (VD: chỉ cập nhật số lượng khi nhập kho nhanh)
+router.patch("/:id", protect, adminOrDoctorOnly, async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "ID thuốc không hợp lệ." });
+    }
+
+    // Chỉ cho phép cập nhật các trường an toàn qua PATCH
+    const allowedFields = ['quantity', 'importPrice', 'usage', 'ingredients'];
+    const updates = {};
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        updates[field] = field === 'quantity' || field === 'importPrice'
+          ? Number(req.body[field])
+          : req.body[field];
+      }
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ message: "Không có dữ liệu hợp lệ để cập nhật." });
+    }
+
+    const medicine = await Medicine.findByIdAndUpdate(req.params.id, { $set: updates }, {
+      new: true,
+      runValidators: true,
+    }).select("-__v");
+
+    if (!medicine) {
+      return res.status(404).json({ message: "Không tìm thấy thuốc." });
+    }
+
+    return res.json({ message: "Cập nhật thành công.", medicine });
   } catch (error) {
     if (error.name === "ValidationError") {
       return res.status(400).json({ message: "Dữ liệu không hợp lệ.", error: error.message });

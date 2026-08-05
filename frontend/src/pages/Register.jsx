@@ -6,8 +6,7 @@ import Footer from '../components/Footer';
 import API_BASE_URL from '../config/api';
 
 const Register = () => {
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -35,7 +34,7 @@ const Register = () => {
       const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullName, email, password, role: 'patient' }),
+        body: JSON.stringify({ phone, password, role: 'patient' }),
       });
 
       const data = await response.json();
@@ -76,24 +75,13 @@ const Register = () => {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Họ và tên</label>
+              <label className="block text-sm font-medium text-gray-700">Số điện thoại</label>
               <input
-                type="text"
+                type="tel"
                 required
                 className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#004e92] focus:border-[#004e92] sm:text-sm"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Email</label>
-              <input
-                type="email"
-                required
-                className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#004e92] focus:border-[#004e92] sm:text-sm"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
               />
             </div>
 

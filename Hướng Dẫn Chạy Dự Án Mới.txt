@@ -26,5 +26,9 @@ npm run dev
 
 4. mật khẩu admin
 
+1234567890
+123456
+
+
 admin123@gmail.com
 123456

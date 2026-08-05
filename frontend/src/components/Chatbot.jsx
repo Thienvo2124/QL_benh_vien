@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Send, X, Bot, User, MessageCircle, HeartPulse, HelpCircle, Pill, CalendarClock, Paperclip, Stethoscope } from 'lucide-react';
+import { Send, X, Bot, User, MessageCircle, HeartPulse, HelpCircle, Pill, CalendarClock, Paperclip, Stethoscope, ThumbsUp, ThumbsDown } from 'lucide-react';
 import API_BASE_URL from '../config/api';
 
 const Chatbot = () => {
@@ -69,9 +69,9 @@ const Chatbot = () => {
       const data = await response.json();
 
       if (data.success) {
-        setMessages([...newMessages, { role: 'model', text: data.reply }]);
+        setMessages([...newMessages, { role: 'model', text: data.reply, messageId: data.messageId, rating: null }]);
       } else {
-        setMessages([...newMessages, { role: 'model', text: `Dạ hệ thống báo lỗi: ${data.message || 'không xác định'}. Anh/chị thử lại sau nhé.` }]);
+        setMessages([...newMessages, { role: 'model', text: `Dạ hệ thống báo lỗi: ${data.message || 'không xác định'}. Anh/chị thử lại sau nhé.`, rating: null }]);
       }
     } catch {
       setMessages([
@@ -129,14 +129,65 @@ const Chatbot = () => {
                     </div>
                   )}
                   
-                  <div
-                    className={`px-4 py-2.5 shadow-sm text-[15px] leading-relaxed ${
-                      msg.role === 'user'
-                        ? 'bg-[#004e92] text-white rounded-[20px] rounded-br-sm' // Nhọn ở góc dưới phải (iMessage style)
-                        : 'bg-white text-gray-800 rounded-[20px] rounded-bl-sm border border-gray-100' // Nhọn ở góc dưới trái
-                    }`}
-                  >
-                    <p className="whitespace-pre-wrap break-words break-all">{msg.text}</p>
+                  <div className="flex flex-col">
+                    <div
+                      className={`px-4 py-2.5 shadow-sm text-[15px] leading-relaxed ${
+                        msg.role === 'user'
+                          ? 'bg-[#004e92] text-white rounded-[20px] rounded-br-sm' // Nhọn ở góc dưới phải (iMessage style)
+                          : 'bg-white text-gray-800 rounded-[20px] rounded-bl-sm border border-gray-100' // Nhọn ở góc dưới trái
+                      }`}
+                    >
+                      <p className="whitespace-pre-wrap break-words break-all">{msg.text}</p>
+                    </div>
+                    
+                    {/* Nút Like / Dislike cho phản hồi từ AI */}
+                    {msg.role === 'model' && msg.messageId && (
+                      <div className="flex items-center gap-2 mt-1 ml-2 text-gray-400">
+                        <button
+                          onClick={async () => {
+                            if (msg.rating === 'like') return;
+                            try {
+                              const res = await fetch(`${API_BASE_URL}/api/chat/rate`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ messageId: msg.messageId, rating: 'like' })
+                              });
+                              if (res.ok) {
+                                setMessages(prev => prev.map((m, i) => i === index ? { ...m, rating: 'like' } : m));
+                              }
+                            } catch (e) {
+                              console.error(e);
+                            }
+                          }}
+                          className={`hover:text-green-600 transition-colors p-1 rounded-full hover:bg-gray-100 ${msg.rating === 'like' ? 'text-green-600 font-bold bg-green-50' : ''}`}
+                          title="Hữu ích"
+                        >
+                          <ThumbsUp size={12} />
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (msg.rating === 'dislike') return;
+                            try {
+                              const res = await fetch(`${API_BASE_URL}/api/chat/rate`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ messageId: msg.messageId, rating: 'dislike' })
+                              });
+                              if (res.ok) {
+                                setMessages(prev => prev.map((m, i) => i === index ? { ...m, rating: 'dislike' } : m));
+                              }
+                            } catch (e) {
+                              console.error(e);
+                            }
+                          }}
+                          className={`hover:text-red-600 transition-colors p-1 rounded-full hover:bg-gray-100 ${msg.rating === 'dislike' ? 'text-red-600 font-bold bg-red-50' : ''}`}
+                          title="Chưa hài lòng"
+                        >
+                          <ThumbsDown size={12} />
+                        </button>
+                        {msg.rating && <span className="text-[10px] text-gray-400">{msg.rating === 'like' ? 'Hữu ích' : 'Cần cải thiện'}</span>}
+                      </div>
+                    )}
                   </div>
                 </div>
 

@@ -37,4 +37,57 @@ router.put("/:id/role", async (req, res) => {
   }
 });
 
+// Cập nhật hồ sơ bệnh nhân
+router.put("/:id/profile", async (req, res) => {
+  try {
+    const {
+      fullName,
+      birthDate,
+      gender,
+      bhytCode,
+      idCard,
+      guarantorName,
+      guarantorPhone,
+      guarantorIdCard,
+      occupation,
+      ethnicity,
+      country,
+      province,
+      district,
+      ward,
+      address,
+    } = req.body;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      {
+        fullName,
+        birthDate,
+        gender,
+        bhytCode,
+        idCard,
+        guarantorName,
+        guarantorPhone,
+        guarantorIdCard,
+        occupation,
+        ethnicity,
+        country,
+        province,
+        district,
+        ward,
+        address,
+      },
+      { new: true }
+    ).select("-password");
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "Không tìm thấy người dùng" });
+    }
+
+    res.json({ message: "Cập nhật hồ sơ thành công", user: updatedUser });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+});
+
 module.exports = router;

@@ -1,6 +1,6 @@
 import { useContext, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { Activity, Calendar, Home, LogOut, Settings, Users, Pill, Globe, User, Shield, ChevronDown, Building, FileText, UserCheck } from 'lucide-react';
+import { Activity, Calendar, Home, LogOut, Settings, Users, Pill, Globe, User, Shield, ChevronDown, Building, FileText, UserCheck, Bot } from 'lucide-react';
 import { AuthContext } from '../contexts/AuthContext';
 
 const AdminLayout = () => {
@@ -41,6 +41,12 @@ const AdminLayout = () => {
             <Settings className="w-5 h-5 mr-3" />
             Cài đặt
           </Link>
+          {user?.role === 'admin' && (
+            <Link to="/dashboard/chatbot-training" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/chatbot-training' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
+              <Bot className="w-5 h-5 mr-3" />
+              Huấn luyện AI
+            </Link>
+          )}
         </nav>
 
         <div className="p-4 border-t border-blue-800 space-y-2">

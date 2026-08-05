@@ -20,11 +20,11 @@ export const AuthProvider = ({ children }) => {
     sessionStorage.setItem('user', JSON.stringify(userData));
     sessionStorage.setItem('token', userToken);
     
-    // Phân luồng điều hướng: Quản trị/Bác sĩ vào Dashboard, Bệnh nhân vào trang Đặt lịch (Hồ sơ)
+    // Phân luồng điều hướng: Quản trị/Bác sĩ vào Dashboard, Bệnh nhân quay về Trang Chủ
     if (userData?.role === 'admin' || userData?.role === 'doctor') {
       navigate('/dashboard');
     } else {
-      navigate('/booking');
+      navigate('/');
     }
   };
 

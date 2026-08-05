@@ -138,6 +138,7 @@ const Medicines = () => {
     name: '',
     category: 'Giảm đau, Hạ sốt, Chống viêm',
     price: '',
+    importPrice: '',
     quantity: '',
     unit: '',
     usage: '',
@@ -207,6 +208,7 @@ const Medicines = () => {
         name: medicine.name,
         category: medicine.category,
         price: medicine.price,
+        importPrice: medicine.importPrice || '',
         quantity: medicine.quantity,
         unit: medicine.unit,
         usage: medicine.usage || '',
@@ -228,6 +230,29 @@ const Medicines = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // === VALIDATION (Sạn 2: Kiểm tra đầu vào) ===
+    if (Number(formData.price) < 0) {
+      alert('Lỗi: Giá bán không được âm!');
+      return;
+    }
+    if (formData.importPrice !== '' && Number(formData.importPrice) < 0) {
+      alert('Lỗi: Giá nhập không được âm!');
+      return;
+    }
+    if (formData.importPrice !== '' && Number(formData.importPrice) > Number(formData.price)) {
+      alert('Cảnh báo: Giá nhập cao hơn giá bán. Vui lòng kiểm tra lại!');
+      return;
+    }
+    if (formData.expiryDate) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (new Date(formData.expiryDate) < today) {
+        alert('Lỗi: Ngày hết hạn sử dụng đã qua! Không thể nhập thuốc đã hết hạn vào kho.');
+        return;
+      }
+    }
+
     setSaving(true);
 
     const isMock = editingMedicine && editingMedicine._id.startsWith('MED-');
@@ -268,7 +293,8 @@ const Medicines = () => {
         handleCloseModal();
         setTimeout(() => setNotification(''), 5000);
       } else {
-        alert('Có lỗi xảy ra khi liên lạc với máy chủ.');
+        const errData = await response.json().catch(() => ({}));
+        alert(`Có lỗi xảy ra: ${errData.message || 'Liên lạc máy chủ thất bại.'}`);
       }
     } catch (error) {
       console.error('Lỗi khi lưu thuốc:', error);
@@ -305,21 +331,48 @@ const Medicines = () => {
     }
   };
 
-  const handleQuickAddStock = (e) => {
+  const handleQuickAddStock = async (e) => {
     e.preventDefault();
     if (!quickAddModal) return;
-    
-    setMedicines(medicines.map(m => {
-      if (m._id === quickAddModal._id) {
-        return { ...m, quantity: Number(m.quantity) + Number(addQty) };
-      }
-      return m;
-    }));
 
-    setNotification(`Đã nhập kho thêm ${addQty} đơn vị cho thuốc "${quickAddModal.name}". Tổng tồn kho mới: ${quickAddModal.quantity + addQty}`);
+    // === VALIDATION (Sạn 2) ===
+    if (Number(addQty) <= 0) {
+      alert('Số lượng nhập kho phải lớn hơn 0!');
+      return;
+    }
+
+    const newQty = Number(quickAddModal.quantity) + Number(addQty);
+
+    // Sạn 1: Persist vào DB nếu không phải Mock data
+    if (!quickAddModal._id.startsWith('MED-')) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/medicines/${quickAddModal._id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quantity: newQty }),
+        });
+        if (!response.ok) {
+          // Fallback: thử PUT với toàn bộ object
+          await fetch(`${API_BASE_URL}/api/medicines/${quickAddModal._id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...quickAddModal, quantity: newQty }),
+          });
+        }
+      } catch (err) {
+        console.warn('Không thể đồng bộ số lượng với server, chỉ cập nhật UI:', err);
+      }
+    }
+
+    // Sạn 4: Fix bug — cập nhật state đúng với newQty thay vì quickAddModal.quantity cũ
+    setMedicines(medicines.map(m =>
+      m._id === quickAddModal._id ? { ...m, quantity: newQty } : m
+    ));
+
+    setNotification(`✅ Đã nhập kho thêm ${addQty} đơn vị cho "${quickAddModal.name}". Tổng tồn kho mới: ${newQty} ${quickAddModal.unit || ''}.`);
     setQuickAddModal(null);
     setAddQty(50);
-    setTimeout(() => setNotification(''), 5000);
+    setTimeout(() => setNotification(''), 6000);
   };
 
   // Tính toán số liệu thống kê (Quick Stats)
@@ -335,7 +388,14 @@ const Medicines = () => {
     return diffDays <= 90 && diffDays > 0;
   }).length;
 
-  const totalInventoryValue = medicines.reduce((acc, m) => acc + (m.price * m.quantity), 0);
+  // Sạn 3: Tính giá trị kho theo giá NHẬP (giá vốn), không phải giá bán
+  // Nếu chưa có importPrice thì fallback về 70% giá bán (ước tính)
+  const totalInventoryValue = medicines.reduce((acc, m) => {
+    const costPrice = m.importPrice && Number(m.importPrice) > 0
+      ? Number(m.importPrice)
+      : Math.round(Number(m.price) * 0.7);
+    return acc + (costPrice * Number(m.quantity));
+  }, 0);
 
   return (
     <div className="p-8 font-sans bg-gray-50/50 min-h-screen space-y-8">
@@ -421,9 +481,9 @@ const Medicines = () => {
             <DollarSign className="w-7 h-7" />
           </div>
           <div>
-            <div className="text-xs font-bold uppercase tracking-wider text-gray-400">Ước tính giá trị kho</div>
+            <div className="text-xs font-bold uppercase tracking-wider text-gray-400">Giá trị kho (theo giá vốn)</div>
             <div className="text-2xl font-black text-emerald-700 mt-1">{totalInventoryValue.toLocaleString('vi-VN')} <span className="text-sm font-semibold text-gray-500">đ</span></div>
-            <div className="text-xs text-gray-500 font-semibold mt-1">Tự động tính theo tổng tồn kho</div>
+            <div className="text-xs text-gray-500 font-semibold mt-1">Tính theo giá nhập (giá vốn)</div>
           </div>
         </div>
 
@@ -667,16 +727,29 @@ const Medicines = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Giá bán chỉ định (VNĐ) *</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Giá bán (VNĐ) *</label>
                   <input
                     type="number"
                     required
-                    min="0"
+                    min="1"
                     placeholder="VD: 35000"
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92]"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Giá nhập / Giá vốn (VNĐ)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="VD: 22000 (để trống nếu chưa rõ)"
+                    value={formData.importPrice}
+                    onChange={(e) => setFormData({ ...formData, importPrice: e.target.value === '' ? '' : Number(e.target.value) })}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92]"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">Dùng để tính giá trị kho chính xác theo giá vốn.</p>
                 </div>
 
                 <div>
@@ -709,10 +782,12 @@ const Medicines = () => {
                   <input
                     type="date"
                     required
+                    min={new Date().toISOString().split('T')[0]}
                     value={formData.expiryDate}
                     onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] cursor-pointer"
                   />
+                  <p className="text-xs text-gray-400 mt-1">Không được chọn ngày đã qua (phòng tránh nhập thuốc hết hạn).</p>
                 </div>
 
                 <div>

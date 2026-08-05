@@ -34,6 +34,16 @@ const medicineSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    ingredients: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    importPrice: {
+      type: Number,
+      min: [0, "Giá nhập không thể nhỏ hơn 0"],
+      default: null,
+    },
     expiryDate: {
       type: Date,
       required: [true, "Vui lòng nhập ngày hết hạn"],
