@@ -17,7 +17,7 @@ const MyAppointments = () => {
     setLoading(true);
     try {
       const token = sessionStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/appointments`, {
+      const response = await fetch(`${API_BASE_URL}/api/appointments/my`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -25,14 +25,7 @@ const MyAppointments = () => {
 
       if (response.ok) {
         const data = await response.json();
-        // Lọc các lịch hẹn thuộc về bệnh nhân hiện tại (trùng tên hoặc email hoặc số điện thoại)
-        const myApps = data.filter(app => 
-          app.name?.toLowerCase() === user?.fullName?.toLowerCase() ||
-          app.phone === user?.phone || 
-          app.name?.toLowerCase().includes(user?.fullName?.toLowerCase() || 'bệnh nhân')
-        );
-        // Nếu không có cái nào khớp hoàn toàn, lấy danh sách tạm để bệnh nhân test trải nghiệm
-        setAppointments(myApps.length > 0 ? myApps : data.slice(0, 3));
+        setAppointments(data);
       } else {
         console.error('Không thể tải lịch hẹn');
       }
@@ -52,13 +45,12 @@ const MyAppointments = () => {
     setUpdatingId(id);
     try {
       const token = sessionStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/appointments/${id}/status`, {
+      const response = await fetch(`${API_BASE_URL}/api/appointments/${id}/cancel`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ status: 'rejected' })
+        }
       });
 
       if (response.ok) {
@@ -111,6 +103,54 @@ const MyAppointments = () => {
         return <span className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-xs font-semibold">Khác</span>;
     }
   };
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
+        <Header />
+        
+        {/* Banner */}
+        <div className="bg-[#004e92] text-white py-12 px-4 sm:px-8 shadow-inner">
+          <div className="container mx-auto max-w-6xl">
+            <h1 className="text-3xl font-bold tracking-wide uppercase flex items-center gap-3">
+              <Calendar className="w-9 h-9 text-blue-300" /> Lịch hẹn của tôi
+            </h1>
+            <p className="text-blue-100 text-base mt-2 max-w-xl">
+              Quản lý danh sách các lịch hẹn khám bệnh trực tuyến bạn đã đăng ký tại Bệnh viện Nhân Dân.
+            </p>
+          </div>
+        </div>
+
+        <main className="flex-grow container mx-auto max-w-2xl px-4 py-16 text-center animate-fadeIn">
+          <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 sm:p-12">
+            <div className="w-16 h-16 bg-blue-50 text-[#004e92] rounded-full flex items-center justify-center mx-auto mb-6 border border-blue-100">
+              <User size={32} />
+            </div>
+            <h2 className="text-xl font-bold text-gray-800 mb-3">Yêu cầu Đăng nhập</h2>
+            <p className="text-gray-500 text-sm max-w-sm mx-auto leading-relaxed mb-8">
+              Vui lòng đăng nhập tài khoản để tra cứu, theo dõi và quản lý lịch hẹn khám bệnh trực tuyến của bạn tại Bệnh viện.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                to="/login"
+                className="px-6 py-3 bg-[#004e92] hover:bg-blue-800 text-white font-bold rounded-xl transition-all shadow-md text-sm uppercase tracking-wider"
+              >
+                Đăng nhập ngay
+              </Link>
+              <Link
+                to="/register"
+                className="px-6 py-3 border-2 border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-all text-sm uppercase tracking-wider"
+              >
+                Tạo tài khoản mới
+              </Link>
+            </div>
+          </div>
+        </main>
+
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">

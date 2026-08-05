@@ -178,6 +178,17 @@ router.get("/", protect, adminOrDoctorOnly, async (req, res) => {
   }
 });
 
+router.get("/my", protect, async (req, res) => {
+  try {
+    const appointments = await Appointment.find({ phone: req.user.phone })
+      .sort({ date: 1, time: 1, createdAt: -1 })
+      .select("-__v");
+    return res.json(appointments);
+  } catch (error) {
+    return res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+});
+
 router.get("/:id", protect, adminOrDoctorOnly, async (req, res) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -190,6 +201,38 @@ router.get("/:id", protect, adminOrDoctorOnly, async (req, res) => {
     }
 
     return res.json(appointment);
+  } catch (error) {
+    return res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+});
+
+router.patch("/:id/cancel", protect, async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "ID lịch hẹn không hợp lệ." });
+    }
+
+    // Chỉ cho phép hủy nếu lịch đó thuộc về chính số điện thoại của user đang đăng nhập
+    const appointment = await Appointment.findOne({
+      _id: req.params.id,
+      phone: req.user.phone,
+    });
+
+    if (!appointment) {
+      return res.status(404).json({ message: "Không tìm thấy lịch hẹn hoặc bạn không có quyền hủy lịch này." });
+    }
+
+    if (appointment.status === 'completed') {
+      return res.status(400).json({ message: "Không thể hủy lịch hẹn đã hoàn thành khám." });
+    }
+
+    appointment.status = 'rejected';
+    await appointment.save();
+
+    return res.json({
+      message: "Hủy lịch hẹn thành công.",
+      appointment,
+    });
   } catch (error) {
     return res.status(500).json({ message: "Lỗi server", error: error.message });
   }

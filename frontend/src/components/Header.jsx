@@ -6,7 +6,7 @@ import { AuthContext } from '../contexts/AuthContext';
 const navItems = [
   ['/', 'Trang chủ'],
   ['/booking', 'Đặt lịch'],
-  ['/schedule', 'Lịch khám chữa bệnh'],
+  ['/my-appointments', 'Lịch hẹn của tôi'],
   ['/doctors', 'Bác sĩ'],
   ['/pricing', 'Bảng giá'],
 ];
