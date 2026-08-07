@@ -471,7 +471,6 @@ const Booking = () => {
                         <option value="">-- Chọn --</option>
                         <option value="Nam">Nam</option>
                         <option value="Nữ">Nữ</option>
-                        <option value="Khác">Khác</option>
                       </select>
                     </div>
                     <div className="sm:col-span-2">
