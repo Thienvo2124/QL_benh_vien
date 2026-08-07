@@ -1,6 +1,6 @@
 import { useState, useContext, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { User, Phone, Calendar, Clock, Stethoscope, CheckCircle, Bot, Sparkles, ChevronRight, ChevronLeft, UserCheck, UserPlus, FileText, Sun, SunDim, Check, Award, Star, Smile, Ticket } from 'lucide-react';
+import { User, Phone, Calendar, Clock, Stethoscope, CheckCircle, Bot, Sparkles, ChevronRight, ChevronLeft, UserCheck, UserPlus, FileText, Sun, SunDim, Check, Award, Star, Smile, Ticket, RefreshCw } from 'lucide-react';
 import API_BASE_URL from '../config/api';
 import departments from '../data/departments';
 import Header from '../components/Header';
@@ -40,6 +40,25 @@ const Booking = () => {
   const [dobDay, setDobDay] = useState('');
   const [dobMonth, setDobMonth] = useState('');
   const [dobYear, setDobYear] = useState('');
+
+  // UMC UI states: Address, Captcha, BuoiKham
+  const [address, setAddress] = useState('');
+  const [captcha, setCaptcha] = useState('');
+  const [userCaptcha, setUserCaptcha] = useState('');
+  const [buoiKham, setBuoiKham] = useState('Sáng');
+
+  const generateCaptcha = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    for (let i = 0; i < 5; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setCaptcha(code);
+  };
+
+  useEffect(() => {
+    generateCaptcha();
+  }, []);
 
   // Sync Day/Month/Year dropdowns with form.dob
   useEffect(() => {
@@ -175,15 +194,34 @@ const Booking = () => {
     }
   };
 
-  const handleConfirm = async () => {
+  const handleSubmit = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
     setError('');
-    setIsSubmitting(true);
 
+    // Validations
+    if (!form.name.trim()) return setError('Vui lòng nhập Họ và tên.');
+    if (!form.phone.trim()) return setError('Vui lòng nhập Số điện thoại.');
+    if (!form.dob) return setError('Vui lòng chọn Ngày sinh.');
+    if (!form.gender) return setError('Vui lòng chọn Giới tính.');
+    if (!form.dept) return setError('Vui lòng chọn Chuyên khoa khám.');
+    if (!form.date) return setError('Vui lòng chọn Ngày khám.');
+    if (!form.time) return setError('Vui lòng chọn Giờ khám.');
+    if (!userCaptcha.trim()) return setError('Vui lòng nhập mã xác thực (Captcha).');
+    if (userCaptcha.trim().toUpperCase() !== captcha.toUpperCase()) {
+      setError('Mã xác thực (Captcha) không chính xác. Vui lòng nhập lại!');
+      generateCaptcha();
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
       const response = await fetch(`${API_BASE_URL}/api/appointments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          doctor: form.doctor || 'Hệ thống tự phân công'
+        }),
       });
 
       const data = await response.json();
@@ -196,6 +234,7 @@ const Booking = () => {
       setStep(5);
     } catch (err) {
       setError(err.message || 'Không thể kết nối đến máy chủ. Vui lòng thử lại.');
+      generateCaptcha();
     } finally {
       setIsSubmitting(false);
     }
@@ -253,7 +292,7 @@ const Booking = () => {
           <h1 className="text-3xl font-extrabold text-white uppercase tracking-wider mb-2 flex items-center gap-2">
             <Ticket className="w-8 h-8 text-blue-300" /> Đặt lịch khám trực tuyến
           </h1>
-          <p className="text-blue-100 text-sm">Đặt lịch hẹn nhanh chóng trong 4 bước, nhận vé xác nhận tức thì.</p>
+          <p className="text-blue-100 text-sm">Đặt lịch hẹn nhanh chóng, nhận vé xác nhận tức thì.</p>
         </div>
       </section>
 
@@ -267,78 +306,117 @@ const Booking = () => {
       </div>
 
       <main className="flex-grow py-10 px-4">
-        <div className="container mx-auto max-w-3xl">
+        <div className="container mx-auto max-w-6xl">
           
-          {step < 5 && <StepIndicator />}
-
-          {/* Màn hình từng bước */}
+          {/* MÀN HÌNH ĐĂNG KÝ MỘT TRANG */}
           {step < 5 && (
-            <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-6 sm:p-8 transition-all animate-fadeIn">
+            <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 flex flex-col lg:flex-row max-w-5xl mx-auto animate-fadeIn">
               
-              {/* BƯỚC 1: THÔNG TIN CÁ NHÂN */}
-              {step === 1 && (
-                <div className="space-y-6">
-                  <div className="flex justify-between items-center pb-4 border-b border-gray-100">
-                    <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                      <User className="w-5 h-5 text-[#004e92]" /> Bước 1: Thông tin người bệnh
-                    </h2>
-                    
-                    {/* Toggle Người khám */}
-                    <div className="flex bg-gray-100 p-1 rounded-xl text-xs font-bold">
-                      <button
-                        type="button"
-                        onClick={() => setIsForSelf(true)}
-                        className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 ${
-                          isForSelf ? 'bg-white text-[#004e92] shadow-sm' : 'text-gray-500'
-                        }`}
-                      >
-                        <UserCheck size={14} /> Cho bản thân
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setIsForSelf(false)}
-                        className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 ${
-                          !isForSelf ? 'bg-white text-[#004e92] shadow-sm' : 'text-gray-500'
-                        }`}
-                      >
-                        <UserPlus size={14} /> Cho người thân
-                      </button>
-                    </div>
+              {/* CỘT TRÁI: LƯU Ý / THÔNG TIN CHÍNH SÁCH */}
+              <div className="lg:w-1/3 bg-gradient-to-br from-[#004e92] to-[#000428] text-white p-8 sm:p-10 flex flex-col justify-between">
+                <div>
+                  <h3 className="text-lg font-black border-b border-blue-400/30 pb-3 mb-6 uppercase tracking-wider text-blue-300">
+                    Lưu ý quan trọng:
+                  </h3>
+                  <ul className="space-y-5 text-xs font-semibold leading-relaxed text-blue-100">
+                    <li className="flex gap-2">
+                      <span className="text-blue-300 font-bold">1.</span>
+                      <span>Lịch hẹn có hiệu lực sau khi có cuộc gọi hoặc tin nhắn xác nhận chính thức từ tổng đài Bệnh viện Nhân Dân.</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="text-blue-300 font-bold">2.</span>
+                      <span>Quý khách hàng vui lòng cung cấp thông tin chính xác để được phục vụ tốt nhất. Trong trường hợp cung cấp sai số điện thoại hoặc email, cuộc hẹn sẽ tự động bị hủy bỏ.</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="text-blue-300 font-bold">3.</span>
+                      <span>Quý khách sử dụng dịch vụ đặt hẹn trực tuyến xin vui lòng hoàn tất đăng ký ít nhất là 24 giờ trước giờ khám dự kiến.</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="text-blue-300 font-bold">4.</span>
+                      <span>Trong trường hợp khẩn cấp hoặc nghi ngờ có các triệu chứng nguy hiểm nguy kịch, vui lòng ĐẾN TRỰC TIẾP Phòng Cấp Cứu của bệnh viện gần nhất để xử lý kịp thời.</span>
+                    </li>
+                  </ul>
+                </div>
+                
+                <div className="mt-12 pt-6 border-t border-blue-400/20 text-[10px] text-blue-400 font-bold text-center tracking-widest uppercase">
+                  Bệnh viện Nhân Dân • Hotline 1900 2115
+                </div>
+              </div>
+
+              {/* CỘT PHẢI: FORM ĐĂNG KÝ KHÁM */}
+              <div className="lg:w-2/3 p-8 sm:p-10 space-y-6">
+                
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-5">
+                  <div>
+                    <h2 className="text-2xl font-black text-[#004e92] uppercase tracking-wide">ĐĂNG KÝ KHÁM</h2>
+                    <p className="text-gray-500 text-xs mt-1">
+                      Vui lòng điền thông tin vào form dưới đây để đăng ký khám bệnh theo yêu cầu!
+                    </p>
                   </div>
 
-                  {user && isForSelf && (
-                    <div className="bg-blue-50/60 border border-blue-100 text-blue-800 text-xs px-4 py-3 rounded-2xl flex items-center gap-2">
-                      <Smile size={16} className="text-[#004e92]" />
-                      <span>Chào **{user.fullName}**, hệ thống đã tự động điền thông tin định danh từ hồ sơ của bạn.</span>
-                    </div>
-                  )}
+                  {/* Toggle Đối tượng khám */}
+                  <div className="flex bg-gray-100 p-1 rounded-xl text-xs font-bold w-max self-start sm:self-auto">
+                    <button
+                      type="button"
+                      onClick={() => setIsForSelf(true)}
+                      className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 ${
+                        isForSelf ? 'bg-white text-[#004e92] shadow-sm' : 'text-gray-500'
+                      }`}
+                    >
+                      <UserCheck size={14} /> Cho bản thân
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsForSelf(false)}
+                      className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 ${
+                        !isForSelf ? 'bg-white text-[#004e92] shadow-sm' : 'text-gray-500'
+                      }`}
+                    >
+                      <UserPlus size={14} /> Cho người thân
+                    </button>
+                  </div>
+                </div>
 
+                {user && isForSelf && (
+                  <div className="bg-blue-50/60 border border-blue-100 text-blue-800 text-xs px-4 py-3 rounded-2xl flex items-center gap-2">
+                    <Smile size={16} className="text-[#004e92] flex-shrink-0" />
+                    <span>Chào <strong>{user.fullName}</strong>, thông tin hồ sơ của bạn đã được tự động nhập dưới đây.</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  
+                  {/* Họ tên & Email */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-gray-600 mb-2">Họ và tên *</label>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5">Họ và tên *</label>
                       <input
                         type="text"
                         placeholder="Nguyễn Văn A"
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] transition-colors"
                         value={form.name}
                         onChange={(e) => set('name', e.target.value)}
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-gray-600 mb-2">Số điện thoại *</label>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5">Email</label>
                       <input
-                        type="tel"
-                        placeholder="09xxxxxxxx"
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
-                        value={form.phone}
-                        onChange={(e) => set('phone', e.target.value)}
+                        type="email"
+                        placeholder="nhap.email@vi-du.com"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] transition-colors"
+                        value={form.email || ''}
+                        onChange={(e) => set('email', e.target.value)}
                       />
                     </div>
+                  </div>
+
+                  {/* Ngày sinh & Số điện thoại */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-gray-600 mb-2">Ngày sinh *</label>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5">Ngày sinh *</label>
                       <div className="grid grid-cols-3 gap-2">
                         <select
-                          className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:border-[#004e92] font-semibold bg-white"
+                          className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:border-[#004e92] font-semibold bg-white cursor-pointer"
                           value={dobDay}
                           onChange={(e) => setDobDay(e.target.value)}
                         >
@@ -348,7 +426,7 @@ const Booking = () => {
                           ))}
                         </select>
                         <select
-                          className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:border-[#004e92] font-semibold bg-white"
+                          className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:border-[#004e92] font-semibold bg-white cursor-pointer"
                           value={dobMonth}
                           onChange={(e) => setDobMonth(e.target.value)}
                         >
@@ -358,7 +436,7 @@ const Booking = () => {
                           ))}
                         </select>
                         <select
-                          className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:border-[#004e92] font-semibold bg-white"
+                          className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:border-[#004e92] font-semibold bg-white cursor-pointer"
                           value={dobYear}
                           onChange={(e) => setDobYear(e.target.value)}
                         >
@@ -370,9 +448,23 @@ const Booking = () => {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-gray-600 mb-2">Giới tính *</label>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5">Số điện thoại *</label>
+                      <input
+                        type="tel"
+                        placeholder="09xxxxxxxx"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] transition-colors"
+                        value={form.phone}
+                        onChange={(e) => set('phone', e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Giới tính & Địa chỉ */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5">Giới tính *</label>
                       <select
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] transition-colors bg-white cursor-pointer font-medium"
                         value={form.gender}
                         onChange={(e) => set('gender', e.target.value)}
                       >
@@ -382,70 +474,42 @@ const Booking = () => {
                         <option value="Khác">Khác</option>
                       </select>
                     </div>
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5">Địa chỉ</label>
+                      <input
+                        type="text"
+                        placeholder="Nhập địa chỉ thường trú (đường, phường, quận...)"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] transition-colors"
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                      />
+                    </div>
                   </div>
 
-                  {error && <div className="text-red-500 text-xs font-bold bg-red-50 p-3 rounded-xl border border-red-100">{error}</div>}
-
-                  <button
-                    onClick={() => {
-                      if (!form.name.trim() || !form.phone.trim() || !form.dob || !form.gender) {
-                        setError('Vui lòng điền đầy đủ tất cả các trường thông tin bắt buộc (*)!');
-                        return;
-                      }
-                      setError('');
-                      setStep(2);
-                    }}
-                    className="w-full bg-[#004e92] hover:bg-blue-800 text-white font-bold py-3.5 rounded-xl transition-colors shadow-lg flex items-center justify-center gap-1"
-                  >
-                    Tiếp theo <ChevronRight size={16} />
-                  </button>
-                </div>
-              )}
-
-              {/* BƯỚC 2: CHỌN KHOA & BÁC SĨ */}
-              {step === 2 && (
-                <div className="space-y-6 animate-fadeIn">
-                  <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-4">
-                    <Stethoscope className="w-5 h-5 text-[#004e92]" /> Bước 2: Chọn Chuyên khoa & Bác sĩ
-                  </h2>
-
-                  {/* Triệu chứng & AI Assistant */}
-                  <div className="bg-indigo-50/30 border border-indigo-100/50 p-5 rounded-2xl space-y-3">
-                    <div className="flex justify-between items-center">
+                  {/* Trợ lý AI tư vấn chuyên khoa */}
+                  <div className="bg-indigo-50/30 border border-indigo-100/50 p-4 rounded-2xl space-y-3">
+                    <div className="flex justify-between items-center flex-wrap gap-2">
                       <label className="block text-xs font-bold text-indigo-900 flex items-center gap-1.5">
-                        <Bot size={16} className="text-indigo-600" /> Bạn chưa biết chọn chuyên khoa nào?
+                        <Bot size={16} className="text-indigo-600 animate-pulse" /> Bạn không biết chọn chuyên khoa nào?
                       </label>
-                      
-                      {/* AI Suggest Button */}
                       <button
                         type="button"
                         onClick={handleAiSuggest}
                         disabled={aiSuggesting || !form.reason.trim()}
-                        className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                        className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                       >
-                        {aiSuggesting ? 'AI đang chẩn đoán...' : 'Nhờ AI gợi ý chuyên khoa'}
+                        {aiSuggesting ? 'AI đang chẩn đoán...' : '✨ Nhờ AI phân tích triệu chứng'}
                       </button>
                     </div>
-
-                    <textarea
-                      rows={2}
-                      placeholder="Hãy mô tả ngắn gọn triệu chứng của bạn vào đây (Ví dụ: Tôi bị đau răng và sưng nướu / bị tức ngực khó thở...)"
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] resize-none bg-white shadow-inner"
-                      value={form.reason}
-                      onChange={(e) => set('reason', e.target.value)}
-                    />
-
-                    {/* AI Suggest Result Box */}
+                    
                     {suggestedDept && (
-                      <div className="mt-3 bg-white border border-indigo-200 p-4 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fadeIn shadow-sm">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
-                            <Sparkles size={16} />
-                          </div>
+                      <div className="bg-white border border-indigo-200 p-3 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fadeIn shadow-sm">
+                        <div className="flex items-center gap-2">
+                          <Sparkles size={16} className="text-indigo-600" />
                           <div>
-                            <p className="text-xs text-gray-500 font-semibold">Trợ lý AI đề xuất:</p>
-                            <p className="text-sm font-bold text-indigo-900">
-                              Khám khoa {suggestedDept.name} {suggestedDept.icon}
+                            <p className="text-[10px] text-gray-400 font-bold">Trợ lý AI đề xuất:</p>
+                            <p className="text-xs font-bold text-indigo-900">
+                              Nên đăng ký khám khoa <strong>{suggestedDept.name}</strong> {suggestedDept.icon}
                             </p>
                           </div>
                         </div>
@@ -456,342 +520,157 @@ const Booking = () => {
                             set('doctor', ''); // Reset bác sĩ
                             setError('');
                           }}
-                          className="bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-bold text-xs px-4 py-2 rounded-xl transition-colors flex items-center gap-1 self-end sm:self-auto shadow-sm"
+                          className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs px-3.5 py-1.5 rounded-lg transition-colors flex items-center gap-1 self-end sm:self-auto"
                         >
-                          <Check size={14} /> Chọn Khoa này
+                          <Check size={12} /> Đồng ý chọn khoa này
                         </button>
                       </div>
                     )}
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-gray-600 mb-2">Chuyên khoa khám *</label>
-                    <select
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] font-semibold"
-                      value={form.dept}
-                      onChange={(e) => {
-                        set('dept', e.target.value);
-                        set('doctor', ''); // Reset bác sĩ khi đổi khoa
-                      }}
-                    >
-                      <option value="">-- Chọn chuyên khoa --</option>
-                      {departments.map((dept) => (
-                        <option key={dept.slug} value={dept.name}>
-                          {dept.icon} {dept.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {selectedDept && (
-                    <div className="space-y-3 animate-fadeIn">
-                      <label className="block text-xs font-bold text-gray-600">Đội ngũ bác sĩ khoa {selectedDept.name} *</label>
-                      
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        
-                        {/* Option 1: Hệ thống tự chỉ định */}
-                        <div
-                          onClick={() => set('doctor', 'Hệ thống tự phân công')}
-                          className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
-                            form.doctor === 'Hệ thống tự phân công' || !form.doctor
-                              ? 'border-[#004e92] bg-blue-50/40 shadow-md'
-                              : 'border-gray-100 hover:border-gray-300'
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-[#004e92] font-bold">
-                              AI
-                            </div>
-                            <div>
-                              <h4 className="font-bold text-gray-900 text-sm">Hệ thống tự phân công</h4>
-                              <p className="text-[11px] text-gray-500 font-semibold mt-0.5">Xếp lịch nhanh nhất, tối ưu thời gian chờ</p>
-                            </div>
-                          </div>
-                          <div className="flex justify-end mt-4">
-                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${form.doctor === 'Hệ thống tự phân công' || !form.doctor ? 'border-[#004e92]' : 'border-gray-300'}`}>
-                              {(form.doctor === 'Hệ thống tự phân công' || !form.doctor) && <div className="w-2 h-2 bg-[#004e92] rounded-full" />}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Danh sách Bác sĩ thực */}
-                        {selectedDept.doctors_list.map((doc) => (
-                          <div
-                            key={doc.name}
-                            onClick={() => set('doctor', doc.name)}
-                            className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
-                              form.doctor === doc.name
-                                ? 'border-[#004e92] bg-blue-50/40 shadow-md'
-                                : 'border-gray-100 hover:border-gray-300'
-                            }`}
-                          >
-                            <div className="flex items-start gap-3">
-                              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-700 text-white font-bold flex items-center justify-center text-sm shadow-sm flex-shrink-0">
-                                {doc.name.split('. ').pop().charAt(0)}
-                              </div>
-                              <div>
-                                <h4 className="font-bold text-gray-900 text-sm flex items-center gap-1">
-                                  {doc.name}
-                                </h4>
-                                <span className="text-[10px] bg-teal-50 border border-teal-100 text-teal-700 px-2 py-0.5 rounded-full font-bold flex items-center gap-0.5 w-max mt-1">
-                                  <Award size={10} /> Kinh nghiệm: {doc.exp}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="flex items-center justify-between mt-4 pt-2 border-t border-gray-50">
-                              <div className="flex items-center text-xs text-yellow-500 font-bold gap-0.5">
-                                <Star size={12} fill="currentColor" /> {doc.rating} <span className="text-gray-400 font-medium">({doc.reviews})</span>
-                              </div>
-                              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${form.doctor === doc.name ? 'border-[#004e92]' : 'border-gray-300'}`}>
-                                {form.doctor === doc.name && <div className="w-2 h-2 bg-[#004e92] rounded-full" />}
-                              </div>
-                            </div>
-                          </div>
+                  {/* Chuyên khoa & Bác sĩ */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5">Chuyên khoa khám *</label>
+                      <select
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] transition-colors bg-white cursor-pointer font-semibold"
+                        value={form.dept}
+                        onChange={(e) => {
+                          set('dept', e.target.value);
+                          set('doctor', ''); // Reset bác sĩ
+                        }}
+                      >
+                        <option value="">-- Chọn chuyên khoa --</option>
+                        {departments.map((dept) => (
+                          <option key={dept.slug} value={dept.name}>
+                            {dept.icon} {dept.name}
+                          </option>
                         ))}
-
-                      </div>
+                      </select>
                     </div>
-                  )}
 
-                  {error && <div className="text-red-500 text-xs font-bold bg-red-50 p-3 rounded-xl border border-red-100">{error}</div>}
-
-                  <div className="flex gap-3 pt-4">
-                    <button
-                      onClick={() => setStep(1)}
-                      className="flex-1 border-2 border-[#004e92] text-[#004e92] font-bold py-3.5 rounded-xl hover:bg-blue-50 transition-colors flex items-center justify-center gap-1 text-sm"
-                    >
-                      <ChevronLeft size={16} /> Quay lại
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (!form.dept) {
-                          setError('Vui lòng chọn Chuyên khoa khám bệnh!');
-                          return;
-                        }
-                        // Gán mặc định Hệ thống tự phân công nếu không chọn bác sĩ
-                        if (!form.doctor) {
-                          set('doctor', 'Hệ thống tự phân công');
-                        }
-                        setError('');
-                        setStep(3);
-                      }}
-                      className="flex-[2] bg-[#004e92] hover:bg-blue-800 text-white font-bold py-3.5 rounded-xl transition-colors shadow-lg flex items-center justify-center gap-1 text-sm"
-                    >
-                      Tiếp theo <ChevronRight size={16} />
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* BƯỚC 3: CHỌN LỊCH KHÁM */}
-              {step === 3 && (
-                <div className="space-y-6">
-                  <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-4">
-                    <Calendar className="w-5 h-5 text-[#004e92]" /> Bước 3: Chọn Ngày & Giờ khám
-                  </h2>
-
-                  {/* Bộ chọn Ngày dạng thẻ trượt ngang */}
-                  <div className="space-y-3">
-                    <label className="block text-xs font-bold text-gray-600">Chọn ngày hẹn khám *</label>
-                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                      {next7Days.map((day) => (
-                        <div
-                          key={day.dateString}
-                          onClick={() => set('date', day.dateString)}
-                          className={`flex-shrink-0 w-24 p-3 rounded-2xl border-2 text-center cursor-pointer transition-all ${
-                            form.date === day.dateString
-                              ? 'border-[#004e92] bg-blue-50/40 shadow-md scale-105'
-                              : 'border-gray-100 hover:border-gray-200 bg-white'
-                          }`}
-                        >
-                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{day.dayName}</p>
-                          <p className="text-lg font-extrabold text-gray-800 mt-1">{day.label.split('/')[0]}</p>
-                          <p className="text-[10px] text-gray-500 font-semibold mt-0.5">Tháng {day.label.split('/')[1]}</p>
-                        </div>
-                      ))}
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5">Bác sĩ phụ trách *</label>
+                      <select
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] transition-colors bg-white cursor-pointer font-medium disabled:bg-gray-50 disabled:cursor-not-allowed"
+                        value={form.doctor}
+                        disabled={!form.dept}
+                        onChange={(e) => set('doctor', e.target.value)}
+                      >
+                        <option value="">Hệ thống tự phân công (Nhanh nhất)</option>
+                        {selectedDept && selectedDept.doctors_list.map((doc) => (
+                          <option key={doc.name} value={doc.name}>
+                            BS. {doc.name} (⭐ {doc.rating} - {doc.exp} KN)
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
 
-                  {/* Bộ chọn Giờ chia buổi sáng/chiều */}
-                  {form.date && (
-                    <div className="space-y-4 pt-2 animate-fadeIn">
-                      
-                      {/* Buổi sáng */}
-                      <div className="space-y-2.5">
-                        <h4 className="text-xs font-bold text-amber-600 flex items-center gap-1.5">
-                          <Sun size={14} /> Buổi sáng (07:30 - 11:00)
-                        </h4>
-                        <div className="grid grid-cols-4 gap-2">
-                          {morningTimes.map((t) => (
-                            <button
-                              key={t}
-                              type="button"
-                              onClick={() => set('time', t)}
-                              className={`py-2 rounded-xl text-xs font-semibold border-2 transition-all ${
-                                form.time === t
-                                  ? 'bg-[#004e92] text-white border-[#004e92] shadow-sm'
-                                  : 'bg-white text-gray-700 border-gray-100 hover:border-gray-200'
-                              }`}
-                            >
-                              {t}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Buổi chiều */}
-                      <div className="space-y-2.5 pt-2">
-                        <h4 className="text-xs font-bold text-indigo-600 flex items-center gap-1.5">
-                          <SunDim size={14} /> Buổi chiều (13:30 - 16:00)
-                        </h4>
-                        <div className="grid grid-cols-4 gap-2">
-                          {afternoonTimes.map((t) => (
-                            <button
-                              key={t}
-                              type="button"
-                              onClick={() => set('time', t)}
-                              className={`py-2 rounded-xl text-xs font-semibold border-2 transition-all ${
-                                form.time === t
-                                  ? 'bg-[#004e92] text-white border-[#004e92] shadow-sm'
-                                  : 'bg-white text-gray-700 border-gray-100 hover:border-gray-200'
-                              }`}
-                            >
-                              {t}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                    </div>
-                  )}
-
-                  {error && <div className="text-red-500 text-xs font-bold bg-red-50 p-3 rounded-xl border border-red-100">{error}</div>}
-
-                  <div className="flex gap-3 pt-4">
-                    <button
-                      onClick={() => setStep(2)}
-                      className="flex-1 border-2 border-[#004e92] text-[#004e92] font-bold py-3.5 rounded-xl hover:bg-blue-50 transition-colors flex items-center justify-center gap-1 text-sm"
-                    >
-                      <ChevronLeft size={16} /> Quay lại
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (!form.date || !form.time) {
-                          setError('Vui lòng chọn Ngày hẹn khám và Khung giờ khám cụ thể!');
-                          return;
-                        }
-                        setError('');
-                        setStep(4);
-                      }}
-                      className="flex-[2] bg-[#004e92] hover:bg-blue-800 text-white font-bold py-3.5 rounded-xl transition-colors shadow-lg flex items-center justify-center gap-1 text-sm"
-                    >
-                      Xác nhận thông tin <ChevronRight size={16} />
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* BƯỚC 4: XÁC NHẬN LỊCH KHÁM (PHẦN VÉ KHÁM) */}
-              {step === 4 && (
-                <div className="space-y-6">
-                  <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-4">
-                    <CheckCircle className="w-5 h-5 text-green-500" /> Bước 4: Kiểm tra & Xác nhận lịch hẹn
-                  </h2>
-
-                  {/* Thiết kế chiếc vé khám bệnh */}
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-3xl overflow-hidden relative shadow-md">
-                    {/* Đường cắt nét đứt */}
-                    <div className="absolute top-[38%] left-0 right-0 h-[2px] border-b-2 border-dashed border-blue-200 -z-0"></div>
-                    <div className="absolute top-[38%] left-[-8px] w-4 h-4 bg-white border-r border-blue-200 rounded-full transform translate-y-[-50%]"></div>
-                    <div className="absolute top-[38%] right-[-8px] w-4 h-4 bg-white border-l border-blue-200 rounded-full transform translate-y-[-50%]"></div>
-
-                    {/* Đầu vé */}
-                    <div className="p-6 pb-8 flex justify-between items-start">
-                      <div>
-                        <span className="text-[10px] bg-[#004e92] text-white px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">
-                          Vé Khám Hẹn Giờ
-                        </span>
-                        <h3 className="text-xl font-black text-[#004e92] mt-3 uppercase tracking-wide">Bệnh viện Nhân Dân</h3>
-                        <p className="text-[10px] text-gray-400 font-semibold mt-1">Số 1 Nơ Trang Long, Bình Thạnh, TP.HCM</p>
-                      </div>
-                      
-                      <div className="text-right">
-                        <p className="text-xs text-gray-400 font-bold uppercase">Thời gian hẹn</p>
-                        <p className="text-lg font-extrabold text-[#004e92] mt-1">{form.time}</p>
-                        <p className="text-xs text-gray-600 font-bold mt-0.5">
-                          {form.date ? form.date.split('-').reverse().join('/') : ''}
-                        </p>
-                      </div>
+                  {/* Ngày khám, Buổi khám, Giờ khám */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5">Ngày khám bệnh *</label>
+                      <select
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] transition-colors bg-white cursor-pointer font-semibold"
+                        value={form.date}
+                        onChange={(e) => set('date', e.target.value)}
+                      >
+                        <option value="">-- Chọn ngày khám --</option>
+                        {next7Days.map((day) => (
+                          <option key={day.dateString} value={day.dateString}>
+                            {day.dayName} ({day.label})
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
-                    {/* Thân vé */}
-                    <div className="p-6 pt-8 space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Bệnh nhân</p>
-                          <p className="text-sm font-bold text-gray-800 mt-0.5">{form.name}</p>
-                        </div>
-                        <div>
-                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Số điện thoại</p>
-                          <p className="text-sm font-bold text-gray-800 mt-0.5">{form.phone}</p>
-                        </div>
-                        <div>
-                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Chuyên khoa khám</p>
-                          <p className="text-sm font-bold text-[#004e92] mt-0.5">{form.dept}</p>
-                        </div>
-                        <div>
-                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Bác sĩ phụ trách</p>
-                          <p className="text-sm font-bold text-gray-800 mt-0.5">{form.doctor || 'Hệ thống tự phân công'}</p>
-                        </div>
-                      </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5">Buổi khám *</label>
+                      <select
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] transition-colors bg-white cursor-pointer font-semibold"
+                        value={buoiKham}
+                        onChange={(e) => {
+                          setBuoiKham(e.target.value);
+                          set('time', ''); // Reset giờ
+                        }}
+                      >
+                        <option value="Sáng">☀️ Buổi sáng</option>
+                        <option value="Chiều">⛅ Buổi chiều</option>
+                      </select>
+                    </div>
 
-                      {form.reason && (
-                        <div className="pt-2 border-t border-blue-100">
-                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Lý do / Triệu chứng bệnh</p>
-                          <p className="text-xs text-gray-600 italic mt-0.5">"{form.reason}"</p>
-                        </div>
-                      )}
-
-                      {/* Barcode mockup */}
-                      <div className="pt-4 flex flex-col items-center justify-center opacity-80 select-none">
-                        <div className="flex h-10 w-full max-w-[200px] gap-[2px] items-center bg-transparent">
-                          {[2,1,3,2,1,4,2,1,3,1,2,4,1,2,3,2,1,4,2,1,3].map((w, idx) => (
-                            <div key={idx} className="bg-gray-800 h-full flex-grow" style={{ maxWidth: `${w}px` }} />
-                          ))}
-                        </div>
-                        <p className="text-[9px] font-mono tracking-widest text-gray-400 font-bold uppercase mt-1">APPOINTMENT VERIFICATION</p>
-                      </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5">Giờ khám bệnh *</label>
+                      <select
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] transition-colors bg-white cursor-pointer font-medium disabled:bg-gray-50 disabled:cursor-not-allowed"
+                        value={form.time}
+                        disabled={!form.date}
+                        onChange={(e) => set('time', e.target.value)}
+                      >
+                        <option value="">-- Chọn khung giờ --</option>
+                        {(buoiKham === 'Sáng' ? morningTimes : afternoonTimes).map((t) => (
+                          <option key={t} value={t}>{t}</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
 
-                  <div className="bg-green-50 border border-green-100 rounded-2xl p-4 text-xs text-green-800 flex items-start gap-2.5">
-                    <span className="w-2 h-2 rounded-full bg-green-500 animate-ping mt-1 flex-shrink-0"></span>
-                    <p className="leading-relaxed">
-                      Lịch khám này sẽ được gửi duyệt tự động. Vui lòng có mặt tại quầy tiếp đón **trước 15 phút** so với khung giờ hẹn để làm thủ tục.
-                    </p>
+                  {/* Triệu chứng */}
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Triệu chứng lâm sàng / Lý do khám</label>
+                    <textarea
+                      rows={3}
+                      placeholder="Mô tả cụ thể triệu chứng của bạn (Ví dụ: đau đầu, chóng mặt, sưng nhức chân tay...)"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] resize-none"
+                      value={form.reason}
+                      onChange={(e) => set('reason', e.target.value)}
+                    />
                   </div>
 
-                  {error && <div className="text-red-500 text-xs font-bold bg-red-50 p-3 rounded-xl border border-red-100">{error}</div>}
+                  {/* Captcha */}
+                  <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-2xl border border-gray-200">
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="bg-gray-200 text-gray-700 font-serif tracking-widest text-lg font-black px-4 py-2.5 rounded-xl border border-gray-300 select-none italic text-center min-w-[100px]"
+                        style={{ letterSpacing: '4px', textShadow: '1px 1px 1px rgba(0,0,0,0.15)' }}
+                      >
+                        {captcha}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={generateCaptcha}
+                        className="p-2 hover:bg-gray-200 text-gray-600 rounded-full transition-colors"
+                        title="Đổi mã khác"
+                      >
+                        <RefreshCw size={16} />
+                      </button>
+                    </div>
+                    <div className="flex-grow">
+                      <input
+                        type="text"
+                        placeholder="Nhập mã bảo vệ hiển thị ở bên *"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] transition-colors"
+                        value={userCaptcha}
+                        onChange={(e) => setUserCaptcha(e.target.value)}
+                      />
+                    </div>
+                  </div>
 
-                  <div className="flex gap-3">
+                  {error && <div className="text-red-500 text-xs font-bold bg-red-50 p-3.5 rounded-xl border border-red-100 animate-fadeIn">{error}</div>}
+
+                  <div className="pt-2">
                     <button
-                      onClick={() => setStep(3)}
+                      type="submit"
                       disabled={isSubmitting}
-                      className="flex-1 border-2 border-red-200 text-red-600 font-bold py-3.5 rounded-xl hover:bg-red-50 transition-colors flex items-center justify-center gap-1 text-sm disabled:opacity-50"
+                      className="w-full bg-[#004e92] hover:bg-blue-800 text-white font-extrabold py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-1.5 disabled:opacity-50 text-sm uppercase tracking-wider"
                     >
-                      ← Quay lại chỉnh sửa
-                    </button>
-                    <button
-                      onClick={handleConfirm}
-                      disabled={isSubmitting}
-                      className="flex-[2] bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 rounded-xl transition-colors shadow-lg flex items-center justify-center gap-1 text-sm disabled:opacity-50"
-                    >
-                      {isSubmitting ? 'Đang gửi...' : 'Xác nhận Đặt lịch khám'}
+                      {isSubmitting ? 'Đang xử lý...' : 'GỬI ĐĂNG KÝ'}
                     </button>
                   </div>
-                </div>
-              )}
 
+                </form>
+              </div>
             </div>
           )}
 
@@ -820,6 +699,9 @@ const Booking = () => {
                   onClick={() => {
                     setStep(1);
                     setForm(initialForm);
+                    setAddress('');
+                    setUserCaptcha('');
+                    generateCaptcha();
                     setCode('');
                     setError('');
                   }}
