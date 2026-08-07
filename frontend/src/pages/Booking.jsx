@@ -486,47 +486,6 @@ const Booking = () => {
                     </div>
                   </div>
 
-                  {/* Trợ lý AI tư vấn chuyên khoa */}
-                  <div className="bg-indigo-50/30 border border-indigo-100/50 p-4 rounded-2xl space-y-3">
-                    <div className="flex justify-between items-center flex-wrap gap-2">
-                      <label className="block text-xs font-bold text-indigo-900 flex items-center gap-1.5">
-                        <Bot size={16} className="text-indigo-600 animate-pulse" /> Bạn không biết chọn chuyên khoa nào?
-                      </label>
-                      <button
-                        type="button"
-                        onClick={handleAiSuggest}
-                        disabled={aiSuggesting || !form.reason.trim()}
-                        className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-                      >
-                        {aiSuggesting ? 'AI đang chẩn đoán...' : '✨ Nhờ AI phân tích triệu chứng'}
-                      </button>
-                    </div>
-                    
-                    {suggestedDept && (
-                      <div className="bg-white border border-indigo-200 p-3 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fadeIn shadow-sm">
-                        <div className="flex items-center gap-2">
-                          <Sparkles size={16} className="text-indigo-600" />
-                          <div>
-                            <p className="text-[10px] text-gray-400 font-bold">Trợ lý AI đề xuất:</p>
-                            <p className="text-xs font-bold text-indigo-900">
-                              Nên đăng ký khám khoa <strong>{suggestedDept.name}</strong> {suggestedDept.icon}
-                            </p>
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            set('dept', suggestedDept.name);
-                            set('doctor', ''); // Reset bác sĩ
-                            setError('');
-                          }}
-                          className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs px-3.5 py-1.5 rounded-lg transition-colors flex items-center gap-1 self-end sm:self-auto"
-                        >
-                          <Check size={12} /> Đồng ý chọn khoa này
-                        </button>
-                      </div>
-                    )}
-                  </div>
 
                   {/* Chuyên khoa & Bác sĩ */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
