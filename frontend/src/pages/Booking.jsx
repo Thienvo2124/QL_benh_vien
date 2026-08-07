@@ -384,61 +384,6 @@ const Booking = () => {
                     </div>
                   </div>
 
-                  {/* Triệu chứng & AI Assistant */}
-                  <div className="pt-2">
-                    <div className="flex justify-between items-center mb-2">
-                      <label className="block text-xs font-bold text-gray-600">Mô tả triệu chứng / Lý do khám</label>
-                      
-                      {/* AI Suggest Button */}
-                      <button
-                        type="button"
-                        onClick={handleAiSuggest}
-                        disabled={aiSuggesting || !form.reason.trim()}
-                        className="text-xs bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <Bot size={14} className={aiSuggesting ? 'animate-bounce' : ''} />
-                        {aiSuggesting ? 'AI đang chẩn đoán...' : 'Nhờ AI gợi ý chuyên khoa'}
-                      </button>
-                    </div>
-
-                    <textarea
-                      rows={3}
-                      placeholder="Hãy mô tả ngắn gọn tình trạng sức khỏe của bạn (VD: Tôi bị đau răng và sưng lợi / bị đau bụng tức ngực...)"
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] resize-none"
-                      value={form.reason}
-                      onChange={(e) => set('reason', e.target.value)}
-                    />
-
-                    {/* AI Suggest Result Box */}
-                    {suggestedDept && (
-                      <div className="mt-3 bg-indigo-50 border border-indigo-100 p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fadeIn">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
-                            <Sparkles size={16} />
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-500 font-semibold">Trợ lý AI đề xuất:</p>
-                            <p className="text-sm font-bold text-indigo-900">
-                              Khám khoa **{suggestedDept.name}** {suggestedDept.icon}
-                            </p>
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            set('dept', suggestedDept.name);
-                            // Tự động chuyển qua bước 2
-                            setError('');
-                            setStep(2);
-                          }}
-                          className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2 rounded-xl transition-colors flex items-center gap-1 shadow-md self-end sm:self-auto"
-                        >
-                          <Check size={14} /> Đồng ý & Chọn Khoa này
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
                   {error && <div className="text-red-500 text-xs font-bold bg-red-50 p-3 rounded-xl border border-red-100">{error}</div>}
 
                   <button
@@ -459,10 +404,65 @@ const Booking = () => {
 
               {/* BƯỚC 2: CHỌN KHOA & BÁC SĨ */}
               {step === 2 && (
-                <div className="space-y-6">
+                <div className="space-y-6 animate-fadeIn">
                   <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-4">
                     <Stethoscope className="w-5 h-5 text-[#004e92]" /> Bước 2: Chọn Chuyên khoa & Bác sĩ
                   </h2>
+
+                  {/* Triệu chứng & AI Assistant */}
+                  <div className="bg-indigo-50/30 border border-indigo-100/50 p-5 rounded-2xl space-y-3">
+                    <div className="flex justify-between items-center">
+                      <label className="block text-xs font-bold text-indigo-900 flex items-center gap-1.5">
+                        <Bot size={16} className="text-indigo-600" /> Bạn chưa biết chọn chuyên khoa nào?
+                      </label>
+                      
+                      {/* AI Suggest Button */}
+                      <button
+                        type="button"
+                        onClick={handleAiSuggest}
+                        disabled={aiSuggesting || !form.reason.trim()}
+                        className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                      >
+                        {aiSuggesting ? 'AI đang chẩn đoán...' : 'Nhờ AI gợi ý chuyên khoa'}
+                      </button>
+                    </div>
+
+                    <textarea
+                      rows={2}
+                      placeholder="Hãy mô tả ngắn gọn triệu chứng của bạn vào đây (Ví dụ: Tôi bị đau răng và sưng nướu / bị tức ngực khó thở...)"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] resize-none bg-white shadow-inner"
+                      value={form.reason}
+                      onChange={(e) => set('reason', e.target.value)}
+                    />
+
+                    {/* AI Suggest Result Box */}
+                    {suggestedDept && (
+                      <div className="mt-3 bg-white border border-indigo-200 p-4 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fadeIn shadow-sm">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                            <Sparkles size={16} />
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500 font-semibold">Trợ lý AI đề xuất:</p>
+                            <p className="text-sm font-bold text-indigo-900">
+                              Khám khoa {suggestedDept.name} {suggestedDept.icon}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            set('dept', suggestedDept.name);
+                            set('doctor', ''); // Reset bác sĩ
+                            setError('');
+                          }}
+                          className="bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-bold text-xs px-4 py-2 rounded-xl transition-colors flex items-center gap-1 self-end sm:self-auto shadow-sm"
+                        >
+                          <Check size={14} /> Chọn Khoa này
+                        </button>
+                      </div>
+                    )}
+                  </div>
 
                   <div>
                     <label className="block text-xs font-bold text-gray-600 mb-2">Chuyên khoa khám *</label>
