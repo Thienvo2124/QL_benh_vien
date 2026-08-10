@@ -269,4 +269,49 @@ router.patch("/:id/status", protect, adminOrDoctorOnly, async (req, res) => {
   }
 });
 
+// PATCH /api/appointments/:id/pay-exam
+// Thu phí khám ban đầu, cấp số thứ tự khám
+router.patch("/:id/pay-exam", protect, adminOrDoctorOnly, async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "ID lịch hẹn không hợp lệ." });
+    }
+
+    const appointment = await Appointment.findById(req.params.id);
+    if (!appointment) {
+      return res.status(404).json({ message: "Không tìm thấy lịch hẹn." });
+    }
+
+    if (appointment.paymentStatus === "paid") {
+      return res.status(400).json({ message: "Lịch hẹn này đã được đóng phí khám." });
+    }
+
+    const dateStart = startOfDay(appointment.date);
+    const dateEnd = new Date(dateStart);
+    dateEnd.setDate(dateEnd.getDate() + 1);
+
+    // Tính toán số thứ tự (STT) dựa trên bác sĩ và khoa trong cùng ngày
+    const count = await Appointment.countDocuments({
+      date: { $gte: dateStart, $lt: dateEnd },
+      dept: appointment.dept,
+      doctor: appointment.doctor,
+      paymentStatus: "paid",
+    });
+
+    appointment.paymentStatus = "paid";
+    appointment.paymentMethod = req.body.paymentMethod || "Tiền mặt";
+    appointment.queueNumber = count + 1;
+    appointment.status = "approved"; // Phê duyệt trạng thái lịch khám
+
+    await appointment.save();
+
+    return res.json({
+      message: "Thu phí khám và tiếp nhận bệnh nhân thành công.",
+      appointment,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+});
+
 module.exports = router;

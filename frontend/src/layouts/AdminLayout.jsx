@@ -1,6 +1,6 @@
 import { useContext, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { Activity, Calendar, Home, LogOut, Settings, Users, Pill, Globe, User, Shield, ChevronDown, Building, FileText, UserCheck, Bot } from 'lucide-react';
+import { Activity, Calendar, Home, LogOut, Settings, Users, Pill, Globe, User, Shield, ChevronDown, Building, FileText, UserCheck, Bot, DollarSign } from 'lucide-react';
 import { AuthContext } from '../contexts/AuthContext';
 
 const AdminLayout = () => {
@@ -32,6 +32,10 @@ const AdminLayout = () => {
           <Link to="/dashboard/medicines" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/medicines' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
             <Pill className="w-5 h-5 mr-3" />
             Kho thuốc
+          </Link>
+          <Link to="/dashboard/billing" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/billing' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
+            <DollarSign className="w-5 h-5 mr-3" />
+            Thu ngân & Viện phí
           </Link>
           <Link to="/dashboard/patients" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/patients' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
             <FileText className="w-5 h-5 mr-3" />

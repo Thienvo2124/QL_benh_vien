@@ -56,6 +56,25 @@ const appointmentSchema = new mongoose.Schema(
       default: "pending",
       index: true,
     },
+    paymentStatus: {
+      type: String,
+      enum: ["unpaid", "paid"],
+      default: "unpaid",
+      index: true,
+    },
+    queueNumber: {
+      type: Number,
+      default: 0,
+    },
+    initialFee: {
+      type: Number,
+      default: 150000,
+    },
+    paymentMethod: {
+      type: String,
+      enum: ["Tiền mặt", "Chuyển khoản", "Chưa thanh toán"],
+      default: "Chưa thanh toán",
+    },
   },
   { timestamps: true },
 );

@@ -24,6 +24,7 @@ import Appointments from './pages/Appointments';
 import Settings from './pages/Settings';
 import Users from './pages/Users';
 import Medicines from './pages/Medicines';
+import Billing from './pages/Billing';
 import MyAppointments from './pages/MyAppointments';
 import MyRecords from './pages/MyRecords';
 import Profile from './pages/Profile';
@@ -88,6 +89,7 @@ function App() {
               <Route path="patients" element={<Patients />} />
               <Route path="appointments" element={<Appointments />} />
               <Route path="medicines" element={<Medicines />} />
+              <Route path="billing" element={<Billing />} />
               <Route path="settings" element={<Settings />} />
               <Route path="chatbot-training" element={<ChatbotTrain />} />
             </Route>
