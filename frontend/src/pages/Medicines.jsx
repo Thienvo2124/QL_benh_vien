@@ -122,6 +122,9 @@ const Medicines = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('Tất cả');
+  const [selectedAlphabet, setSelectedAlphabet] = useState('Tất cả');
+  
+  const alphabets = ['Tất cả', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')];
   
   // Modal Management
   const [showModal, setShowModal] = useState(false);
@@ -396,6 +399,14 @@ const Medicines = () => {
       : Math.round(Number(m.price) * 0.7);
     return acc + (costPrice * Number(m.quantity));
   }, 0);
+  // Lọc danh sách thuốc theo bảng chữ cái đầu (bỏ dấu tiếng Việt để so khớp chính xác)
+  const filteredMedicines = medicines.filter(m => {
+    if (selectedAlphabet === 'Tất cả') return true;
+    if (!m.name) return false;
+    const firstChar = m.name.trim().charAt(0).toUpperCase();
+    const normalizedFirstChar = firstChar.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[Đ]/g, "D");
+    return normalizedFirstChar === selectedAlphabet;
+  });
 
   return (
     <div className="p-8 font-sans bg-gray-50/50 min-h-screen space-y-8">
@@ -527,6 +538,31 @@ const Medicines = () => {
             );
           })}
         </div>
+
+        {/* Lọc theo bảng chữ cái đầu (A-Z) */}
+        <div className="pt-4 border-t border-gray-100">
+          <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+            <span className="bg-[#004e92]/10 text-[#004e92] px-2 py-0.5 rounded-md text-[10px]">A-Z</span> Lọc nhanh theo chữ cái đầu:
+          </div>
+          <div className="flex flex-wrap gap-1.5 pb-1">
+            {alphabets.map((letItem) => {
+              const isActive = selectedAlphabet === letItem;
+              return (
+                <button
+                  key={letItem}
+                  onClick={() => setSelectedAlphabet(letItem)}
+                  className={`w-8 h-8 flex items-center justify-center text-xs font-bold rounded-xl transition-all ${
+                    isActive
+                      ? 'bg-[#004e92] text-white shadow-md shadow-blue-500/10'
+                      : 'bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-900 border border-gray-200/50'
+                  } ${letItem === 'Tất cả' ? 'px-3 w-auto' : ''}`}
+                >
+                  {letItem}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       {/* BẢNG QUẢN LÝ DANH MỤC THUỐC */}
@@ -554,14 +590,14 @@ const Medicines = () => {
                     </div>
                   </td>
                 </tr>
-              ) : medicines.length === 0 ? (
+              ) : filteredMedicines.length === 0 ? (
                 <tr>
                   <td colSpan="7" className="p-16 text-center text-gray-400 font-medium">
-                    Không tìm thấy thuốc nào phù hợp với bộ lọc. Hãy thử tìm kiếm hoặc chọn danh mục khác.
+                    Không tìm thấy thuốc nào phù hợp với bộ lọc chữ cái "{selectedAlphabet}" hoặc tìm kiếm.
                   </td>
                 </tr>
               ) : (
-                medicines.map((item, index) => {
+                filteredMedicines.map((item, index) => {
                   const isLowStock = item.quantity < 20;
                   
                   // Kiểm tra cận date
