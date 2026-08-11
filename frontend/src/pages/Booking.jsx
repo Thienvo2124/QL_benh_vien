@@ -206,12 +206,7 @@ const Booking = () => {
     if (!form.dept) return setError('Vui lòng chọn Chuyên khoa khám.');
     if (!form.date) return setError('Vui lòng chọn Ngày khám.');
     if (!form.time) return setError('Vui lòng chọn Giờ khám.');
-    if (!userCaptcha.trim()) return setError('Vui lòng nhập mã xác thực (Captcha).');
-    if (userCaptcha.trim().toUpperCase() !== captcha.toUpperCase()) {
-      setError('Mã xác thực (Captcha) không chính xác. Vui lòng nhập lại!');
-      generateCaptcha();
-      return;
-    }
+
 
     setIsSubmitting(true);
     try {
@@ -586,34 +581,7 @@ const Booking = () => {
                     />
                   </div>
 
-                  {/* Captcha */}
-                  <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-2xl border border-gray-200">
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="bg-gray-200 text-gray-700 font-serif tracking-widest text-lg font-black px-4 py-2.5 rounded-xl border border-gray-300 select-none italic text-center min-w-[100px]"
-                        style={{ letterSpacing: '4px', textShadow: '1px 1px 1px rgba(0,0,0,0.15)' }}
-                      >
-                        {captcha}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={generateCaptcha}
-                        className="p-2 hover:bg-gray-200 text-gray-600 rounded-full transition-colors"
-                        title="Đổi mã khác"
-                      >
-                        <RefreshCw size={16} />
-                      </button>
-                    </div>
-                    <div className="flex-grow">
-                      <input
-                        type="text"
-                        placeholder="Nhập mã bảo vệ hiển thị ở bên *"
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] transition-colors"
-                        value={userCaptcha}
-                        onChange={(e) => setUserCaptcha(e.target.value)}
-                      />
-                    </div>
-                  </div>
+
 
                   {error && <div className="text-red-500 text-xs font-bold bg-red-50 p-3.5 rounded-xl border border-red-100 animate-fadeIn">{error}</div>}
 
