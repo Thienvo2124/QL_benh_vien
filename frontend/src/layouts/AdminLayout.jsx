@@ -11,10 +11,10 @@ const AdminLayout = () => {
   return (
     <div className="min-h-screen bg-gray-100 flex font-sans">
       <aside className="w-64 bg-[#004e92] text-white flex flex-col">
-        <div className="h-16 flex items-center justify-center border-b border-blue-800">
+        <Link to="/" className="h-16 flex items-center justify-center border-b border-blue-800 hover:bg-blue-800/40 transition-colors">
           <Activity className="w-6 h-6 mr-2" />
           <h1 className="text-xl font-bold uppercase tracking-wider">BV Nhân Dân</h1>
-        </div>
+        </Link>
 
         <nav className="flex-1 px-4 py-6 space-y-2">
           <Link to="/dashboard" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
