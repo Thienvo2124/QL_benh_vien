@@ -17,7 +17,7 @@ router.put("/:id/role", async (req, res) => {
     const { role } = req.body;
     
     // Validate role
-    if (!["admin", "doctor", "nurse", "patient"].includes(role)) {
+    if (!["admin", "doctor", "nurse", "cashier", "patient"].includes(role)) {
       return res.status(400).json({ message: "Vai trò không hợp lệ" });
     }
 

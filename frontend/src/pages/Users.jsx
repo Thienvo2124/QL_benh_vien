@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Activity, Shield, User, Clock, ChevronDown } from 'lucide-react';
+import { Activity, Shield, User, Clock, ChevronDown, DollarSign } from 'lucide-react';
 import API_BASE_URL from '../config/api';
 
 const Users = () => {
@@ -63,8 +63,8 @@ const Users = () => {
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6 border-b border-gray-200 pb-2">
-        {['all', 'admin', 'doctor', 'nurse', 'patient'].map((tab) => {
-          const labels = { all: 'Tất cả', admin: 'Quản trị viên', doctor: 'Bác sĩ', nurse: 'Y tá', patient: 'Bệnh nhân' };
+        {['all', 'admin', 'doctor', 'nurse', 'cashier', 'patient'].map((tab) => {
+          const labels = { all: 'Tất cả', admin: 'Quản trị viên', doctor: 'Bác sĩ', nurse: 'Y tá', cashier: 'Thu ngân', patient: 'Bệnh nhân' };
           const isActive = filter === tab;
           return (
             <button
@@ -122,13 +122,15 @@ const Users = () => {
                         ${user.role === 'admin' ? 'bg-purple-100 text-purple-700' : ''}
                         ${user.role === 'doctor' ? 'bg-blue-100 text-blue-700' : ''}
                         ${user.role === 'nurse' ? 'bg-pink-100 text-pink-700' : ''}
+                        ${user.role === 'cashier' ? 'bg-amber-100 text-amber-700' : ''}
                         ${user.role === 'patient' ? 'bg-gray-100 text-gray-700' : ''}
                       `}>
                         {user.role === 'admin' && <Shield size={12} />}
                         {user.role === 'doctor' && <Activity size={12} />}
                         {user.role === 'nurse' && <Activity size={12} />}
+                        {user.role === 'cashier' && <DollarSign size={12} />}
                         {user.role === 'patient' && <User size={12} />}
-                        {user.role === 'admin' ? 'Quản trị viên' : user.role === 'doctor' ? 'Bác sĩ' : user.role === 'nurse' ? 'Y tá' : 'Bệnh nhân'}
+                        {user.role === 'admin' ? 'Quản trị viên' : user.role === 'doctor' ? 'Bác sĩ' : user.role === 'nurse' ? 'Y tá' : user.role === 'cashier' ? 'Thu ngân' : 'Bệnh nhân'}
                       </span>
                     </td>
                     <td className="p-4">
@@ -141,6 +143,7 @@ const Users = () => {
                         >
                           <option value="patient">Bệnh nhân</option>
                           <option value="nurse">Y tá</option>
+                          <option value="cashier">Thu ngân</option>
                           <option value="doctor">Bác sĩ</option>
                           <option value="admin">Quản trị viên</option>
                         </select>
