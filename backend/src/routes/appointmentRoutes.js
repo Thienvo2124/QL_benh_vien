@@ -180,9 +180,11 @@ router.get("/", protect, adminOrDoctorOnly, async (req, res) => {
 
 router.get("/my", protect, async (req, res) => {
   try {
+    console.log("API appointments/my - phone:", req.user.phone);
     const appointments = await Appointment.find({ phone: req.user.phone })
       .sort({ date: 1, time: 1, createdAt: -1 })
       .select("-__v");
+    console.log("API appointments/my - count:", appointments.length);
     return res.json(appointments);
   } catch (error) {
     return res.status(500).json({ message: "Lỗi server", error: error.message });

@@ -17,6 +17,7 @@ const protect = async (req, res, next) => {
       }
 
       req.user = { id: user._id, role: user.role, phone: user.phone };
+      console.log("Middleware protect - user:", req.user);
       return next();
     } catch (error) {
       return res.status(401).json({ message: "Token không hợp lệ hoặc đã hết hạn." });
