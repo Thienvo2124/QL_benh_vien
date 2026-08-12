@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
     sessionStorage.setItem('token', userToken);
     
     // Phân luồng điều hướng: Quản trị/Bác sĩ vào Dashboard, Bệnh nhân quay về Trang Chủ
-    if (userData?.role === 'admin' || userData?.role === 'doctor') {
+    if (['admin', 'doctor', 'nurse', 'cashier'].includes(userData?.role)) {
       navigate('/dashboard');
     } else {
       navigate('/');

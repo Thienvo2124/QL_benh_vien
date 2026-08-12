@@ -87,12 +87,12 @@ const Header = () => {
                     </div>
                     <div className="flex items-center gap-1.5 bg-blue-50 text-[#004e92] text-xs font-semibold px-2.5 py-1 rounded-full w-max mt-1 border border-blue-100 shadow-sm">
                       <Shield className="w-3.5 h-3.5" />
-                      <span>{user.role === 'admin' ? 'Quản trị viên hệ thống' : user.role === 'doctor' ? 'Bác sĩ chuyên khoa' : 'Bệnh nhân'}</span>
+                      <span>{user.role === 'admin' ? 'Quản trị viên hệ thống' : user.role === 'doctor' ? 'Bác sĩ chuyên khoa' : user.role === 'nurse' ? 'Y tá hệ thống' : user.role === 'cashier' ? 'Thu ngân bệnh viện' : 'Bệnh nhân'}</span>
                     </div>
                   </div>
 
                   <div className="py-2 px-3 space-y-1">
-                    {user.role === 'admin' || user.role === 'doctor' ? (
+                    {['admin', 'doctor', 'nurse', 'cashier'].includes(user.role) ? (
                       <>
                         <Link
                           to="/dashboard"
@@ -196,7 +196,7 @@ const Header = () => {
               <div className="p-4 border-b border-gray-200 bg-blue-50 normal-case text-gray-700 font-semibold">
                 Xin chào, <span className="text-[#004e92]">{user.fullName || user.email?.split('@')[0] || 'Tài khoản'}</span>
               </div>
-              {user.role === 'admin' || user.role === 'doctor' ? (
+              {['admin', 'doctor', 'nurse', 'cashier'].includes(user.role) ? (
                 <Link
                   to="/dashboard"
                   onClick={() => setIsMenuOpen(false)}
