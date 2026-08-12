@@ -219,7 +219,7 @@ const Profile = () => {
                       <input type="tel" disabled value={user?.phone || ''} className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-sm text-gray-500 cursor-not-allowed" title="Số điện thoại đăng nhập không thể đổi" />
                     </div>
                     <div>
-                      <input type="date" placeholder="Ngày sinh" required value={birthDate} onChange={(e) => setBirthDate(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]" />
+                      <input type="date" placeholder="Ngày sinh" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]" />
                     </div>
                     <div className="flex items-center px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm">
                       <label className="mr-4 text-gray-600">Giới tính:</label>
@@ -269,16 +269,16 @@ const Profile = () => {
                       <input type="text" placeholder="Quốc gia" value={country} onChange={(e) => setCountry(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]" />
                     </div>
                     <div>
-                      <input type="text" placeholder="Tỉnh/Thành phố" required value={province} onChange={(e) => setProvince(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]" />
+                      <input type="text" placeholder="Tỉnh/Thành phố" value={province} onChange={(e) => setProvince(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]" />
                     </div>
                     <div>
-                      <input type="text" placeholder="Quận/Huyện" required value={district} onChange={(e) => setDistrict(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]" />
+                      <input type="text" placeholder="Quận/Huyện" value={district} onChange={(e) => setDistrict(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]" />
                     </div>
                     <div>
-                      <input type="text" placeholder="Xã/Phường" required value={ward} onChange={(e) => setWard(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]" />
+                      <input type="text" placeholder="Xã/Phường" value={ward} onChange={(e) => setWard(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]" />
                     </div>
                     <div className="sm:col-span-2">
-                      <input type="text" placeholder="Địa chỉ cụ thể (Số nhà, Tên đường...)" required value={address} onChange={(e) => setAddress(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]" />
+                      <input type="text" placeholder="Địa chỉ cụ thể (Số nhà, Tên đường...)" value={address} onChange={(e) => setAddress(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]" />
                     </div>
                   </div>
                 </div>
