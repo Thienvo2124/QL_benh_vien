@@ -1,12 +1,27 @@
 import { useContext, useState } from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Activity, Calendar, Home, LogOut, Settings, Users, Pill, Globe, User, Shield, ChevronDown, Building, FileText, UserCheck, Bot, DollarSign } from 'lucide-react';
 import { AuthContext } from '../contexts/AuthContext';
+
+const pathRoles = {
+  '/dashboard/users': ['admin'],
+  '/dashboard/medicines': ['admin', 'nurse'],
+  '/dashboard/billing': ['admin', 'cashier'],
+  '/dashboard/patients': ['admin', 'doctor', 'nurse'],
+  '/dashboard/chatbot-training': ['admin'],
+};
 
 const AdminLayout = () => {
   const { user, logout } = useContext(AuthContext);
   const location = useLocation();
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+
+  // Phân quyền đường dẫn (Route guard)
+  const currentPath = location.pathname;
+  const allowedRoles = pathRoles[currentPath];
+  if (allowedRoles && !allowedRoles.includes(user?.role)) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 flex font-sans">
@@ -21,30 +36,47 @@ const AdminLayout = () => {
             <Home className="w-5 h-5 mr-3" />
             Tổng quan
           </Link>
-          <Link to="/dashboard/users" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/users' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
-            <Users className="w-5 h-5 mr-3" />
-            Người dùng
-          </Link>
-          <Link to="/dashboard/appointments" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/appointments' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
-            <Calendar className="w-5 h-5 mr-3" />
-            Lịch hẹn
-          </Link>
-          <Link to="/dashboard/medicines" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/medicines' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
-            <Pill className="w-5 h-5 mr-3" />
-            Kho thuốc
-          </Link>
-          <Link to="/dashboard/billing" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/billing' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
-            <DollarSign className="w-5 h-5 mr-3" />
-            Thu ngân & Viện phí
-          </Link>
-          <Link to="/dashboard/patients" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/patients' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
-            <FileText className="w-5 h-5 mr-3" />
-            Hồ sơ bệnh án
-          </Link>
+          
+          {user?.role === 'admin' && (
+            <Link to="/dashboard/users" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/users' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
+              <Users className="w-5 h-5 mr-3" />
+              Người dùng
+            </Link>
+          )}
+
+          {['admin', 'doctor', 'nurse', 'cashier'].includes(user?.role) && (
+            <Link to="/dashboard/appointments" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/appointments' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
+              <Calendar className="w-5 h-5 mr-3" />
+              Lịch hẹn
+            </Link>
+          )}
+
+          {['admin', 'nurse'].includes(user?.role) && (
+            <Link to="/dashboard/medicines" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/medicines' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
+              <Pill className="w-5 h-5 mr-3" />
+              Kho thuốc
+            </Link>
+          )}
+
+          {['admin', 'cashier'].includes(user?.role) && (
+            <Link to="/dashboard/billing" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/billing' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
+              <DollarSign className="w-5 h-5 mr-3" />
+              Thu ngân & Viện phí
+            </Link>
+          )}
+
+          {['admin', 'doctor', 'nurse'].includes(user?.role) && (
+            <Link to="/dashboard/patients" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/patients' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
+              <FileText className="w-5 h-5 mr-3" />
+              Hồ sơ bệnh án
+            </Link>
+          )}
+
           <Link to="/dashboard/settings" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/settings' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
             <Settings className="w-5 h-5 mr-3" />
             Cài đặt
           </Link>
+
           {user?.role === 'admin' && (
             <Link to="/dashboard/chatbot-training" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/chatbot-training' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
               <Bot className="w-5 h-5 mr-3" />
