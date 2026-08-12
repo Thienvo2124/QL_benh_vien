@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { FileText, Calendar, Clock, User, Pill, CheckCircle, Search, Award, Printer, ShieldPlus, X } from 'lucide-react';
 import { AuthContext } from '../contexts/AuthContext';
 import Header from '../components/Header';
@@ -55,11 +55,22 @@ const sampleRecords = [
 
 const MyRecords = () => {
   const { user } = useContext(AuthContext);
-  const [selectedRecord, setSelectedRecord] = useState(sampleRecords[0]);
   const [search, setSearch] = useState('');
   const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
 
-  const filteredRecords = sampleRecords.filter(rec => 
+  // Lọc bệnh án của chính user đăng nhập dựa trên Tên bệnh nhân
+  const myRecords = sampleRecords.filter(rec => 
+    user?.fullName && rec.patientName.toLowerCase() === user.fullName.toLowerCase()
+  );
+
+  const [selectedRecord, setSelectedRecord] = useState(null);
+
+  // Chọn bệnh án đầu tiên khi danh sách tải xong hoặc khi người dùng thay đổi
+  useEffect(() => {
+    setSelectedRecord(myRecords[0] || null);
+  }, [user?.fullName]);
+
+  const filteredRecords = myRecords.filter(rec => 
     rec.dept.toLowerCase().includes(search.toLowerCase()) || 
     rec.doctor.toLowerCase().includes(search.toLowerCase()) ||
     rec.diagnosis.toLowerCase().includes(search.toLowerCase())
@@ -116,39 +127,46 @@ const MyRecords = () => {
             </div>
 
             <div className="space-y-3">
-              {filteredRecords.map(rec => {
-                const isSelected = selectedRecord?.id === rec.id;
-                return (
-                  <div
-                    key={rec.id}
-                    onClick={() => setSelectedRecord(rec)}
-                    className={`p-5 rounded-2xl cursor-pointer transition-all border ${
-                      isSelected 
-                        ? 'bg-blue-50/80 border-[#004e92] shadow-md transform -translate-y-0.5' 
-                        : 'bg-white border-gray-100 hover:border-gray-200 shadow-sm'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold text-[#004e92] bg-white border border-blue-200 px-2 py-0.5 rounded shadow-sm">
-                        {rec.id}
-                      </span>
-                      <span className="text-xs font-bold text-gray-500 flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5 text-gray-400" /> {rec.date}
-                      </span>
+              {filteredRecords.length === 0 ? (
+                <div className="bg-white p-8 rounded-2xl border border-gray-100 text-center text-gray-500 shadow-sm flex flex-col items-center justify-center">
+                  <FileText className="w-8 h-8 text-gray-300 mb-2" />
+                  <span className="text-sm font-medium">Không có hồ sơ bệnh án nào.</span>
+                </div>
+              ) : (
+                filteredRecords.map(rec => {
+                  const isSelected = selectedRecord?.id === rec.id;
+                  return (
+                    <div
+                      key={rec.id}
+                      onClick={() => setSelectedRecord(rec)}
+                      className={`p-5 rounded-2xl cursor-pointer transition-all border ${
+                        isSelected 
+                          ? 'bg-blue-50/80 border-[#004e92] shadow-md transform -translate-y-0.5' 
+                          : 'bg-white border-gray-100 hover:border-gray-200 shadow-sm'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-bold text-[#004e92] bg-white border border-blue-200 px-2 py-0.5 rounded shadow-sm">
+                          {rec.id}
+                        </span>
+                        <span className="text-xs font-bold text-gray-500 flex items-center gap-1">
+                          <Calendar className="w-3.5 h-3.5 text-gray-400" /> {rec.date}
+                        </span>
+                      </div>
+                      <h3 className="font-bold text-gray-900 text-base">{rec.dept}</h3>
+                      <p className="text-xs text-gray-600 flex items-center gap-1 mt-1">
+                        <User className="w-3.5 h-3.5 text-gray-400" /> {rec.doctor}
+                      </p>
+                      <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+                        <span>Thuốc: <strong>{rec.medicines.length} loại</strong></span>
+                        <span className="text-green-600 font-bold flex items-center gap-1">
+                          <CheckCircle className="w-3.5 h-3.5" /> Đã hoàn thành
+                        </span>
+                      </div>
                     </div>
-                    <h3 className="font-bold text-gray-900 text-base">{rec.dept}</h3>
-                    <p className="text-xs text-gray-600 flex items-center gap-1 mt-1">
-                      <User className="w-3.5 h-3.5 text-gray-400" /> {rec.doctor}
-                    </p>
-                    <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
-                      <span>Thuốc: <strong>{rec.medicines.length} loại</strong></span>
-                      <span className="text-green-600 font-bold flex items-center gap-1">
-                        <CheckCircle className="w-3.5 h-3.5" /> Đã hoàn thành
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </div>
 
@@ -235,8 +253,13 @@ const MyRecords = () => {
                 </div>
               </div>
             ) : (
-              <div className="bg-white p-12 rounded-3xl text-center text-gray-500 border border-gray-100 shadow-sm">
-                Chọn một hồ sơ bệnh án bên trái để xem chi tiết.
+              <div className="bg-white p-12 rounded-3xl text-center text-gray-500 border border-gray-100 shadow-sm flex flex-col items-center justify-center min-h-[300px]">
+                <FileText className="w-12 h-12 text-gray-300 mb-3" />
+                {myRecords.length === 0 ? (
+                  <p className="font-medium">Bạn chưa có lịch sử khám bệnh hoặc hồ sơ bệnh án nào tại Bệnh viện.</p>
+                ) : (
+                  <p className="font-medium">Chọn một hồ sơ bệnh án bên trái để xem chi tiết.</p>
+                )}
               </div>
             )}
           </div>
