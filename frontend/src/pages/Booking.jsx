@@ -481,43 +481,24 @@ const Booking = () => {
                   </div>
 
 
-                  {/* Chuyên khoa & Bác sĩ */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-gray-700 mb-1.5">Chuyên khoa khám *</label>
-                      <select
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] transition-colors bg-white cursor-pointer font-semibold"
-                        value={form.dept}
-                        onChange={(e) => {
-                          set('dept', e.target.value);
-                          set('doctor', ''); // Reset bác sĩ
-                        }}
-                      >
-                        <option value="">-- Chọn chuyên khoa --</option>
-                        {departments.map((dept) => (
-                          <option key={dept.slug} value={dept.name}>
-                            {dept.icon} {dept.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-gray-700 mb-1.5">Bác sĩ phụ trách *</label>
-                      <select
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] transition-colors bg-white cursor-pointer font-medium disabled:bg-gray-50 disabled:cursor-not-allowed"
-                        value={form.doctor}
-                        disabled={!form.dept}
-                        onChange={(e) => set('doctor', e.target.value)}
-                      >
-                        <option value="">Hệ thống tự phân công (Nhanh nhất)</option>
-                        {selectedDept && selectedDept.doctors_list.map((doc) => (
-                          <option key={doc.name} value={doc.name}>
-                            BS. {doc.name} (⭐ {doc.rating} - {doc.exp} KN)
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                  {/* Chuyên khoa */}
+                  <div className="mb-4">
+                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Chuyên khoa khám *</label>
+                    <select
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] transition-colors bg-white cursor-pointer font-semibold"
+                      value={form.dept}
+                      onChange={(e) => {
+                        set('dept', e.target.value);
+                        set('doctor', ''); // Reset bác sĩ
+                      }}
+                    >
+                      <option value="">-- Chọn chuyên khoa --</option>
+                      {departments.map((dept) => (
+                        <option key={dept.slug} value={dept.name}>
+                          {dept.icon} {dept.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   {/* Ngày khám, Buổi khám, Giờ khám */}
