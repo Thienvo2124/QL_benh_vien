@@ -135,12 +135,22 @@ const AdminLayout = () => {
                   </div>
                   <div className="flex items-center gap-1.5 bg-blue-50 text-[#004e92] text-xs font-semibold px-2.5 py-1 rounded-full w-max mt-1 border border-blue-100 shadow-sm">
                     <Shield className="w-3.5 h-3.5" />
-                    <span>{user?.role === 'admin' ? 'Quản trị viên hệ thống' : 'Bác sĩ chuyên khoa'}</span>
+                    <span>
+                      {user?.role === 'admin'
+                        ? 'Quản trị viên hệ thống'
+                        : user?.role === 'doctor'
+                        ? 'Bác sĩ chuyên khoa'
+                        : user?.role === 'nurse'
+                        ? 'Y tá hệ thống'
+                        : user?.role === 'cashier'
+                        ? 'Thu ngân bệnh viện'
+                        : 'Nhân viên'}
+                    </span>
                   </div>
                 </div>
 
                 <div className="py-2 px-3 space-y-1">
-                  {user?.role === 'admin' ? (
+                  {user?.role === 'admin' && (
                     <>
                       <Link
                         to="/dashboard/settings"
@@ -167,7 +177,9 @@ const AdminLayout = () => {
                         Nhật ký Hệ thống
                       </Link>
                     </>
-                  ) : (
+                  )}
+
+                  {user?.role === 'doctor' && (
                     <>
                       <Link
                         to="/dashboard/settings"
@@ -192,6 +204,64 @@ const AdminLayout = () => {
                       >
                         <Pill className="w-4 h-4 text-purple-600" />
                         Danh mục Thuốc & Phác đồ
+                      </Link>
+                    </>
+                  )}
+
+                  {user?.role === 'nurse' && (
+                    <>
+                      <Link
+                        to="/dashboard/settings"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
+                      >
+                        <UserCheck className="w-4 h-4 text-[#004e92]" />
+                        Hồ sơ cá nhân
+                      </Link>
+                      <Link
+                        to="/dashboard/appointments"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
+                      >
+                        <Calendar className="w-4 h-4 text-yellow-600" />
+                        Quản lý Lịch hẹn khám
+                      </Link>
+                      <Link
+                        to="/dashboard/medicines"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
+                      >
+                        <Pill className="w-4 h-4 text-purple-600" />
+                        Kho dược phẩm
+                      </Link>
+                    </>
+                  )}
+
+                  {user?.role === 'cashier' && (
+                    <>
+                      <Link
+                        to="/dashboard/settings"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
+                      >
+                        <UserCheck className="w-4 h-4 text-[#004e92]" />
+                        Hồ sơ cá nhân
+                      </Link>
+                      <Link
+                        to="/dashboard/appointments"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
+                      >
+                        <Calendar className="w-4 h-4 text-yellow-600" />
+                        Quản lý Lịch hẹn khám
+                      </Link>
+                      <Link
+                        to="/dashboard/billing"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
+                      >
+                        <DollarSign className="w-4 h-4 text-emerald-600" />
+                        Thu ngân & Viện phí
                       </Link>
                     </>
                   )}
