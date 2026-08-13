@@ -76,7 +76,7 @@ const CashierDashboard = () => {
     gender: 'Nam',
     dept: '',
     doctor: 'Hệ thống tự phân công',
-    date: new Date().toISOString().split('T')[0],
+    date: new Date().toLocaleDateString('sv-SE'),
     time: '08:00',
     reason: 'Đến khám trực tiếp tại quầy',
     autoPay: true
@@ -236,7 +236,7 @@ const CashierDashboard = () => {
           gender: 'Nam',
           dept: '',
           doctor: 'Hệ thống tự phân công',
-          date: new Date().toISOString().split('T')[0],
+          date: new Date().toLocaleDateString('sv-SE'),
           time: '08:00',
           reason: 'Đến khám trực tiếp tại quầy',
           autoPay: true
