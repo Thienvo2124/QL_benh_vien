@@ -62,6 +62,11 @@ const CashierDashboard = () => {
   const [notification, setNotification] = useState('');
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
+  
+  // DOB Select States
+  const [dobDay, setDobDay] = useState('');
+  const [dobMonth, setDobMonth] = useState('');
+  const [dobYear, setDobYear] = useState('');
 
   // Walk-in Register Form State
   const [registerForm, setRegisterForm] = useState({
@@ -192,6 +197,13 @@ const CashierDashboard = () => {
       return;
     }
 
+    let dobValue = undefined;
+    if (dobDay && dobMonth && dobYear) {
+      const formattedMonth = dobMonth.padStart(2, '0');
+      const formattedDay = dobDay.padStart(2, '0');
+      dobValue = `${dobYear}-${formattedMonth}-${formattedDay}`;
+    }
+
     setLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/api/appointments`, {
@@ -202,7 +214,7 @@ const CashierDashboard = () => {
         body: JSON.stringify({
           name: registerForm.name,
           phone: registerForm.phone,
-          dob: registerForm.dob || undefined,
+          dob: dobValue,
           gender: registerForm.gender,
           dept: registerForm.dept,
           doctor: registerForm.doctor,
@@ -229,6 +241,9 @@ const CashierDashboard = () => {
           reason: 'Đến khám trực tiếp tại quầy',
           autoPay: true
         });
+        setDobDay('');
+        setDobMonth('');
+        setDobYear('');
 
         // Nếu có tích chọn thanh toán luôn
         if (registerForm.autoPay) {
@@ -505,12 +520,38 @@ const CashierDashboard = () => {
 
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1.5">Ngày sinh</label>
-                <input
-                  type="date"
-                  value={registerForm.dob}
-                  onChange={(e) => setRegisterForm({ ...registerForm, dob: e.target.value })}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]"
-                />
+                <div className="grid grid-cols-3 gap-2">
+                  <select
+                    className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:border-[#004e92] font-semibold bg-white cursor-pointer"
+                    value={dobDay}
+                    onChange={(e) => setDobDay(e.target.value)}
+                  >
+                    <option value="">Ngày</option>
+                    {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                      <option key={d} value={String(d)}>Ngày {d}</option>
+                    ))}
+                  </select>
+                  <select
+                    className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:border-[#004e92] font-semibold bg-white cursor-pointer"
+                    value={dobMonth}
+                    onChange={(e) => setDobMonth(e.target.value)}
+                  >
+                    <option value="">Tháng</option>
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                      <option key={m} value={String(m)}>Tháng {m}</option>
+                    ))}
+                  </select>
+                  <select
+                    className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:border-[#004e92] font-semibold bg-white cursor-pointer"
+                    value={dobYear}
+                    onChange={(e) => setDobYear(e.target.value)}
+                  >
+                    <option value="">Năm</option>
+                    {Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i).map((y) => (
+                      <option key={y} value={String(y)}>{y}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div>
