@@ -28,7 +28,7 @@ const protect = async (req, res, next) => {
 };
 
 const adminOrDoctorOnly = (req, res, next) => {
-  if (req.user && (req.user.role === "admin" || req.user.role === "doctor")) {
+  if (req.user && ["admin", "doctor", "nurse", "cashier"].includes(req.user.role)) {
     return next();
   }
 
