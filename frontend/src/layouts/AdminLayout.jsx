@@ -7,6 +7,7 @@ const pathRoles = {
   '/dashboard/users': ['admin'],
   '/dashboard/medicines': ['admin', 'nurse'],
   '/dashboard/billing': ['admin', 'cashier'],
+  '/dashboard/cashier': ['admin', 'cashier'],
   '/dashboard/patients': ['admin', 'doctor', 'nurse'],
   '/dashboard/chatbot-training': ['admin'],
 };
@@ -48,6 +49,13 @@ const AdminLayout = () => {
             <Link to="/dashboard/appointments" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/appointments' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
               <Calendar className="w-5 h-5 mr-3" />
               Lịch hẹn
+            </Link>
+          )}
+
+          {['admin', 'cashier'].includes(user?.role) && (
+            <Link to="/dashboard/cashier" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/cashier' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
+              <DollarSign className="w-5 h-5 mr-3" />
+              Quầy Thu ngân
             </Link>
           )}
 
