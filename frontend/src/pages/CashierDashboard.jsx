@@ -52,7 +52,7 @@ const initialPrescriptionBills = [
 ];
 
 const CashierDashboard = () => {
-  const [activeTab, setActiveTab] = useState('reception'); // reception | register | prescription
+  const [activeTab, setActiveTab] = useState('register'); // register | reception | prescription
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -365,16 +365,6 @@ const CashierDashboard = () => {
       {/* NAVIGATION TABS */}
       <div className="flex border-b border-gray-200 gap-6 print:hidden">
         <button
-          onClick={() => setActiveTab('reception')}
-          className={`pb-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
-            activeTab === 'reception'
-              ? 'border-[#004e92] text-[#004e92]'
-              : 'border-transparent text-gray-400 hover:text-gray-600'
-          }`}
-        >
-          <Users className="w-4 h-4" /> 1. Chờ Đóng Phí Khám ({unpaidAppointments.length})
-        </button>
-        <button
           onClick={() => setActiveTab('register')}
           className={`pb-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
             activeTab === 'register'
@@ -382,7 +372,17 @@ const CashierDashboard = () => {
               : 'border-transparent text-gray-400 hover:text-gray-600'
           }`}
         >
-          <PlusCircle className="w-4 h-4" /> 2. Tiếp Nhận Vãng Lai
+          <PlusCircle className="w-4 h-4" /> 1. Tiếp Nhận Vãng Lai
+        </button>
+        <button
+          onClick={() => setActiveTab('reception')}
+          className={`pb-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
+            activeTab === 'reception'
+              ? 'border-[#004e92] text-[#004e92]'
+              : 'border-transparent text-gray-400 hover:text-gray-600'
+          }`}
+        >
+          <Users className="w-4 h-4" /> 2. Chờ Đóng Phí Khám ({unpaidAppointments.length})
         </button>
         <button
           onClick={() => setActiveTab('prescription')}
@@ -795,6 +795,12 @@ const CashierDashboard = () => {
 
               {/* Receipt Info */}
               <div className="space-y-1.5 text-sm text-gray-600 font-semibold">
+                {receiptData.code && (
+                  <div className="flex justify-between">
+                    <span>Mã Bệnh nhân (ID):</span>
+                    <span className="text-gray-900 font-mono font-bold text-base bg-gray-50 px-2 py-0.5 rounded border border-gray-200">{receiptData.code}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span>Bệnh nhân:</span>
                   <span className="text-gray-900 font-bold">{receiptData.patientName}</span>
@@ -812,6 +818,10 @@ const CashierDashboard = () => {
                 <div className="flex justify-between">
                   <span>Hình thức thanh toán:</span>
                   <span className="text-gray-900">{receiptData.paymentMethod}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Trạng thái:</span>
+                  <span className="text-emerald-600 font-extrabold flex items-center gap-1">ĐÃ THANH TOÁN (ĐỦ ĐIỀU KIỆN KHÁM)</span>
                 </div>
               </div>
 
