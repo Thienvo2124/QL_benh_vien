@@ -122,7 +122,7 @@ const CashierDashboard = () => {
     date: new Date().toLocaleDateString('sv-SE'),
     time: getCurrentTimeStr(),
     reason: 'Đến khám trực tiếp tại quầy',
-    autoPay: true
+    autoPay: false
   });
 
   // Fetch appointments for reception view
@@ -330,20 +330,15 @@ const CashierDashboard = () => {
           date: new Date().toLocaleDateString('sv-SE'),
           time: getCurrentTimeStr(),
           reason: 'Đến khám trực tiếp tại quầy',
-          autoPay: true
+          autoPay: false
         });
         setDobDay('');
         setDobMonth('');
         setDobYear('');
 
-        // Nếu có tích chọn thanh toán luôn
-        if (registerForm.autoPay) {
-          await handlePayExamFeeConfirm(newApp._id, paymentMethod);
-        } else {
-          setNotification(`✅ Đã tiếp nhận bệnh nhân vãng lai: ${newApp.name}. Vui lòng thu tiền khám ở danh sách hàng chờ.`);
-          fetchAppointments();
-          setTimeout(() => setNotification(''), 5000);
-        }
+        setNotification(`✅ Đã tiếp nhận bệnh nhân vãng lai: ${newApp.name}. Hãy thực hiện thu tiền khám.`);
+        fetchAppointments();
+        setTimeout(() => setNotification(''), 5000);
         
         // Chuyển về tab Lịch tiếp nhận
         setActiveTab('reception');
@@ -734,18 +729,7 @@ const CashierDashboard = () => {
 
             </div>
 
-            <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-2xl border border-blue-100">
-              <input
-                type="checkbox"
-                id="autoPay"
-                checked={registerForm.autoPay}
-                onChange={(e) => setRegisterForm({ ...registerForm, autoPay: e.target.checked })}
-                className="w-4 h-4 text-[#004e92] focus:ring-[#004e92] border-gray-300 rounded cursor-pointer"
-              />
-              <label htmlFor="autoPay" className="text-sm font-bold text-gray-700 cursor-pointer select-none">
-                Thanh toán phí khám và in hóa đơn/phiếu số khám ngay lập tức
-              </label>
-            </div>
+
 
             <div className="flex justify-end gap-3 border-t border-gray-100 pt-5">
               <button
