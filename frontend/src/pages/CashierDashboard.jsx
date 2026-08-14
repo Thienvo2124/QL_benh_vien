@@ -51,6 +51,13 @@ const initialPrescriptionBills = [
   }
 ];
 
+const getCurrentTimeStr = () => {
+  const now = new Date();
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
+};
+
 const CashierDashboard = () => {
   const [activeTab, setActiveTab] = useState('register'); // register | reception | prescription
   const [appointments, setAppointments] = useState([]);
@@ -77,7 +84,7 @@ const CashierDashboard = () => {
     dept: '',
     doctor: 'Hệ thống tự phân công',
     date: new Date().toLocaleDateString('sv-SE'),
-    time: '08:00',
+    time: getCurrentTimeStr(),
     reason: 'Đến khám trực tiếp tại quầy',
     autoPay: true
   });
@@ -237,7 +244,7 @@ const CashierDashboard = () => {
           dept: '',
           doctor: 'Hệ thống tự phân công',
           date: new Date().toLocaleDateString('sv-SE'),
-          time: '08:00',
+          time: getCurrentTimeStr(),
           reason: 'Đến khám trực tiếp tại quầy',
           autoPay: true
         });
@@ -585,18 +592,14 @@ const CashierDashboard = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1.5">Khung giờ khám</label>
-                <select
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">Giờ tiếp nhận khám</label>
+                <input
+                  type="time"
+                  required
                   value={registerForm.time}
                   onChange={(e) => setRegisterForm({ ...registerForm, time: e.target.value })}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92] cursor-pointer"
-                >
-                  <option value="08:00">08:00 sáng</option>
-                  <option value="09:00">09:00 sáng</option>
-                  <option value="10:00">10:00 sáng</option>
-                  <option value="14:00">14:00 chiều</option>
-                  <option value="15:00">15:00 chiều</option>
-                </select>
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92] font-semibold"
+                />
               </div>
 
               <div>
