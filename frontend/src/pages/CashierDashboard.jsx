@@ -494,18 +494,6 @@ const CashierDashboard = () => {
                 className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] focus:bg-white transition-colors font-medium"
               />
             </div>
-            
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-500 font-bold">Hình thức thanh toán:</span>
-              <select
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-                className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white cursor-pointer font-bold focus:outline-none focus:border-[#004e92]"
-              >
-                <option value="Tiền mặt">💵 Tiền mặt</option>
-                <option value="Chuyển khoản">💳 Chuyển khoản (QR)</option>
-              </select>
-            </div>
           </div>
 
           {/* QUEUE TABLE */}
@@ -545,12 +533,20 @@ const CashierDashboard = () => {
                           {(app.initialFee || 150000).toLocaleString('vi-VN')} đ
                         </td>
                         <td className="p-5 text-center">
-                          <button
-                            onClick={() => handlePayExamFee(app._id)}
-                            className="bg-green-600 hover:bg-green-700 text-white font-bold px-5 py-2.5 rounded-xl transition-all shadow-md text-xs inline-flex items-center gap-1.5 transform hover:scale-105"
-                          >
-                            <Check className="w-4 h-4" /> Thu tiền & Cấp số
-                          </button>
+                          <div className="flex gap-2 justify-center">
+                            <button
+                              onClick={() => handlePayExamFee(app._id, 'Tiền mặt')}
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-3.5 rounded-xl transition-all text-xs flex items-center gap-1 shadow-sm"
+                            >
+                              💵 Tiền mặt
+                            </button>
+                            <button
+                              onClick={() => handlePayExamFee(app._id, 'Chuyển khoản')}
+                              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3.5 rounded-xl transition-all text-xs flex items-center gap-1 shadow-sm"
+                            >
+                              💳 Chuyển khoản
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -686,17 +682,7 @@ const CashierDashboard = () => {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1.5">Hình thức thanh toán viện phí</label>
-                <select
-                  value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92] cursor-pointer font-semibold"
-                >
-                  <option value="Tiền mặt">💵 Tiền mặt</option>
-                  <option value="Chuyển khoản">💳 Chuyển khoản (Momo/VNPAY/Ngân hàng)</option>
-                </select>
-              </div>
+
 
 
             </div>
