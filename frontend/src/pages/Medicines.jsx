@@ -513,30 +513,6 @@ const Medicines = () => {
               className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:border-[#004e92] focus:bg-white text-sm transition-all"
             />
           </div>
-          
-          <div className="flex items-center gap-2 text-sm text-gray-500 font-medium">
-            <Filter className="w-4 h-4 text-[#004e92]" /> Phân loại dược lý (ATC):
-          </div>
-        </div>
-
-        {/* Categories Tabs */}
-        <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
-          {categories.map((cat) => {
-            const isActive = category === cat;
-            return (
-              <button
-                key={cat}
-                onClick={() => setCategory(cat)}
-                className={`px-4 py-2.5 text-xs font-bold rounded-2xl transition-all ${
-                  isActive 
-                    ? 'bg-[#004e92] text-white shadow-lg shadow-blue-500/20 transform -translate-y-0.5' 
-                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200/60'
-                }`}
-              >
-                {cat}
-              </button>
-            );
-          })}
         </div>
 
         {/* Lọc theo bảng chữ cái đầu (A-Z) */}
