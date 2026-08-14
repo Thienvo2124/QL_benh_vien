@@ -139,6 +139,10 @@ const Medicines = () => {
   const [editingMedicine, setEditingMedicine] = useState(null);
   const [saving, setSaving] = useState(false);
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   // Quick Stock Add Modal
   const [quickAddModal, setQuickAddModal] = useState(null);
   const [addQty, setAddQty] = useState(50);
@@ -174,6 +178,10 @@ const Medicines = () => {
   useEffect(() => {
     fetchMedicines();
   }, [search, category]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, category, selectedAlphabet]);
 
   const fetchMedicines = async () => {
     setLoading(true);
@@ -419,6 +427,11 @@ const Medicines = () => {
     return normalizedFirstChar === selectedAlphabet;
   });
 
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentMedicines = filteredMedicines.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredMedicines.length / itemsPerPage);
+
   return (
     <div className="p-8 font-sans bg-gray-50/50 min-h-screen space-y-8">
       
@@ -584,7 +597,7 @@ const Medicines = () => {
                   </td>
                 </tr>
               ) : (
-                filteredMedicines.map((item, index) => {
+                currentMedicines.map((item, index) => {
                   const isLowStock = item.quantity < 20;
                   
                   // Kiểm tra cận date
@@ -601,7 +614,7 @@ const Medicines = () => {
 
                   return (
                     <tr key={item._id} className="hover:bg-blue-50/10 transition-colors">
-                      <td className="p-5 font-bold text-gray-700 text-center">{index + 1}</td>
+                      <td className="p-5 font-bold text-gray-700 text-center">{indexOfFirstItem + index + 1}</td>
                       <td className="p-5">
                         <div className="font-bold text-gray-900 text-base">{item.name}</div>
                         {item.ingredients && (
@@ -695,8 +708,44 @@ const Medicines = () => {
         </div>
 
         <div className="p-5 bg-gray-50/80 border-t border-gray-100 flex flex-wrap justify-between items-center text-xs text-gray-500 gap-4">
-          <span>Hệ thống hiển thị: <strong>{medicines.length} loại thuốc</strong> theo đúng bộ lọc chỉ định.</span>
-          <span className="text-[#004e92] font-bold">Cổng tra cứu Dược phẩm Bệnh viện - Tiêu chuẩn Bộ Y Tế</span>
+          <span className="font-semibold text-gray-600">
+            {filteredMedicines.length > 0 ? (
+              <>Hiển thị từ <strong>{indexOfFirstItem + 1}</strong> đến <strong>{Math.min(indexOfLastItem, filteredMedicines.length)}</strong> trong số <strong>{filteredMedicines.length}</strong> loại thuốc.</>
+            ) : (
+              <>Không có thuốc nào để hiển thị.</>
+            )}
+          </span>
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1.5">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                className="px-3 py-1.5 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:hover:bg-white text-xs font-bold text-gray-750 cursor-pointer disabled:cursor-not-allowed"
+              >
+                Trước
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-8 h-8 flex items-center justify-center text-xs font-bold rounded-xl transition-colors ${
+                    currentPage === page
+                      ? 'bg-[#004e92] text-white shadow-md'
+                      : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                className="px-3 py-1.5 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:hover:bg-white text-xs font-bold text-gray-750 cursor-pointer disabled:cursor-not-allowed"
+              >
+                Sau
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
