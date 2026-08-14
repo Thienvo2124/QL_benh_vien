@@ -150,9 +150,30 @@ const CashierDashboard = () => {
     fetchAppointments();
   }, [fetchAppointments]);
 
-  // Đóng phí khám ban đầu
-  const handlePayExamFee = async (appId, explicitPaymentMethod = null) => {
-    const chosenMethod = explicitPaymentMethod || paymentMethod;
+  // Khởi tạo quy trình thu phí khám (mở modal chờ xác nhận)
+  const handleInitiatePayExamFee = (app, chosenMethod) => {
+    setReceiptData({
+      type: 'exam',
+      isPending: true,
+      appId: app._id,
+      patientName: app.name,
+      phone: app.phone,
+      dob: app.dob,
+      gender: app.gender,
+      dept: app.dept,
+      doctor: app.doctor || 'Hệ thống tự phân công',
+      date: app.date,
+      time: app.time,
+      fee: app.initialFee || 150000,
+      paymentMethod: chosenMethod,
+      queueNumber: null,
+      code: app.appointmentCode
+    });
+    setShowReceiptModal(true);
+  };
+
+  // Xác nhận đóng phí khám thực tế (gọi API)
+  const handlePayExamFeeConfirm = async (appId, chosenMethod) => {
     try {
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       const response = await fetch(`${API_BASE_URL}/api/appointments/${appId}/pay-exam`, {
@@ -170,6 +191,7 @@ const CashierDashboard = () => {
         fetchAppointments();
         setReceiptData({
           type: 'exam',
+          isPending: false,
           patientName: data.appointment.name,
           phone: data.appointment.phone,
           dob: data.appointment.dob,
@@ -194,8 +216,32 @@ const CashierDashboard = () => {
     }
   };
 
-  // Đóng phí đơn thuốc
-  const handlePayPrescription = (billId, method) => {
+  // Khởi tạo quy trình thu phí đơn thuốc (mở modal chờ xác nhận)
+  const handleInitiatePayPrescription = (bill, method) => {
+    const totalCost = bill.items.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    const hasBHYT = !!bill.bhyt;
+    const discount = hasBHYT ? totalCost * 0.8 : 0;
+    const finalCost = totalCost - discount;
+
+    setReceiptData({
+      type: 'prescription',
+      isPending: true,
+      id: bill.id,
+      patientName: bill.patientName,
+      patientCode: bill.patientCode,
+      phone: bill.phone,
+      bhyt: bill.bhyt,
+      items: bill.items,
+      totalCost,
+      discount,
+      finalCost,
+      paymentMethod: method
+    });
+    setShowReceiptModal(true);
+  };
+
+  // Xác nhận đóng phí đơn thuốc thực tế (cập nhật state)
+  const handlePayPrescriptionConfirm = (billId, method) => {
     const updatedBills = prescriptionBills.map(bill => {
       if (bill.id === billId) {
         setNotification(`✅ Thu phí đơn thuốc thành công cho: ${bill.patientName}!`);
@@ -207,6 +253,7 @@ const CashierDashboard = () => {
 
         setReceiptData({
           type: 'prescription',
+          isPending: false,
           id: bill.id,
           patientName: bill.patientName,
           patientCode: bill.patientCode,
@@ -291,7 +338,7 @@ const CashierDashboard = () => {
 
         // Nếu có tích chọn thanh toán luôn
         if (registerForm.autoPay) {
-          await handlePayExamFee(newApp._id, paymentMethod);
+          await handlePayExamFeeConfirm(newApp._id, paymentMethod);
         } else {
           setNotification(`✅ Đã tiếp nhận bệnh nhân vãng lai: ${newApp.name}. Vui lòng thu tiền khám ở danh sách hàng chờ.`);
           fetchAppointments();
@@ -535,13 +582,13 @@ const CashierDashboard = () => {
                         <td className="p-5 text-center">
                           <div className="flex gap-2 justify-center">
                             <button
-                              onClick={() => handlePayExamFee(app._id, 'Tiền mặt')}
+                              onClick={() => handleInitiatePayExamFee(app, 'Tiền mặt')}
                               className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-3.5 rounded-xl transition-all text-xs flex items-center gap-1 shadow-sm"
                             >
                               💵 Tiền mặt
                             </button>
                             <button
-                              onClick={() => handlePayExamFee(app._id, 'Chuyển khoản')}
+                              onClick={() => handleInitiatePayExamFee(app, 'Chuyển khoản')}
                               className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3.5 rounded-xl transition-all text-xs flex items-center gap-1 shadow-sm"
                             >
                               💳 Chuyển khoản
@@ -805,13 +852,13 @@ const CashierDashboard = () => {
                           <td className="p-5">
                             <div className="flex flex-col gap-2 justify-center items-center">
                               <button
-                                onClick={() => handlePayPrescription(bill.id, 'Tiền mặt')}
+                                onClick={() => handleInitiatePayPrescription(bill, 'Tiền mặt')}
                                 className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl transition-all text-xs flex items-center justify-center gap-1"
                               >
                                 💵 Tiền mặt
                               </button>
                               <button
-                                onClick={() => handlePayPrescription(bill.id, 'Chuyển khoản')}
+                                onClick={() => handleInitiatePayPrescription(bill, 'Chuyển khoản')}
                                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-xl transition-all text-xs flex items-center justify-center gap-1"
                               >
                                 💳 Chuyển khoản
