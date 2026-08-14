@@ -86,7 +86,16 @@ const Appointments = () => {
           'Authorization': `Bearer ${token}`
         }
       });
-      const data = await response.json();
+      
+      let data = {};
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        data = { message: text || `Lỗi: ${response.status}` };
+      }
+
       if (response.ok) {
         alert("Xóa lịch hẹn thành công!");
         fetchAppointments();
