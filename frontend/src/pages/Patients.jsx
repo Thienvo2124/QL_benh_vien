@@ -133,24 +133,40 @@ const Patients = () => {
     try {
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       
-      const appRes = await fetch(`${API_BASE_URL}/api/appointments`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const appData = await appRes.json();
-      
-      const medRes = await fetch(`${API_BASE_URL}/api/medicines`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const medData = await medRes.json();
-
-      if (appRes.ok) {
-        setAppointments(appData);
+      if (!token) {
+        console.warn('Patients.jsx: Không có token, bỏ qua fetch dữ liệu từ server.');
+        setLoading(false);
+        return;
       }
+
+      const [appRes, medRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/appointments`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch(`${API_BASE_URL}/api/medicines`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+      ]);
+
+      if (appRes.status === 401 || appRes.status === 403) {
+        console.warn(`Patients.jsx: API /appointments trả về ${appRes.status} - token có thể hết hạn.`);
+      } else if (appRes.ok) {
+        const appData = await appRes.json();
+        if (Array.isArray(appData)) {
+          setAppointments(appData);
+        } else {
+          console.warn('Patients.jsx: /api/appointments không trả về mảng:', appData);
+        }
+      }
+
       if (medRes.ok) {
-        setMedicines(medData);
+        const medData = await medRes.json();
+        if (Array.isArray(medData)) {
+          setMedicines(medData);
+        }
       }
     } catch (error) {
-      console.error("Error loading data:", error);
+      console.error("Patients.jsx: Lỗi kết nối khi tải dữ liệu:", error.message);
     } finally {
       setLoading(false);
     }
