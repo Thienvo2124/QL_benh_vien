@@ -5,6 +5,7 @@ import API_BASE_URL from '../config/api';
 const initialRecords = [
   {
     id: 'HS-2026-001',
+    queueNumber: 1,
     patientName: 'Nguyễn Văn A',
     age: 31,
     gender: 'Nam',
@@ -32,6 +33,7 @@ const initialRecords = [
   },
   {
     id: 'HS-2025-102',
+    queueNumber: 2,
     patientName: 'Trần Thị B',
     age: 45,
     gender: 'Nữ',
@@ -57,6 +59,7 @@ const initialRecords = [
   },
   {
     id: 'HS-2026-045',
+    queueNumber: 3,
     patientName: 'Lê Hoàng C',
     age: 28,
     gender: 'Nam',
@@ -160,6 +163,7 @@ const Patients = () => {
 
   const dbRecords = appointments.filter(app => app.status === 'completed').map(app => ({
     id: app._id,
+    queueNumber: app.queueNumber,
     patientName: app.name,
     age: calculateAge(app.dob),
     gender: app.gender || 'Nam',
@@ -351,7 +355,8 @@ const Patients = () => {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-100">
-                <th className="p-5 font-medium w-32">Mã Bệnh án</th>
+                <th className="p-5 font-medium w-24 text-center">Số khám</th>
+                <th className="p-5 font-medium w-36">Mã Bệnh án</th>
                 <th className="p-5 font-medium">Bệnh nhân & Định danh</th>
                 <th className="p-5 font-medium">Chuyên khoa / Bác sĩ</th>
                 <th className="p-5 font-medium">Chẩn đoán sơ bộ</th>
@@ -363,6 +368,15 @@ const Patients = () => {
               {filteredRecords.length > 0 ? (
                 filteredRecords.map((rec) => (
                   <tr key={rec.id} className="hover:bg-blue-50/20 transition-colors">
+                    <td className="p-5 text-center">
+                      {rec.queueNumber ? (
+                        <span className="bg-blue-50 text-[#004e92] text-sm font-black px-3 py-1.5 rounded-xl border border-blue-100 shadow-sm">
+                          {String(rec.queueNumber).padStart(2, '0')}
+                        </span>
+                      ) : (
+                        <span className="text-gray-300 font-bold font-mono">-</span>
+                      )}
+                    </td>
                     <td className="p-5">
                       <span className="font-bold text-[#004e92] font-mono text-sm block">{rec.id}</span>
                       <span className="text-xs text-gray-400 block mt-0.5">Khám: {rec.lastVisit}</span>
@@ -419,7 +433,7 @@ const Patients = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6" className="p-12 text-center text-gray-400">
+                  <td colSpan="7" className="p-12 text-center text-gray-400">
                     Không tìm thấy hồ sơ bệnh án nào phù hợp với bộ lọc.
                   </td>
                 </tr>
