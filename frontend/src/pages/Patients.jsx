@@ -91,6 +91,7 @@ const Patients = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedDept, setSelectedDept] = useState('Tất cả');
+  const [activeTab, setActiveTab] = useState('waiting'); // waiting | history
   
   // Modal state
   const [activeModal, setActiveModal] = useState(null); // 'view', 'new', 'prescription', or null
@@ -282,6 +283,19 @@ const Patients = () => {
     window.print();
   };
 
+  // Filter the waiting list using the search query and selected department
+  const filteredWaitingList = waitingList.filter(app => {
+    const name = app.name || '';
+    const phone = app.phone || '';
+    const code = app.appointmentCode || '';
+    const matchesSearch = search === '' || 
+      name.toLowerCase().includes(search.toLowerCase()) ||
+      phone.includes(search) ||
+      code.toLowerCase().includes(search.toLowerCase());
+    const matchesDept = selectedDept === 'Tất cả' || app.dept === selectedDept;
+    return matchesSearch && matchesDept;
+  });
+
   return (
     <div className="p-8 space-y-8 font-sans bg-gray-50/50 min-h-screen">
       
@@ -292,7 +306,7 @@ const Patients = () => {
             <FileText className="w-8 h-8 text-[#004e92]" /> Quản lý Hồ sơ Bệnh án & Đơn thuốc
           </h2>
           <p className="text-gray-500 text-sm mt-1">
-            Tra cứu bệnh án điện tử và hỗ trợ in Đơn thuốc theo đúng chuẩn mẫu biểu Bộ Y Tế quy định.
+            Tra cứu bệnh án điện tử, khám bệnh lâm sàng và kê đơn thuốc chuẩn Bộ Y Tế.
           </p>
         </div>
         <div className="flex items-center gap-4">
@@ -303,7 +317,16 @@ const Patients = () => {
             <FileSpreadsheet className="w-4 h-4 text-green-600" /> Xuất dữ liệu (Excel)
           </button>
           <button
-            onClick={() => setActiveModal('new')}
+            onClick={() => {
+              setSelectedWaitingAppId('');
+              setNewPatientName('');
+              setNewAge(30);
+              setNewGender('Nam');
+              setNewPhone('');
+              setNewDept('Da liễu & Dị ứng');
+              setNewDoctor('BS. CKII Nguyễn Tuấn Lâm');
+              setActiveModal('new');
+            }}
             className="bg-[#004e92] hover:bg-blue-800 text-white font-bold px-6 py-3 rounded-2xl transition-colors shadow-lg flex items-center gap-2 text-sm transform hover:-translate-y-0.5"
           >
             <Plus className="w-5 h-5" /> Tạo Hồ sơ Bệnh án Mới
@@ -318,6 +341,49 @@ const Patients = () => {
           {successMsg}
         </div>
       )}
+
+      {/* KPI STATS CARDS */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 print:hidden">
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-2">
+          <div className="text-xs text-gray-400 font-bold uppercase tracking-wider">Bệnh nhân chờ khám</div>
+          <div className="text-3xl font-black text-blue-600">{waitingList.length} ca chờ</div>
+          <div className="text-xs text-gray-500">Đã đóng phí khám & đang chờ bác sĩ</div>
+        </div>
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-2">
+          <div className="text-xs text-gray-400 font-bold uppercase tracking-wider">Đã hoàn tất khám</div>
+          <div className="text-3xl font-black text-emerald-600">{dbRecords.length} ca hoàn thành</div>
+          <div className="text-xs text-gray-500">Hồ sơ bệnh án lưu trên hệ thống</div>
+        </div>
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-2">
+          <div className="text-xs text-gray-400 font-bold uppercase tracking-wider">Tổng hồ sơ quản lý</div>
+          <div className="text-3xl font-black text-gray-900">{records.length} hồ sơ</div>
+          <div className="text-xs text-gray-500">Bao gồm bệnh án lưu trữ lịch sử</div>
+        </div>
+      </div>
+
+      {/* NAVIGATION TABS */}
+      <div className="flex border-b border-gray-200 gap-6 print:hidden">
+        <button
+          onClick={() => setActiveTab('waiting')}
+          className={`pb-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
+            activeTab === 'waiting'
+              ? 'border-[#004e92] text-[#004e92]'
+              : 'border-transparent text-gray-400 hover:text-gray-600'
+          }`}
+        >
+          <Clock className="w-4 h-4" /> 1. Bệnh Nhân Chờ Khám ({waitingList.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('history')}
+          className={`pb-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
+            activeTab === 'history'
+              ? 'border-[#004e92] text-[#004e92]'
+              : 'border-transparent text-gray-400 hover:text-gray-600'
+          }`}
+        >
+          <FileText className="w-4 h-4" /> 2. Lịch sử Hồ sơ Bệnh án ({filteredRecords.length})
+        </button>
+      </div>
 
       {/* Filters & Search */}
       <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-wrap items-center justify-between gap-4 print:hidden">
@@ -349,104 +415,179 @@ const Patients = () => {
         </div>
       </div>
 
-      {/* Table of Records */}
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden print:hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-100">
-                <th className="p-5 font-medium w-24 text-center">Số khám</th>
-                <th className="p-5 font-medium w-36">Mã Bệnh án</th>
-                <th className="p-5 font-medium">Bệnh nhân & Định danh</th>
-                <th className="p-5 font-medium">Chuyên khoa / Bác sĩ</th>
-                <th className="p-5 font-medium">Chẩn đoán sơ bộ</th>
-                <th className="p-5 font-medium w-36 text-center">Trạng thái</th>
-                <th className="p-5 font-medium w-36 text-center">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody className="text-sm divide-y divide-gray-100">
-              {filteredRecords.length > 0 ? (
-                filteredRecords.map((rec) => (
-                  <tr key={rec.id} className="hover:bg-blue-50/20 transition-colors">
-                    <td className="p-5 text-center">
-                      {rec.queueNumber ? (
+      {/* TAB 1: BỆNH NHÂN CHỜ KHÁM */}
+      {activeTab === 'waiting' && (
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden print:hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-100">
+                  <th className="p-5 font-medium w-24 text-center">Số khám</th>
+                  <th className="p-5 font-medium">Bệnh nhân & Liên hệ</th>
+                  <th className="p-5 font-medium">Chuyên khoa khám</th>
+                  <th className="p-5 font-medium">Bác sĩ chỉ định</th>
+                  <th className="p-5 font-medium">Giờ đăng ký</th>
+                  <th className="p-5 font-medium w-36 text-center">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody className="text-sm divide-y divide-gray-100">
+                {filteredWaitingList.length > 0 ? (
+                  filteredWaitingList.map((app) => (
+                    <tr key={app._id} className="hover:bg-blue-50/20 transition-colors">
+                      <td className="p-5 text-center">
                         <span className="bg-blue-50 text-[#004e92] text-sm font-black px-3 py-1.5 rounded-xl border border-blue-100 shadow-sm">
-                          {String(rec.queueNumber).padStart(2, '0')}
+                          {String(app.queueNumber || 0).padStart(2, '0')}
                         </span>
-                      ) : (
-                        <span className="text-gray-300 font-bold font-mono">-</span>
-                      )}
-                    </td>
-                    <td className="p-5">
-                      <span className="font-bold text-[#004e92] font-mono text-sm block">{rec.id}</span>
-                      <span className="text-xs text-gray-400 block mt-0.5">Khám: {rec.lastVisit}</span>
-                    </td>
-                    <td className="p-5">
-                      <div className="font-bold text-gray-900 text-base flex items-center gap-2">
-                        {rec.patientName} 
-                        <span className="text-xs font-normal text-gray-500">({rec.gender}, {rec.age}t)</span>
-                      </div>
-                      <div className="text-xs text-gray-500 flex items-center gap-3 mt-1">
-                        <span>📱 {rec.phone}</span>
-                        <span>💳 BHYT: <strong className="font-mono text-gray-700">{rec.bhyt}</strong></span>
-                      </div>
-                    </td>
-                    <td className="p-5">
-                      <div className="font-bold text-gray-800 text-sm">{rec.dept}</div>
-                      <div className="text-xs text-gray-500 mt-0.5">{rec.doctor}</div>
-                    </td>
-                    <td className="p-5">
-                      <div className="text-sm font-medium text-gray-800 line-clamp-2 max-w-md">
-                        {rec.diagnosis}
-                      </div>
-                    </td>
-                    <td className="p-5 text-center">
-                      <span className={`px-3 py-1.5 rounded-full text-xs font-bold border inline-block shadow-sm ${
-                        rec.status === 'Đang điều trị'
-                          ? 'bg-amber-50 text-amber-700 border-amber-200'
-                          : rec.status === 'Đã khỏi'
-                          ? 'bg-green-50 text-green-700 border-green-200'
-                          : 'bg-blue-50 text-blue-700 border-blue-200'
-                      }`}>
-                        {rec.status}
-                      </span>
-                    </td>
-                    <td className="p-5 text-center">
-                      <div className="flex items-center justify-center gap-2">
+                      </td>
+                      <td className="p-5">
+                        <div className="font-bold text-gray-900 text-base flex items-center gap-2">
+                          {app.name} 
+                          <span className="text-xs font-normal text-gray-500">({app.gender || 'Nam'}, {calculateAge(app.dob)}t)</span>
+                        </div>
+                        <div className="text-xs text-gray-500 flex items-center gap-3 mt-1">
+                          <span>📱 {app.phone}</span>
+                          <span>💳 BHYT: <strong className="font-mono text-gray-700">{app.bhyt || 'Không có'}</strong></span>
+                        </div>
+                      </td>
+                      <td className="p-5">
+                        <span className="bg-blue-50 text-[#004e92] text-xs font-bold px-2.5 py-1 rounded-full border border-blue-100">
+                          {app.dept}
+                        </span>
+                      </td>
+                      <td className="p-5 font-semibold text-gray-700">
+                        {app.doctor || 'BS. CKII Nguyễn Tuấn Lâm'}
+                      </td>
+                      <td className="p-5 font-bold text-gray-700">
+                        {app.time}
+                      </td>
+                      <td className="p-5 text-center">
                         <button
-                          onClick={() => { setCurrentRecord(rec); setActiveModal('view'); }}
-                          className="p-2.5 bg-blue-50 hover:bg-[#004e92] text-[#004e92] hover:text-white rounded-xl transition-all shadow-sm group"
-                          title="Xem chi tiết Bệnh án"
+                          onClick={() => {
+                            setSelectedWaitingAppId(app._id);
+                            setNewPatientName(app.name);
+                            setNewAge(calculateAge(app.dob));
+                            setNewGender(app.gender || 'Nam');
+                            setNewPhone(app.phone);
+                            setNewDept(app.dept);
+                            setNewDoctor(app.doctor || 'BS. CKII Nguyễn Tuấn Lâm');
+                            setPrescribedMedicines([]);
+                            setActiveModal('new');
+                          }}
+                          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-xl transition-all text-xs flex items-center gap-1.5 shadow-md mx-auto"
                         >
-                          <Eye className="w-4 h-4 transform group-hover:scale-110 transition-transform" />
+                          🩺 Tiến hành khám
                         </button>
-                        <button
-                          onClick={() => { setCurrentRecord(rec); setActiveModal('prescription'); }}
-                          className="px-3 py-2 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5 text-xs border border-emerald-200 hover:border-transparent"
-                          title="Xem & In Đơn Thuốc Mẫu Bộ Y Tế"
-                        >
-                          <Printer className="w-3.5 h-3.5" /> Đơn thuốc
-                        </button>
-                      </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="6" className="p-12 text-center text-gray-400">
+                      Không có bệnh nhân nào đang chờ khám.
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="7" className="p-12 text-center text-gray-400">
-                    Không tìm thấy hồ sơ bệnh án nào phù hợp với bộ lọc.
-                  </td>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: LỊCH SỬ HỒ SƠ BỆNH ÁN */}
+      {activeTab === 'history' && (
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden print:hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-100">
+                  <th className="p-5 font-medium w-24 text-center">Số khám</th>
+                  <th className="p-5 font-medium w-36">Mã Bệnh án</th>
+                  <th className="p-5 font-medium">Bệnh nhân & Định danh</th>
+                  <th className="p-5 font-medium">Chuyên khoa / Bác sĩ</th>
+                  <th className="p-5 font-medium">Chẩn đoán sơ bộ</th>
+                  <th className="p-5 font-medium w-36 text-center">Trạng thái</th>
+                  <th className="p-5 font-medium w-36 text-center">Thao tác</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="text-sm divide-y divide-gray-100">
+                {filteredRecords.length > 0 ? (
+                  filteredRecords.map((rec) => (
+                    <tr key={rec.id} className="hover:bg-blue-50/20 transition-colors">
+                      <td className="p-5 text-center">
+                        {rec.queueNumber ? (
+                          <span className="bg-blue-50 text-[#004e92] text-sm font-black px-3 py-1.5 rounded-xl border border-blue-100 shadow-sm">
+                            {String(rec.queueNumber).padStart(2, '0')}
+                          </span>
+                        ) : (
+                          <span className="text-gray-300 font-bold font-mono">-</span>
+                        )}
+                      </td>
+                      <td className="p-5">
+                        <span className="font-bold text-[#004e92] font-mono text-sm block">{rec.id}</span>
+                        <span className="text-xs text-gray-400 block mt-0.5">Khám: {rec.lastVisit}</span>
+                      </td>
+                      <td className="p-5">
+                        <div className="font-bold text-gray-900 text-base flex items-center gap-2">
+                          {rec.patientName} 
+                          <span className="text-xs font-normal text-gray-500">({rec.gender}, {rec.age}t)</span>
+                        </div>
+                        <div className="text-xs text-gray-500 flex items-center gap-3 mt-1">
+                          <span>📱 {rec.phone}</span>
+                          <span>💳 BHYT: <strong className="font-mono text-gray-700">{rec.bhyt}</strong></span>
+                        </div>
+                      </td>
+                      <td className="p-5">
+                        <div className="font-bold text-gray-800 text-sm">{rec.dept}</div>
+                        <div className="text-xs text-gray-500 mt-0.5">{rec.doctor}</div>
+                      </td>
+                      <td className="p-5">
+                        <div className="text-sm font-medium text-gray-800 line-clamp-2 max-w-md">
+                          {rec.diagnosis}
+                        </div>
+                      </td>
+                      <td className="p-5 text-center">
+                        <span className={`px-3 py-1.5 rounded-full text-xs font-bold border inline-block shadow-sm ${
+                          rec.status === 'Đang điều trị'
+                            ? 'bg-amber-50 text-amber-700 border-amber-200'
+                            : rec.status === 'Đã khỏi'
+                            ? 'bg-green-50 text-green-700 border-green-200'
+                            : 'bg-blue-50 text-blue-700 border-blue-200'
+                        }`}>
+                          {rec.status}
+                        </span>
+                      </td>
+                      <td className="p-5 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => { setCurrentRecord(rec); setActiveModal('view'); }}
+                            className="p-2.5 bg-blue-50 hover:bg-[#004e92] text-[#004e92] hover:text-white rounded-xl transition-all shadow-sm group"
+                            title="Xem chi tiết Bệnh án"
+                          >
+                            <Eye className="w-4 h-4 transform group-hover:scale-110 transition-transform" />
+                          </button>
+                          <button
+                            onClick={() => { setCurrentRecord(rec); setActiveModal('prescription'); }}
+                            className="px-3 py-2 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5 text-xs border border-emerald-200 hover:border-transparent"
+                            title="Xem & In Đơn Thuốc Mẫu Bộ Y Tế"
+                          >
+                            <Printer className="w-3.5 h-3.5" /> Đơn thuốc
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="7" className="p-12 text-center text-gray-400">
+                      Không tìm thấy hồ sơ bệnh án nào phù hợp với bộ lọc.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-        
-        <div className="p-5 bg-gray-50/80 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500">
-          <span>Tổng số: <strong>{filteredRecords.length} hồ sơ bệnh án</strong> trong hệ thống.</span>
-          <span className="text-[#004e92] font-semibold">Cập nhật lúc: 19:50 - 28/06/2026</span>
-        </div>
-      </div>
+      )}
 
       {/* MODAL 1: XEM CHI TIẾT BỆNH ÁN (TIÊU CHUẨN) */}
       {activeModal === 'view' && currentRecord && (
