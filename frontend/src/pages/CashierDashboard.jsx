@@ -1,3 +1,4 @@
+import { useState, useEffect, useCallback } from 'react';
 import { 
   DollarSign, Search, User, Calendar, Phone, Activity, Pill, 
   Printer, CheckCircle, AlertCircle, RefreshCw, CreditCard, 
