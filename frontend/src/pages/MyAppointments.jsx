@@ -200,14 +200,13 @@ const MyAppointments = () => {
                   <th className="p-4 font-medium">Mã lịch & Thông tin</th>
                   <th className="p-4 font-medium">Chuyên khoa & Bác sĩ</th>
                   <th className="p-4 font-medium">Ngày & Giờ khám</th>
-                  <th className="p-4 font-medium">Trạng thái</th>
                   <th className="p-4 font-medium text-center">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="text-sm divide-y divide-gray-100">
                 {loading ? (
                   <tr>
-                    <td colSpan="6" className="p-16 text-center text-gray-500 font-medium">
+                    <td colSpan="5" className="p-16 text-center text-gray-500 font-medium">
                       <div className="flex flex-col items-center justify-center gap-3">
                         <RefreshCw className="w-8 h-8 text-[#004e92] animate-spin" />
                         <span>Đang tải dữ liệu lịch hẹn của bạn...</span>
@@ -216,7 +215,7 @@ const MyAppointments = () => {
                   </tr>
                 ) : appointments.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="p-16 text-center text-gray-500 font-medium">
+                    <td colSpan="5" className="p-16 text-center text-gray-500 font-medium">
                       <div className="flex flex-col items-center justify-center gap-3">
                         <AlertTriangle className="w-10 h-10 text-gray-400" />
                         <span className="text-base">Bạn chưa đăng ký lịch hẹn nào tại Bệnh viện.</span>
@@ -253,9 +252,6 @@ const MyAppointments = () => {
                         <div className="text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded w-max mt-1 flex items-center gap-1">
                           <Clock className="w-3 h-3 text-blue-600" /> {app.time || '08:00'}
                         </div>
-                      </td>
-                      <td className="p-4">
-                        {getStatusBadge(app.status)}
                       </td>
                       <td className="p-4">
                         <div className="flex items-center justify-center gap-2">
