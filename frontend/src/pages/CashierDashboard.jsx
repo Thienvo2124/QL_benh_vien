@@ -240,43 +240,93 @@ const CashierDashboard = () => {
     setShowReceiptModal(true);
   };
 
-  // Xác nhận đóng phí đơn thuốc thực tế (cập nhật state)
-  const handlePayPrescriptionConfirm = (billId, method) => {
-    const updatedBills = prescriptionBills.map(bill => {
-      if (bill.id === billId) {
-        setNotification(`✅ Thu phí đơn thuốc thành công cho: ${bill.patientName}!`);
+  // Xác nhận đóng phí đơn thuốc thực tế (gọi API)
+  const handlePayPrescriptionConfirm = async (billId, method) => {
+    if (typeof billId === 'string' && billId.startsWith('HDT-')) {
+      // Cập nhật mock state
+      const updatedBills = prescriptionBills.map(bill => {
+        if (bill.id === billId) {
+          setNotification(`✅ Thu phí đơn thuốc thành công cho: ${bill.patientName}!`);
+          const totalCost = bill.items.reduce((sum, item) => sum + (item.price * item.qty), 0);
+          const hasBHYT = !!bill.bhyt;
+          const discount = hasBHYT ? totalCost * 0.8 : 0;
+          const finalCost = totalCost - discount;
+
+          setReceiptData({
+            type: 'prescription',
+            isPending: false,
+            id: bill.id,
+            patientName: bill.patientName,
+            patientCode: bill.patientCode,
+            phone: bill.phone,
+            bhyt: bill.bhyt,
+            items: bill.items,
+            totalCost,
+            discount,
+            finalCost,
+            paymentMethod: method
+          });
+          setShowReceiptModal(true);
+          setTimeout(() => setNotification(''), 5000);
+          return { ...bill, status: 'paid', paymentMethod: method };
+        }
+        return bill;
+      });
+      setPrescriptionBills(updatedBills);
+      return;
+    }
+
+    // Database record
+    try {
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/appointments/${billId}/pay-prescription`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ paymentMethod: method })
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setNotification(`✅ Thu phí đơn thuốc thành công cho: ${data.appointment.name}!`);
+        fetchAppointments(); // Tải lại danh sách
         
-        const totalCost = bill.items.reduce((sum, item) => sum + (item.price * item.qty), 0);
-        const hasBHYT = !!bill.bhyt;
+        const bill = data.appointment;
+        const totalCost = bill.prescription.reduce((sum, item) => sum + (item.price * item.qty), 0);
+        const hasBHYT = !!bill.bhyt && bill.bhyt !== 'Không có BHYT';
         const discount = hasBHYT ? totalCost * 0.8 : 0;
         const finalCost = totalCost - discount;
 
         setReceiptData({
           type: 'prescription',
           isPending: false,
-          id: bill.id,
-          patientName: bill.patientName,
-          patientCode: bill.patientCode,
+          id: bill._id,
+          patientName: bill.name,
+          patientCode: bill.appointmentCode,
           phone: bill.phone,
           bhyt: bill.bhyt,
-          items: bill.items,
+          items: bill.prescription.map(p => ({
+            name: p.name,
+            qty: p.qty,
+            unit: p.unit,
+            price: p.price
+          })),
           totalCost,
           discount,
           finalCost,
-          paymentMethod: method
+          paymentMethod: bill.prescriptionPaymentMethod || method
         });
         setShowReceiptModal(true);
         setTimeout(() => setNotification(''), 5000);
-        return {
-          ...bill,
-          status: 'paid',
-          paymentMethod: method
-        };
+      } else {
+        alert(data.message || "Không thể thực hiện thanh toán đơn thuốc.");
       }
-      return bill;
-    });
-
-    setPrescriptionBills(updatedBills);
+    } catch (error) {
+      console.error("Lỗi khi thu phí đơn thuốc:", error);
+      alert("Lỗi kết nối máy chủ.");
+    }
   };
 
   // Thêm bệnh nhân vãng lai (Walk-in)
@@ -358,7 +408,24 @@ const CashierDashboard = () => {
   };
 
   const appointmentsArr = Array.isArray(appointments) ? appointments : [];
-  const rxBillsArr = Array.isArray(prescriptionBills) ? prescriptionBills : [];
+
+  // Mở rộng mapping đơn thuốc từ database
+  const dbPrescriptionBills = appointmentsArr.filter(app => app.prescriptionStatus && app.prescriptionStatus !== 'none').map(app => ({
+    id: app._id,
+    patientName: app.name,
+    patientCode: app.appointmentCode || '0029187302',
+    phone: app.phone,
+    bhyt: app.bhyt || 'Không có BHYT',
+    status: app.prescriptionStatus,
+    paymentMethod: app.prescriptionPaymentMethod || '',
+    items: app.prescription || []
+  }));
+
+  // Gộp đơn thuốc database và mock data, tránh trùng tên
+  const rxBillsArr = [
+    ...dbPrescriptionBills,
+    ...((Array.isArray(prescriptionBills) ? prescriptionBills : []).filter(mock => !dbPrescriptionBills.some(db => db.patientName === mock.patientName)))
+  ];
 
   // Lọc danh sách lịch hẹn cần thu tiền khám
   const unpaidAppointments = appointmentsArr.filter(app => {

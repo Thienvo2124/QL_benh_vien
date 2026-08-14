@@ -75,6 +75,44 @@ const appointmentSchema = new mongoose.Schema(
       enum: ["Tiền mặt", "Chuyển khoản", "Chưa thanh toán"],
       default: "Chưa thanh toán",
     },
+    symptoms: {
+      type: String,
+      default: "",
+    },
+    diagnosis: {
+      type: String,
+      default: "",
+    },
+    treatment: {
+      type: String,
+      default: "",
+    },
+    advice: {
+      type: String,
+      default: "",
+    },
+    prescription: [
+      {
+        medicineId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Medicine",
+        },
+        name: String,
+        qty: Number,
+        unit: String,
+        usage: String,
+        price: Number,
+      },
+    ],
+    prescriptionStatus: {
+      type: String,
+      enum: ["none", "unpaid", "paid"],
+      default: "none",
+    },
+    prescriptionPaymentMethod: {
+      type: String,
+      default: "",
+    },
   },
   { timestamps: true },
 );

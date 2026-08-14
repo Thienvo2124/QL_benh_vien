@@ -334,6 +334,68 @@ router.delete("/:id", protect, adminOrDoctorOnly, async (req, res) => {
       message: "Xóa lịch hẹn thành công.",
       appointment,
     });
+// PUT /api/appointments/:id/medical-record
+// Bác sĩ lưu chẩn đoán và kê đơn thuốc cho ca khám
+router.put("/:id/medical-record", protect, adminOrDoctorOnly, async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "ID lịch hẹn không hợp lệ." });
+    }
+
+    const { symptoms, diagnosis, treatment, advice, medicines } = req.body;
+
+    const appointment = await Appointment.findById(req.params.id);
+    if (!appointment) {
+      return res.status(404).json({ message: "Không tìm thấy lịch hẹn." });
+    }
+
+    appointment.symptoms = symptoms || "";
+    appointment.diagnosis = diagnosis || "";
+    appointment.treatment = treatment || "";
+    appointment.advice = advice || "";
+    appointment.prescription = medicines || [];
+    appointment.prescriptionStatus = (medicines && medicines.length > 0) ? "unpaid" : "none";
+    appointment.status = "completed"; // Khám xong
+
+    await appointment.save();
+
+    return res.json({
+      message: "Lưu hồ sơ bệnh án và đơn thuốc thành công.",
+      appointment,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+});
+
+// PATCH /api/appointments/:id/pay-prescription
+// Thu ngân xác nhận thu tiền thuốc cho đơn thuốc
+router.patch("/:id/pay-prescription", protect, adminOrDoctorOnly, async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "ID lịch hẹn không hợp lệ." });
+    }
+
+    const { paymentMethod } = req.body;
+
+    const appointment = await Appointment.findById(req.params.id);
+    if (!appointment) {
+      return res.status(404).json({ message: "Không tìm thấy lịch hẹn." });
+    }
+
+    if (appointment.prescriptionStatus === "none") {
+      return res.status(400).json({ message: "Bệnh nhân này không có đơn thuốc." });
+    }
+
+    appointment.prescriptionStatus = "paid";
+    appointment.prescriptionPaymentMethod = paymentMethod || "Tiền mặt";
+
+    await appointment.save();
+
+    return res.json({
+      message: "Thanh toán hóa đơn thuốc thành công.",
+      appointment,
+    });
   } catch (error) {
     return res.status(500).json({ message: "Lỗi server", error: error.message });
   }

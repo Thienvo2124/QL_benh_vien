@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { FileText, Search, Plus, Eye, User, Calendar, Phone, Activity, Pill, Clock, CheckCircle, AlertCircle, Filter, FileSpreadsheet, Printer, ShieldPlus, X } from 'lucide-react';
+import API_BASE_URL from '../config/api';
 
 const initialRecords = [
   {
@@ -82,7 +83,9 @@ const initialRecords = [
 ];
 
 const Patients = () => {
-  const [records, setRecords] = useState(initialRecords);
+  const [appointments, setAppointments] = useState([]);
+  const [medicines, setMedicines] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedDept, setSelectedDept] = useState('Tất cả');
   
@@ -91,6 +94,7 @@ const Patients = () => {
   const [currentRecord, setCurrentRecord] = useState(null);
 
   // New record form state
+  const [selectedWaitingAppId, setSelectedWaitingAppId] = useState('');
   const [newPatientName, setNewPatientName] = useState('');
   const [newAge, setNewAge] = useState(30);
   const [newGender, setNewGender] = useState('Nam');
@@ -105,52 +109,157 @@ const Patients = () => {
   const [newTreatment, setNewTreatment] = useState('');
   const [newAdvice, setNewAdvice] = useState('Đã tư vấn kỹ cho bệnh nhân về đơn thuốc và đơn tư vấn và bệnh nhân đồng ý sử dụng, khám lại sau 3 tuần.');
 
+  // Prescription editor state
+  const [prescribedMedicines, setPrescribedMedicines] = useState([]);
+  const [selectedMedId, setSelectedMedId] = useState('');
+  const [medQty, setMedQty] = useState(1);
+  const [medUsage, setMedUsage] = useState('Uống ngày 2 lần sáng tối, mỗi lần 1 viên sau ăn');
+
   const [successMsg, setSuccessMsg] = useState('');
 
-  const handleCreateRecord = (e) => {
+  const calculateAge = (dobString) => {
+    if (!dobString) return 30;
+    const year = new Date(dobString).getFullYear();
+    const currentYear = new Date().getFullYear();
+    return currentYear - year || 30;
+  };
+
+  const fetchAppointmentsAndMedicines = useCallback(async () => {
+    setLoading(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      
+      const appRes = await fetch(`${API_BASE_URL}/api/appointments`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const appData = await appRes.json();
+      
+      const medRes = await fetch(`${API_BASE_URL}/api/medicines`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const medData = await medRes.json();
+
+      if (appRes.ok) {
+        setAppointments(appData);
+      }
+      if (medRes.ok) {
+        setMedicines(medData);
+      }
+    } catch (error) {
+      console.error("Error loading data:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAppointmentsAndMedicines();
+  }, [fetchAppointmentsAndMedicines]);
+
+  const waitingList = appointments.filter(app => app.status === 'approved' && app.paymentStatus === 'paid');
+
+  const dbRecords = appointments.filter(app => app.status === 'completed').map(app => ({
+    id: app._id,
+    patientName: app.name,
+    age: calculateAge(app.dob),
+    gender: app.gender || 'Nam',
+    weight: app.weight || '60 kg',
+    phone: app.phone,
+    address: app.address || 'Hà Nội',
+    bhyt: app.bhyt || 'Không có BHYT',
+    lastVisit: new Date(app.date).toLocaleDateString('vi-VN'),
+    dept: app.dept,
+    doctor: app.doctor || 'BS. CKII Nguyễn Tuấn Lâm',
+    symptoms: app.symptoms || '',
+    diagnosis: app.diagnosis || '',
+    treatment: app.treatment || '',
+    status: 'Đã khám',
+    patientCode: app.appointmentCode || '0029187302',
+    orderCode: app.appointmentCode ? 'HD-' + app.appointmentCode.slice(-6) : '000000432904',
+    treatCode: app.appointmentCode ? 'DT-' + app.appointmentCode.slice(-6) : '000000128400',
+    medicines: app.prescription || [],
+    advice: app.advice || ''
+  }));
+
+  const records = [...dbRecords, ...initialRecords];
+
+  const handleAddMedicine = () => {
+    if (!selectedMedId) return;
+    const targetMed = medicines.find(m => m._id === selectedMedId);
+    if (targetMed) {
+      if (prescribedMedicines.some(m => m.medicineId === selectedMedId)) {
+        alert("Thuốc này đã có trong đơn thuốc!");
+        return;
+      }
+      setPrescribedMedicines([...prescribedMedicines, {
+        medicineId: targetMed._id,
+        name: targetMed.name,
+        qty: Number(medQty),
+        unit: targetMed.unit || 'Viên',
+        usage: medUsage,
+        price: targetMed.price || 0
+      }]);
+      setSelectedMedId('');
+      setMedQty(1);
+      setMedUsage('Uống ngày 2 lần sáng tối, mỗi lần 1 viên sau ăn');
+    }
+  };
+
+  const handleRemoveMedicine = (index) => {
+    setPrescribedMedicines(prescribedMedicines.filter((_, i) => i !== index));
+  };
+
+  const handleCreateRecord = async (e) => {
     e.preventDefault();
-    const randId = Math.floor(100 + Math.random() * 899);
-    const newRecord = {
-      id: `HS-2026-${randId}`,
-      patientName: newPatientName,
-      age: newAge,
-      gender: newGender,
-      weight: newWeight,
-      phone: newPhone,
-      address: newAddress || 'Hà Nội',
-      bhyt: newBhyt || 'DN4797931234567',
-      lastVisit: '28/06/2026',
-      dept: newDept,
-      doctor: newDoctor,
-      symptoms: newSymptoms,
-      diagnosis: newDiagnosis,
-      treatment: newTreatment,
-      status: 'Đang điều trị',
-      patientCode: `002918${randId}1`,
-      orderCode: `00000043${randId}`,
-      treatCode: `00000012${randId}`,
-      medicines: [
-        { name: 'Cetirizine 10mg (Cetimed 10mg)', qty: '20', unit: 'Viên', usage: 'Uống tối 1 viên sau ăn' },
-        { name: 'Hightamine 5.0mg + 25mg... (Vitamin A+D2+B1+B2+PP+B6+B12+C+E + B5 + acid folic)', qty: '40', unit: 'Viên', usage: 'Uống ngày 2 lần sáng chiều mỗi lần 1 viên' },
-        { name: 'Kẽm (dưới dạng kẽm gluconat 10mg) (Conipa pure 10ml)', qty: '20', unit: 'Ống', usage: 'Uống sáng 1 ống' },
-        { name: 'Mometason furoat 0.1% (Locgoda 0.1% 15g)', qty: '02', unit: 'Tuýp', usage: 'Bôi chỗ ngứa ngày 2 lần sáng chiều, bôi mỏng trong 7-10 ngày' }
-      ],
-      advice: newAdvice
-    };
+    if (!selectedWaitingAppId) {
+      alert("Vui lòng chọn một bệnh nhân từ danh sách chờ khám!");
+      return;
+    }
 
-    setRecords([newRecord, ...records]);
-    setActiveModal(null);
-    setSuccessMsg(`Đã khởi tạo thành công Hồ sơ bệnh án mới (${newRecord.id}) cho bệnh nhân ${newPatientName}!`);
-    setTimeout(() => setSuccessMsg(''), 5000);
+    setLoading(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/appointments/${selectedWaitingAppId}/medical-record`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          symptoms: newSymptoms,
+          diagnosis: newDiagnosis,
+          treatment: newTreatment,
+          advice: newAdvice,
+          medicines: prescribedMedicines
+        })
+      });
 
-    // Reset form
-    setNewPatientName('');
-    setNewPhone('');
-    setNewAddress('');
-    setNewBhyt('');
-    setNewSymptoms('');
-    setNewDiagnosis('');
-    setNewTreatment('');
+      const data = await response.json();
+      if (response.ok) {
+        setSuccessMsg(`Đã lưu thành công Hồ sơ bệnh án mới cho bệnh nhân ${newPatientName}!`);
+        setActiveModal(null);
+        fetchAppointmentsAndMedicines();
+        setTimeout(() => setSuccessMsg(''), 5000);
+
+        // Reset form
+        setSelectedWaitingAppId('');
+        setNewPatientName('');
+        setNewPhone('');
+        setNewAddress('');
+        setNewBhyt('');
+        setNewSymptoms('');
+        setNewDiagnosis('');
+        setNewTreatment('');
+        setPrescribedMedicines([]);
+      } else {
+        alert(data.message || "Không thể tạo bệnh án.");
+      }
+    } catch (error) {
+      console.error("Lỗi khi tạo bệnh án:", error);
+      alert("Lỗi kết nối đến máy chủ.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const filteredRecords = records.filter(rec => {
@@ -453,18 +562,56 @@ const Patients = () => {
               </button>
             </div>
 
-            <form onSubmit={handleCreateRecord} className="p-6 space-y-6 flex-grow">
+             <form onSubmit={handleCreateRecord} className="p-6 space-y-6 flex-grow">
               
+              {/* Chọn bệnh nhân từ hàng chờ */}
+              <div className="bg-blue-50 p-5 rounded-2xl border border-blue-100 space-y-2">
+                <label className="block text-sm font-bold text-[#004e92] flex items-center gap-1.5">
+                  <User className="w-4 h-4" /> Chọn bệnh nhân từ danh sách chờ khám *
+                </label>
+                {waitingList.length > 0 ? (
+                  <select
+                    required
+                    value={selectedWaitingAppId}
+                    onChange={(e) => {
+                      const appId = e.target.value;
+                      setSelectedWaitingAppId(appId);
+                      const selectedApp = waitingList.find(app => app._id === appId);
+                      if (selectedApp) {
+                        setNewPatientName(selectedApp.name);
+                        setNewAge(calculateAge(selectedApp.dob));
+                        setNewGender(selectedApp.gender || 'Nam');
+                        setNewPhone(selectedApp.phone);
+                        setNewDept(selectedApp.dept);
+                        setNewDoctor(selectedApp.doctor || 'BS. CKII Nguyễn Tuấn Lâm');
+                      }
+                    }}
+                    className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92] font-bold text-[#004e92] cursor-pointer"
+                  >
+                    <option value="">-- Chọn bệnh nhân chờ khám --</option>
+                    {waitingList.map(app => (
+                      <option key={app._id} value={app._id}>
+                        {app.name} ({app.phone}) - Khoa: {app.dept} (STT: {app.queueNumber})
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="text-sm font-semibold text-gray-500 italic py-1">
+                    Hàng chờ trống. Không có bệnh nhân nào đã đóng lệ phí khám và đang đợi bác sĩ.
+                  </div>
+                )}
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Họ và tên Bệnh nhân *</label>
                   <input
                     type="text"
                     required
-                    placeholder="Nhập họ và tên đầy đủ..."
+                    readOnly
+                    placeholder="Chọn từ danh sách chờ khám..."
                     value={newPatientName}
-                    onChange={(e) => setNewPatientName(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92]"
+                    className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-2xl text-sm text-gray-500 focus:outline-none cursor-not-allowed"
                   />
                 </div>
                 
@@ -473,24 +620,21 @@ const Patients = () => {
                   <input
                     type="number"
                     required
-                    min="1"
-                    max="120"
+                    readOnly
                     value={newAge}
-                    onChange={(e) => setNewAge(Number(e.target.value))}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92]"
+                    className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-2xl text-sm text-gray-500 focus:outline-none cursor-not-allowed"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Giới tính</label>
-                  <select
+                  <input
+                    type="text"
+                    required
+                    readOnly
                     value={newGender}
-                    onChange={(e) => setNewGender(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92]"
-                  >
-                    <option value="Nam">Nam</option>
-                    <option value="Nữ">Nữ</option>
-                  </select>
+                    className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-2xl text-sm text-gray-500 focus:outline-none cursor-not-allowed"
+                  />
                 </div>
 
                 <div>
@@ -509,10 +653,9 @@ const Patients = () => {
                   <input
                     type="tel"
                     required
-                    placeholder="0901234567"
+                    readOnly
                     value={newPhone}
-                    onChange={(e) => setNewPhone(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92]"
+                    className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-2xl text-sm text-gray-500 focus:outline-none cursor-not-allowed"
                   />
                 </div>
 
@@ -520,7 +663,7 @@ const Patients = () => {
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Địa chỉ liên hệ</label>
                   <input
                     type="text"
-                    placeholder="Số 1 Nơ Trang Long, P. Gia Định, Hà Nội..."
+                    placeholder="Nhập địa chỉ..."
                     value={newAddress}
                     onChange={(e) => setNewAddress(e.target.value)}
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92]"
@@ -531,7 +674,7 @@ const Patients = () => {
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Mã thẻ BHYT</label>
                   <input
                     type="text"
-                    placeholder="DN47979..."
+                    placeholder="Không có BHYT"
                     value={newBhyt}
                     onChange={(e) => setNewBhyt(e.target.value)}
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] font-mono uppercase"
@@ -540,16 +683,13 @@ const Patients = () => {
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Chuyên khoa khám</label>
-                  <select
+                  <input
+                    type="text"
+                    required
+                    readOnly
                     value={newDept}
-                    onChange={(e) => setNewDept(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92]"
-                  >
-                    <option value="Da liễu & Dị ứng">Da liễu & Dị ứng</option>
-                    <option value="Tim mạch">Tim mạch</option>
-                    <option value="Nha khoa">Nha khoa</option>
-                    <option value="Cơ xương khớp">Cơ xương khớp</option>
-                  </select>
+                    className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-2xl text-sm text-gray-500 focus:outline-none cursor-not-allowed"
+                  />
                 </div>
 
                 <div className="sm:col-span-2">
@@ -557,9 +697,9 @@ const Patients = () => {
                   <input
                     type="text"
                     required
+                    readOnly
                     value={newDoctor}
-                    onChange={(e) => setNewDoctor(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92]"
+                    className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-2xl text-sm text-gray-500 focus:outline-none cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -608,6 +748,101 @@ const Patients = () => {
                     onChange={(e) => setNewAdvice(e.target.value)}
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92]"
                   ></textarea>
+                </div>
+
+                {/* Phần kê đơn thuốc từ kho dược phẩm thật */}
+                <div className="border-t border-gray-200 pt-6 space-y-4">
+                  <h4 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                    <Pill className="w-5 h-5 text-purple-600" /> Kê đơn thuốc từ Kho dược phẩm
+                  </h4>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 bg-gray-50/50 p-4 rounded-2xl border border-gray-100 items-end">
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs font-bold text-gray-600 mb-1">Chọn thuốc trong kho</label>
+                      <select
+                        value={selectedMedId}
+                        onChange={(e) => setSelectedMedId(e.target.value)}
+                        className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92] cursor-pointer"
+                      >
+                        <option value="">-- Chọn thuốc --</option>
+                        {medicines.map(med => (
+                          <option key={med._id} value={med._id} disabled={med.stock <= 0}>
+                            {med.name} - {med.price.toLocaleString('vi-VN')} đ (Tồn: {med.stock} {med.unit || 'Viên'})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-600 mb-1">Số lượng</label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={medQty}
+                        onChange={(e) => setMedQty(Number(e.target.value))}
+                        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]"
+                      />
+                    </div>
+                    <div>
+                      <button
+                        type="button"
+                        onClick={handleAddMedicine}
+                        className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded-xl transition-all text-sm shadow-sm"
+                      >
+                        + Thêm vào đơn
+                      </button>
+                    </div>
+                    <div className="sm:col-span-4">
+                      <label className="block text-xs font-bold text-gray-600 mb-1">Hướng dẫn sử dụng / Liều lượng</label>
+                      <input
+                        type="text"
+                        value={medUsage}
+                        onChange={(e) => setMedUsage(e.target.value)}
+                        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]"
+                        placeholder="Ví dụ: Uống ngày 2 lần sáng tối, mỗi lần 1 viên sau ăn"
+                      />
+                    </div>
+                  </div>
+
+                  {prescribedMedicines.length > 0 ? (
+                    <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white max-h-60 overflow-y-auto">
+                      <table className="w-full text-sm text-left">
+                        <thead className="bg-gray-50 text-gray-700 font-bold text-xs uppercase sticky top-0">
+                          <tr>
+                            <th className="p-3">Tên thuốc</th>
+                            <th className="p-3 text-center">SL</th>
+                            <th className="p-3">Đơn vị</th>
+                            <th className="p-3 text-right">Đơn giá</th>
+                            <th className="p-3 text-right">Thành tiền</th>
+                            <th className="p-3 text-center">Xóa</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {prescribedMedicines.map((med, index) => (
+                            <tr key={index} className="hover:bg-gray-50/50">
+                              <td className="p-3 font-semibold text-gray-900">{med.name}</td>
+                              <td className="p-3 text-center font-bold">{med.qty}</td>
+                              <td className="p-3">{med.unit}</td>
+                              <td className="p-3 text-right font-mono">{med.price.toLocaleString('vi-VN')} đ</td>
+                              <td className="p-3 text-right font-mono text-emerald-600 font-bold">{(med.price * med.qty).toLocaleString('vi-VN')} đ</td>
+                              <td className="p-3 text-center">
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveMedicine(index)}
+                                  className="text-red-500 hover:text-red-700 font-bold p-1"
+                                >
+                                  ✕
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="text-center p-6 text-gray-400 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200 text-sm">
+                      Chưa có thuốc nào được kê trong đơn thuốc này.
+                    </div>
+                  )}
                 </div>
               </div>
 
