@@ -470,7 +470,7 @@ const CashierDashboard = () => {
         </div>
 
         <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-2">
-          <div className="text-xs text-gray-400 font-bold uppercase tracking-wider">Chờ Đóng Phí Khám</div>
+          <div className="text-xs text-gray-400 font-bold uppercase tracking-wider">Duyệt Phí & Cấp Số</div>
           <div className="text-3xl font-black text-amber-600">{unpaidAppointments.length} ca chờ</div>
           <div className="text-xs text-gray-500">Đăng ký mới trực tiếp hoặc đặt online</div>
         </div>
@@ -502,7 +502,7 @@ const CashierDashboard = () => {
               : 'border-transparent text-gray-400 hover:text-gray-600'
           }`}
         >
-          <Users className="w-4 h-4" /> 2. Chờ Đóng Phí Khám ({unpaidAppointments.length})
+          <Users className="w-4 h-4" /> 2. Duyệt Phí & Cấp Số ({unpaidAppointments.length})
         </button>
         <button
           onClick={() => setActiveTab('prescription')}
@@ -600,7 +600,7 @@ const CashierDashboard = () => {
                   ) : (
                     <tr>
                       <td colSpan="6" className="p-12 text-center text-gray-400">
-                        Không có bệnh nhân nào trong hàng chờ đóng phí khám.
+                        Không có bệnh nhân nào trong danh sách duyệt phí & cấp số.
                       </td>
                     </tr>
                   )}
