@@ -139,7 +139,7 @@ const Medicines = () => {
 
   const initialForm = {
     name: '',
-    category: 'Giảm đau, Hạ sốt, Chống viêm',
+    category: 'Chung',
     price: '',
     importPrice: '',
     quantity: '',
@@ -593,9 +593,6 @@ const Medicines = () => {
                       <td className="p-5 font-bold text-gray-700 text-center">{index + 1}</td>
                       <td className="p-5">
                         <div className="font-bold text-gray-900 text-base">{item.name}</div>
-                        <div className="text-xs font-semibold text-[#004e92] bg-blue-50 px-2.5 py-0.5 rounded-full w-max my-1 border border-blue-100">
-                          {item.category}
-                        </div>
                         {item.ingredients && (
                           <div className="text-xs text-gray-600 mt-1">
                             <span className="font-semibold">Hoạt chất:</span> {item.ingredients}
@@ -723,19 +720,6 @@ const Medicines = () => {
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92]"
                   />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Nhóm chuyên khoa (Chuẩn Y khoa) *</label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] cursor-pointer font-medium"
-                  >
-                    {categories.filter(c => c !== 'Tất cả').map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
                 </div>
 
                 <div>
