@@ -118,6 +118,14 @@ const fallbackMedicines = [
 ];
 
 const Medicines = () => {
+  const getAuthHeaders = (extraHeaders = {}) => {
+    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+    return {
+      'Authorization': `Bearer ${token}`,
+      ...extraHeaders
+    };
+  };
+
   const [medicines, setMedicines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -174,7 +182,9 @@ const Medicines = () => {
       if (search.trim()) queryParams.append('search', search.trim());
       if (category !== 'Tất cả') queryParams.append('category', category);
 
-      const response = await fetch(`${API_BASE_URL}/api/medicines?${queryParams.toString()}`);
+      const response = await fetch(`${API_BASE_URL}/api/medicines?${queryParams.toString()}`, {
+        headers: getAuthHeaders()
+      });
       if (response.ok) {
         const data = await response.json();
         // Nếu API trả về mảng rỗng (hoặc chưa khởi tạo dữ liệu DB), ta dùng Fallback Mock Data
@@ -286,7 +296,7 @@ const Medicines = () => {
     try {
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(formData),
       });
 
@@ -319,6 +329,7 @@ const Medicines = () => {
       try {
         const response = await fetch(`${API_BASE_URL}/api/medicines/${id}`, {
           method: 'DELETE',
+          headers: getAuthHeaders()
         });
         if (response.ok) {
           setNotification(`Đã xóa thành công thuốc "${name}"!`);
@@ -351,14 +362,14 @@ const Medicines = () => {
       try {
         const response = await fetch(`${API_BASE_URL}/api/medicines/${quickAddModal._id}`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({ quantity: newQty }),
         });
         if (!response.ok) {
           // Fallback: thử PUT với toàn bộ object
           await fetch(`${API_BASE_URL}/api/medicines/${quickAddModal._id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({ ...quickAddModal, quantity: newQty }),
           });
         }
