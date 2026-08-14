@@ -1,8 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
 import { 
   DollarSign, Search, User, Calendar, Phone, Activity, Pill, 
   Printer, CheckCircle, AlertCircle, RefreshCw, CreditCard, 
-  ArrowRight, Users, PlusCircle, Check, X, Tag
+  ArrowRight, Users, PlusCircle, Check, X, Tag, FileText
 } from 'lucide-react';
 import departments from '../data/departments';
 
@@ -79,6 +78,7 @@ const CashierDashboard = () => {
   const [paymentMethod, setPaymentMethod] = useState('Tiền mặt');
   const [prescriptionBills, setPrescriptionBills] = useState(initialPrescriptionBills);
   const [rxSearchQuery, setRxSearchQuery] = useState('');
+  const [infoSearchQuery, setInfoSearchQuery] = useState('');
   const [notification, setNotification] = useState('');
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
@@ -312,6 +312,15 @@ const CashierDashboard = () => {
     return isUnpaid && matchesSearch;
   });
 
+  const allAppointmentsFiltered = appointments.filter(app => {
+    const matchesSearch = infoSearchQuery === '' || 
+      app.name.toLowerCase().includes(infoSearchQuery.toLowerCase()) ||
+      app.phone.includes(infoSearchQuery) ||
+      (app.appointmentCode && app.appointmentCode.toLowerCase().includes(infoSearchQuery.toLowerCase())) ||
+      (app.dept && app.dept.toLowerCase().includes(infoSearchQuery.toLowerCase()));
+    return matchesSearch;
+  });
+
   // Thống kê doanh thu nhanh (chỉ tính các hóa đơn đã thu trong session hiện tại)
   const paidExams = appointments.filter(app => app.paymentStatus === 'paid');
   const paidPrescriptions = prescriptionBills.filter(bill => bill.status === 'paid');
@@ -414,6 +423,16 @@ const CashierDashboard = () => {
           }`}
         >
           <Pill className="w-4 h-4" /> 3. Thu Tiền Đơn Thuốc ({unpaidPrescriptions.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('info')}
+          className={`pb-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
+            activeTab === 'info'
+              ? 'border-[#004e92] text-[#004e92]'
+              : 'border-transparent text-gray-400 hover:text-gray-600'
+          }`}
+        >
+          <FileText className="w-4 h-4" /> 4. Thông Tin Khám Bệnh ({appointments.length})
         </button>
       </div>
 
@@ -777,6 +796,128 @@ const CashierDashboard = () => {
                     <tr>
                       <td colSpan="5" className="p-12 text-center text-gray-400">
                         Không tìm thấy đơn thuốc nào chờ thu tiền phù hợp.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: THÔNG TIN KHÁM BỆNH */}
+      {activeTab === 'info' && (
+        <div className="space-y-4 print:hidden">
+          {/* SEARCH BAR */}
+          <div className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 flex flex-wrap items-center justify-between gap-4">
+            <div className="relative flex-1 min-w-[280px] max-w-md">
+              <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Tìm bệnh nhân (Tên, SĐT, Chuyên khoa, Mã LH...)"
+                value={infoSearchQuery}
+                onChange={(e) => setInfoSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] focus:bg-white transition-colors font-medium"
+              />
+            </div>
+            
+            <div className="text-sm text-gray-500 font-semibold">
+              Tổng số tiếp nhận hôm nay: <strong className="text-gray-900">{appointments.length} bệnh nhân</strong>
+            </div>
+          </div>
+
+          {/* APPOINTMENTS HISTORY TABLE */}
+          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-100">
+                    <th className="p-5 font-medium text-center w-16">STT</th>
+                    <th className="p-5 font-medium">Bệnh nhân & Liên hệ</th>
+                    <th className="p-5 font-medium">Loại hình</th>
+                    <th className="p-5 font-medium">Khoa điều phối</th>
+                    <th className="p-5 font-medium">Thời gian</th>
+                    <th className="p-5 font-medium">Lệ phí</th>
+                    <th className="p-5 font-medium text-center">Thanh toán</th>
+                    <th className="p-5 font-medium text-center w-40">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody className="text-sm divide-y divide-gray-100">
+                  {allAppointmentsFiltered.length > 0 ? (
+                    allAppointmentsFiltered.map((app, index) => {
+                      const isPaid = app.paymentStatus === 'paid';
+                      const isWalkIn = app.reason === 'Đến khám trực tiếp tại quầy' || !app.reason;
+                      
+                      return (
+                        <tr key={app._id} className="hover:bg-blue-50/10 transition-colors">
+                          <td className="p-5 font-bold text-gray-700 text-center">{index + 1}</td>
+                          <td className="p-5">
+                            <div className="font-bold text-gray-900">{app.name}</div>
+                            <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                              <Phone size={12} className="text-gray-400" /> {app.phone}
+                            </div>
+                            <div className="text-xs text-gray-400 mt-0.5">
+                              NS: {app.dob ? new Date(app.dob).toLocaleDateString('vi-VN') : 'N/A'} | GT: {app.gender || 'Nam'}
+                            </div>
+                          </td>
+                          <td className="p-5">
+                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${
+                              isWalkIn 
+                                ? 'bg-blue-50 text-blue-700' 
+                                : 'bg-purple-50 text-purple-700'
+                            }`}>
+                              {isWalkIn ? '🚶 Vãng lai' : '🌐 Đặt trước (Onl)'}
+                            </span>
+                          </td>
+                          <td className="p-5 font-semibold text-gray-800">{app.dept}</td>
+                          <td className="p-5">
+                            <div className="font-semibold text-gray-900">{app.time}</div>
+                            <div className="text-xs text-gray-500">{new Date(app.date).toLocaleDateString('vi-VN')}</div>
+                          </td>
+                          <td className="p-5 font-mono font-bold text-gray-900">
+                            {(app.initialFee || 150000).toLocaleString('vi-VN')} đ
+                          </td>
+                          <td className="p-5 text-center">
+                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${
+                              isPaid 
+                                ? 'bg-emerald-50 text-emerald-700' 
+                                : 'bg-amber-50 text-amber-700'
+                            }`}>
+                              {isPaid ? '✓ Đã thu tiền' : '⏰ Chờ thu tiền'}
+                            </span>
+                          </td>
+                          <td className="p-5 text-center">
+                            <button
+                              onClick={() => {
+                                setReceiptData({
+                                  type: 'exam',
+                                  code: app.appointmentCode,
+                                  patientName: app.name,
+                                  phone: app.phone,
+                                  dob: app.dob,
+                                  paymentMethod: app.paymentMethod === 'Chưa thanh toán' ? 'Tiền mặt' : app.paymentMethod,
+                                  queueNumber: app.queueNumber || 1,
+                                  dept: app.dept,
+                                  doctor: app.doctor,
+                                  time: app.time,
+                                  date: app.date,
+                                  fee: app.initialFee || 150000,
+                                });
+                                setShowReceiptModal(true);
+                              }}
+                              className="px-3 py-1.5 bg-gray-50 hover:bg-blue-50 text-gray-600 hover:text-blue-700 rounded-xl transition-all text-xs border border-gray-200 hover:border-blue-200 font-bold flex items-center justify-center gap-1 mx-auto"
+                            >
+                              <Printer className="w-3.5 h-3.5" /> In lại phiếu
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan="8" className="p-12 text-center text-gray-400">
+                        Không tìm thấy bệnh nhân nào phù hợp.
                       </td>
                     </tr>
                   )}
