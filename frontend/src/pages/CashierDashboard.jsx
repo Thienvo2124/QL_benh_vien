@@ -1039,7 +1039,11 @@ const CashierDashboard = () => {
                 </div>
                 <div className="flex justify-between">
                   <span>Trạng thái:</span>
-                  <span className="text-emerald-600 font-extrabold flex items-center gap-1">ĐÃ THANH TOÁN (ĐỦ ĐIỀU KIỆN KHÁM)</span>
+                  {receiptData.isPending ? (
+                    <span className="text-amber-600 font-extrabold flex items-center gap-1">⏰ CHỜ THANH TOÁN (NHẤN XÁC NHẬN)</span>
+                  ) : (
+                    <span className="text-emerald-600 font-extrabold flex items-center gap-1">ĐÃ THANH TOÁN (ĐỦ ĐIỀU KIỆN KHÁM)</span>
+                  )}
                 </div>
               </div>
 
@@ -1050,7 +1054,13 @@ const CashierDashboard = () => {
                   <div className="text-center space-y-1">
                     <span className="text-xs text-[#004e92] font-bold uppercase tracking-wider block">Số Thứ Tự Khám</span>
                     <span className="text-5xl font-black text-[#004e92] block font-mono">
-                      {receiptData.queueNumber && receiptData.queueNumber < 10 ? '0' : ''}{receiptData.queueNumber || '01'}
+                      {receiptData.isPending ? (
+                        <span className="text-lg font-bold text-amber-500">Chờ cấp số...</span>
+                      ) : (
+                        <>
+                          {receiptData.queueNumber && receiptData.queueNumber < 10 ? '0' : ''}{receiptData.queueNumber || '01'}
+                        </>
+                      )}
                     </span>
                   </div>
                   <div className="text-xs space-y-1 text-gray-600 border-t border-blue-100 pt-3">
@@ -1119,18 +1129,49 @@ const CashierDashboard = () => {
 
             {/* Print and Close Actions */}
             <div className="mt-6 flex gap-3 print:hidden">
-              <button
-                onClick={() => setShowReceiptModal(false)}
-                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 rounded-2xl transition-colors text-sm"
-              >
-                Đóng cửa sổ
-              </button>
-              <button
-                onClick={handlePrint}
-                className="flex-1 bg-[#004e92] hover:bg-blue-800 text-white font-bold py-3 rounded-2xl transition-colors shadow-lg text-sm flex items-center justify-center gap-2"
-              >
-                <Printer className="w-4 h-4" /> In hóa đơn & Số thứ tự
-              </button>
+              {receiptData.isPending ? (
+                <>
+                  <button
+                    onClick={() => setShowReceiptModal(false)}
+                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 rounded-2xl transition-colors text-sm"
+                  >
+                    Đóng / Hủy bỏ
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (receiptData.type === 'exam') {
+                        const updatedApp = await handlePayExamFeeConfirm(receiptData.appId, receiptData.paymentMethod);
+                        if (updatedApp) {
+                          // Tự động in sau khi thanh toán thành công
+                          setTimeout(() => window.print(), 500);
+                        }
+                      } else {
+                        handlePayPrescriptionConfirm(receiptData.id, receiptData.paymentMethod);
+                        // Tự động in sau khi thanh toán thành công
+                        setTimeout(() => window.print(), 500);
+                      }
+                    }}
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-2xl transition-colors shadow-lg text-sm flex items-center justify-center gap-1.5"
+                  >
+                    ✓ Xác nhận thanh toán
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setShowReceiptModal(false)}
+                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 rounded-2xl transition-colors text-sm"
+                  >
+                    Đóng cửa sổ
+                  </button>
+                  <button
+                    onClick={handlePrint}
+                    className="flex-1 bg-[#004e92] hover:bg-blue-800 text-white font-bold py-3 rounded-2xl transition-colors shadow-lg text-sm flex items-center justify-center gap-2"
+                  >
+                    <Printer className="w-4 h-4" /> In hóa đơn & Số thứ tự
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
