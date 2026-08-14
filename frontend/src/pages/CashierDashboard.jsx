@@ -70,6 +70,28 @@ const getDeptPrice = (deptName) => {
   return 150000;
 };
 
+const formatDateSafe = (dateVal) => {
+  if (!dateVal) return 'N/A';
+  try {
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return 'N/A';
+    return d.toLocaleDateString('vi-VN');
+  } catch (e) {
+    return 'N/A';
+  }
+};
+
+const getYearSafe = (dateVal) => {
+  if (!dateVal) return '';
+  try {
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return '';
+    return d.getFullYear();
+  } catch (e) {
+    return '';
+  }
+};
+
 const CashierDashboard = () => {
   const [activeTab, setActiveTab] = useState('register'); // register | reception | prescription
   const [appointments, setAppointments] = useState([]);
@@ -294,30 +316,46 @@ const CashierDashboard = () => {
 
   // Lọc danh sách lịch hẹn cần thu tiền khám
   const unpaidAppointments = appointments.filter(app => {
+    if (!app) return false;
+    const name = app.name || '';
+    const phone = app.phone || '';
+    const code = app.appointmentCode || '';
+    
     const isUnpaid = app.paymentStatus === 'unpaid' && app.status !== 'rejected';
     const matchesSearch = searchQuery === '' || 
-      app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.phone.includes(searchQuery) ||
-      (app.appointmentCode && app.appointmentCode.toLowerCase().includes(searchQuery.toLowerCase()));
+      name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      phone.includes(searchQuery) ||
+      (code && code.toLowerCase().includes(searchQuery.toLowerCase()));
     return isUnpaid && matchesSearch;
   });
 
   // Lọc danh sách đơn thuốc cần thu tiền
   const unpaidPrescriptions = prescriptionBills.filter(bill => {
+    if (!bill) return false;
+    const patientName = bill.patientName || '';
+    const phone = bill.phone || '';
+    const id = bill.id || '';
+    
     const isUnpaid = bill.status === 'unpaid';
     const matchesSearch = rxSearchQuery === '' || 
-      bill.patientName.toLowerCase().includes(rxSearchQuery.toLowerCase()) ||
-      bill.phone.includes(rxSearchQuery) ||
-      bill.id.toLowerCase().includes(rxSearchQuery.toLowerCase());
+      patientName.toLowerCase().includes(rxSearchQuery.toLowerCase()) ||
+      phone.includes(rxSearchQuery) ||
+      id.toLowerCase().includes(rxSearchQuery.toLowerCase());
     return isUnpaid && matchesSearch;
   });
 
   const allAppointmentsFiltered = appointments.filter(app => {
+    if (!app) return false;
+    const name = app.name || '';
+    const phone = app.phone || '';
+    const code = app.appointmentCode || '';
+    const dept = app.dept || '';
+    
     const matchesSearch = infoSearchQuery === '' || 
-      app.name.toLowerCase().includes(infoSearchQuery.toLowerCase()) ||
-      app.phone.includes(infoSearchQuery) ||
-      (app.appointmentCode && app.appointmentCode.toLowerCase().includes(infoSearchQuery.toLowerCase())) ||
-      (app.dept && app.dept.toLowerCase().includes(infoSearchQuery.toLowerCase()));
+      name.toLowerCase().includes(infoSearchQuery.toLowerCase()) ||
+      phone.includes(infoSearchQuery) ||
+      (code && code.toLowerCase().includes(infoSearchQuery.toLowerCase())) ||
+      (dept && dept.toLowerCase().includes(infoSearchQuery.toLowerCase()));
     return matchesSearch;
   });
 
@@ -486,7 +524,7 @@ const CashierDashboard = () => {
                         <td className="p-5 text-center text-gray-400 font-bold">{index + 1}</td>
                         <td className="p-5">
                           <span className="font-bold text-gray-900 text-base block">{app.name}</span>
-                          <span className="text-xs text-gray-500 block mt-0.5">SĐT: {app.phone} {app.dob ? `| Năm sinh: ${new Date(app.dob).getFullYear()}` : ''}</span>
+                          <span className="text-xs text-gray-500 block mt-0.5">SĐT: {app.phone} {app.dob ? `| Năm sinh: ${getYearSafe(app.dob)}` : ''}</span>
                         </td>
                         <td className="p-5">
                           <span className="bg-blue-50 text-[#004e92] text-xs font-bold px-2.5 py-1 rounded-full border border-blue-100">
@@ -496,7 +534,7 @@ const CashierDashboard = () => {
                         </td>
                         <td className="p-5">
                           <span className="font-bold text-gray-700">{app.time}</span>
-                          <span className="text-xs text-gray-400 block mt-0.5">{new Date(app.date).toLocaleDateString('vi-VN')}</span>
+                          <span className="text-xs text-gray-400 block mt-0.5">{formatDateSafe(app.date)}</span>
                         </td>
                         <td className="p-5 text-right font-black text-[#004e92]">
                           {(app.initialFee || 150000).toLocaleString('vi-VN')} đ
@@ -858,7 +896,7 @@ const CashierDashboard = () => {
                               <Phone size={12} className="text-gray-400" /> {app.phone}
                             </div>
                             <div className="text-xs text-gray-400 mt-0.5">
-                              NS: {app.dob ? new Date(app.dob).toLocaleDateString('vi-VN') : 'N/A'} | GT: {app.gender || 'Nam'}
+                              NS: {formatDateSafe(app.dob)} | GT: {app.gender || 'Nam'}
                             </div>
                           </td>
                           <td className="p-5">
@@ -873,7 +911,7 @@ const CashierDashboard = () => {
                           <td className="p-5 font-semibold text-gray-800">{app.dept}</td>
                           <td className="p-5">
                             <div className="font-semibold text-gray-900">{app.time}</div>
-                            <div className="text-xs text-gray-500">{new Date(app.date).toLocaleDateString('vi-VN')}</div>
+                            <div className="text-xs text-gray-500">{formatDateSafe(app.date)}</div>
                           </td>
                           <td className="p-5 font-mono font-bold text-gray-900">
                             {(app.initialFee || 150000).toLocaleString('vi-VN')} đ
@@ -970,7 +1008,7 @@ const CashierDashboard = () => {
                 {receiptData.dob && (
                   <div className="flex justify-between">
                     <span>Năm sinh:</span>
-                    <span className="text-gray-900">{new Date(receiptData.dob).getFullYear()}</span>
+                    <span className="text-gray-900">{getYearSafe(receiptData.dob)}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
@@ -1004,7 +1042,7 @@ const CashierDashboard = () => {
                     </div>
                     <div className="flex justify-between">
                       <span>Thời gian:</span>
-                      <strong className="text-gray-900">{receiptData.time} - {new Date(receiptData.date).toLocaleDateString('vi-VN')}</strong>
+                      <strong className="text-gray-900">{receiptData.time} - {formatDateSafe(receiptData.date)}</strong>
                     </div>
                   </div>
                 </div>
