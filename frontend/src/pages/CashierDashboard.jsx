@@ -58,6 +58,19 @@ const getCurrentTimeStr = () => {
   return `${hours}:${minutes}`;
 };
 
+const getDeptPrice = (deptName) => {
+  if (!deptName) return 150000;
+  if (deptName.includes('Cơ Bản')) return 1500000;
+  if (deptName.includes('Nâng Cao')) return 2500000;
+  if (deptName.includes('Chuyên Sâu')) return 4500000;
+  if (deptName.includes('VIP Gold')) return 8000000;
+  if (deptName.includes('VIP Platinum')) return 15000000;
+  if (deptName.includes('tầm soát ung thư tổng quát') || deptName.includes('Tầm soát ung thư tổng quát')) return 3000000;
+  if (deptName.includes('tầm soát ung thư tiêu hóa') || deptName.includes('Tầm soát ung thư tiêu hóa')) return 2200000;
+  if (deptName.includes('tầm soát đột quỵ') || deptName.includes('Tầm soát đột quỵ')) return 2800000;
+  return 150000;
+};
+
 const CashierDashboard = () => {
   const [activeTab, setActiveTab] = useState('register'); // register | reception | prescription
   const [appointments, setAppointments] = useState([]);
@@ -227,7 +240,8 @@ const CashierDashboard = () => {
           doctor: registerForm.doctor,
           date: registerForm.date,
           time: registerForm.time,
-          reason: registerForm.reason
+          reason: registerForm.reason,
+          initialFee: getDeptPrice(registerForm.dept)
         })
       });
 
@@ -583,12 +597,20 @@ const CashierDashboard = () => {
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92] cursor-pointer font-bold"
                 >
                   <option value="">-- Chọn chuyên khoa --</option>
-                  {departments.map((dept) => (
-                    <option key={dept.slug} value={dept.name}>
-                      {dept.icon} {dept.name}
-                    </option>
-                  ))}
+                  {departments.map((dept) => {
+                    const price = getDeptPrice(dept.name);
+                    return (
+                      <option key={dept.slug} value={dept.name}>
+                        {dept.icon} {dept.name} ({price.toLocaleString('vi-VN')} đ)
+                      </option>
+                    );
+                  })}
                 </select>
+                {registerForm.dept && (
+                  <div className="mt-2 text-sm text-[#004e92] font-bold flex items-center gap-1.5 bg-blue-50 px-4 py-2.5 rounded-xl border border-blue-100 w-max">
+                    💰 Giá dịch vụ: {getDeptPrice(registerForm.dept).toLocaleString('vi-VN')} đ
+                  </div>
+                )}
               </div>
 
               <div>

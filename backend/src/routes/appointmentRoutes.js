@@ -118,6 +118,7 @@ router.post("/", async (req, res) => {
       time: payload.time,
       reason: payload.reason,
       appointmentCode: await createUniqueAppointmentCode(),
+      initialFee: req.body.initialFee ? Number(req.body.initialFee) : 150000,
     });
 
     return res.status(201).json({
