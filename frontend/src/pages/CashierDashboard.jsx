@@ -314,8 +314,11 @@ const CashierDashboard = () => {
     window.print();
   };
 
+  const appointmentsArr = Array.isArray(appointments) ? appointments : [];
+  const rxBillsArr = Array.isArray(prescriptionBills) ? prescriptionBills : [];
+
   // Lọc danh sách lịch hẹn cần thu tiền khám
-  const unpaidAppointments = appointments.filter(app => {
+  const unpaidAppointments = appointmentsArr.filter(app => {
     if (!app) return false;
     const name = app.name || '';
     const phone = app.phone || '';
@@ -330,7 +333,7 @@ const CashierDashboard = () => {
   });
 
   // Lọc danh sách đơn thuốc cần thu tiền
-  const unpaidPrescriptions = prescriptionBills.filter(bill => {
+  const unpaidPrescriptions = rxBillsArr.filter(bill => {
     if (!bill) return false;
     const patientName = bill.patientName || '';
     const phone = bill.phone || '';
@@ -344,7 +347,7 @@ const CashierDashboard = () => {
     return isUnpaid && matchesSearch;
   });
 
-  const allAppointmentsFiltered = appointments.filter(app => {
+  const allAppointmentsFiltered = appointmentsArr.filter(app => {
     if (!app) return false;
     const name = app.name || '';
     const phone = app.phone || '';
@@ -360,11 +363,12 @@ const CashierDashboard = () => {
   });
 
   // Thống kê doanh thu nhanh (chỉ tính các hóa đơn đã thu trong session hiện tại)
-  const paidExams = appointments.filter(app => app.paymentStatus === 'paid');
-  const paidPrescriptions = prescriptionBills.filter(bill => bill.status === 'paid');
+  const paidExams = appointmentsArr.filter(app => app && app.paymentStatus === 'paid');
+  const paidPrescriptions = rxBillsArr.filter(bill => bill && bill.status === 'paid');
 
   const totalExamRevenue = paidExams.reduce((sum, app) => sum + (app.initialFee || 150000), 0);
   const totalPrescriptionRevenue = paidPrescriptions.reduce((sum, bill) => {
+    if (!bill || !bill.items) return sum;
     const cost = bill.items.reduce((s, item) => s + (item.price * item.qty), 0);
     const disc = bill.bhyt ? cost * 0.8 : 0;
     return sum + (cost - disc);
@@ -470,7 +474,7 @@ const CashierDashboard = () => {
               : 'border-transparent text-gray-400 hover:text-gray-600'
           }`}
         >
-          <FileText className="w-4 h-4" /> 4. Thông Tin Khám Bệnh ({appointments.length})
+          <FileText className="w-4 h-4" /> 4. Thông Tin Khám Bệnh ({appointmentsArr.length})
         </button>
       </div>
 
@@ -861,7 +865,7 @@ const CashierDashboard = () => {
             </div>
             
             <div className="text-sm text-gray-500 font-semibold">
-              Tổng số tiếp nhận hôm nay: <strong className="text-gray-900">{appointments.length} bệnh nhân</strong>
+              Tổng số tiếp nhận hôm nay: <strong className="text-gray-900">{appointmentsArr.length} bệnh nhân</strong>
             </div>
           </div>
 
