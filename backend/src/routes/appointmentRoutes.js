@@ -334,6 +334,11 @@ router.delete("/:id", protect, adminOrDoctorOnly, async (req, res) => {
       message: "Xóa lịch hẹn thành công.",
       appointment,
     });
+  } catch (error) {
+    return res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+});
+
 // PUT /api/appointments/:id/medical-record
 // Bác sĩ lưu chẩn đoán và kê đơn thuốc cho ca khám
 router.put("/:id/medical-record", protect, adminOrDoctorOnly, async (req, res) => {
