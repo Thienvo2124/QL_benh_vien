@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Calendar, CheckCircle, XCircle, Clock, Check, X, Eye, Search, RefreshCw, User, Phone, FileText, AlertCircle, Sparkles, AlertTriangle } from 'lucide-react';
+import { Calendar, CheckCircle, XCircle, Clock, Check, X, Eye, Search, RefreshCw, User, Phone, FileText, AlertCircle, Sparkles, AlertTriangle, Trash2 } from 'lucide-react';
 import API_BASE_URL from '../config/api';
 
 const Appointments = () => {
@@ -68,6 +68,34 @@ const Appointments = () => {
     } catch (error) {
       console.error('Lỗi khi cập nhật trạng thái:', error);
       alert('Lỗi kết nối đến server.');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleDeleteAppointment = async (appId) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa vĩnh viễn lịch hẹn này không? Hành động này không thể hoàn tác.")) {
+      return;
+    }
+    setUpdatingId(appId);
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/appointments/${appId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      if (response.ok) {
+        alert("Xóa lịch hẹn thành công!");
+        fetchAppointments();
+      } else {
+        alert(data.message || "Không thể xóa lịch hẹn.");
+      }
+    } catch (error) {
+      console.error("Lỗi xóa lịch hẹn:", error);
+      alert("Lỗi kết nối máy chủ.");
     } finally {
       setUpdatingId(null);
     }
@@ -274,6 +302,15 @@ const Appointments = () => {
                             <Eye className="w-4 h-4" />
                           </button>
                           
+                          <button
+                            onClick={() => handleDeleteAppointment(app._id)}
+                            disabled={updatingId === app._id}
+                            className="p-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl transition-colors shadow-sm disabled:opacity-50"
+                            title="Xóa vĩnh viễn"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                          
                           {app.status === 'pending' && (
                             <>
                               <button
@@ -453,6 +490,16 @@ const Appointments = () => {
                   </button>
                 </>
               )}
+              <button
+                onClick={() => {
+                  handleDeleteAppointment(selectedAppointment._id);
+                  setSelectedAppointment(null);
+                }}
+                disabled={updatingId === selectedAppointment._id}
+                className="bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 px-6 rounded-2xl transition-colors border border-red-200 shadow-sm flex items-center gap-1.5 disabled:opacity-50"
+              >
+                <Trash2 className="w-5 h-5" /> Xóa lịch
+              </button>
               <button
                 onClick={() => setSelectedAppointment(null)}
                 className="bg-white hover:bg-gray-100 text-gray-700 font-bold py-3 px-6 rounded-2xl transition-colors border border-gray-200 shadow-sm"

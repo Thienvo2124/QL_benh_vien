@@ -317,4 +317,26 @@ router.patch("/:id/pay-exam", protect, adminOrDoctorOnly, async (req, res) => {
   }
 });
 
+// DELETE /api/appointments/:id
+// Xóa lịch hẹn
+router.delete("/:id", protect, adminOrDoctorOnly, async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "ID lịch hẹn không hợp lệ." });
+    }
+
+    const appointment = await Appointment.findByIdAndDelete(req.params.id);
+    if (!appointment) {
+      return res.status(404).json({ message: "Không tìm thấy lịch hẹn để xóa." });
+    }
+
+    return res.json({
+      message: "Xóa lịch hẹn thành công.",
+      appointment,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+});
+
 module.exports = router;
