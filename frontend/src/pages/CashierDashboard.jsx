@@ -614,15 +614,7 @@ const CashierDashboard = () => {
                 </select>
               </div>
 
-              <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-gray-700 mb-1.5">Ghi chú triệu chứng / Lý do khám</label>
-                <textarea
-                  rows="2"
-                  value={registerForm.reason}
-                  onChange={(e) => setRegisterForm({ ...registerForm, reason: e.target.value })}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]"
-                ></textarea>
-              </div>
+
             </div>
 
             <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-2xl border border-blue-100">
