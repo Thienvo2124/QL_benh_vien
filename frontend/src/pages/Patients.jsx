@@ -131,7 +131,7 @@ const Patients = () => {
   const fetchAppointmentsAndMedicines = useCallback(async () => {
     setLoading(true);
     try {
-      const token = sessionStorage.getItem('token');
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       
       const appRes = await fetch(`${API_BASE_URL}/api/appointments`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -223,7 +223,12 @@ const Patients = () => {
 
     setLoading(true);
     try {
-      const token = sessionStorage.getItem('token');
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      if (!token) {
+        alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+        setLoading(false);
+        return;
+      }
       const response = await fetch(`${API_BASE_URL}/api/appointments/${selectedWaitingAppId}/medical-record`, {
         method: 'PUT',
         headers: {
@@ -239,7 +244,15 @@ const Patients = () => {
         })
       });
 
-      const data = await response.json();
+      let data;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        alert(`Lỗi server (${response.status}): ${text.substring(0, 200)}\n\nCó thể backend chưa được cập nhật route mới. Vui lòng thử lại sau.`);
+        return;
+      }
       if (response.ok) {
         setSuccessMsg(`Đã lưu thành công Hồ sơ bệnh án mới cho bệnh nhân ${newPatientName}!`);
         setActiveModal(null);
@@ -257,11 +270,11 @@ const Patients = () => {
         setNewTreatment('');
         setPrescribedMedicines([]);
       } else {
-        alert(data.message || "Không thể tạo bệnh án.");
+        alert(`❌ Lỗi ${response.status}: ${data.message || "Không thể tạo bệnh án."}\n\nNếu lỗi 403 hoặc 401 hãy thử đăng xuất rồi đăng nhập lại.`);
       }
     } catch (error) {
       console.error("Lỗi khi tạo bệnh án:", error);
-      alert("Lỗi kết nối đến máy chủ.");
+      alert(`Lỗi kết nối đến máy chủ: ${error.message}`);
     } finally {
       setLoading(false);
     }
