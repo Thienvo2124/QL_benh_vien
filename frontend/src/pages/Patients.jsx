@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { FileText, Search, Plus, Eye, User, Calendar, Phone, Activity, Pill, Clock, CheckCircle, AlertCircle, Filter, FileSpreadsheet, Printer, ShieldPlus, X } from 'lucide-react';
 import API_BASE_URL from '../config/api';
+import departments from '../data/departments';
 
 const initialRecords = [
   {
@@ -427,13 +428,14 @@ const Patients = () => {
           <select
             value={selectedDept}
             onChange={(e) => setSelectedDept(e.target.value)}
-            className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-medium focus:outline-none focus:border-[#004e92]"
+            className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-medium focus:outline-none focus:border-[#004e92] cursor-pointer"
           >
             <option value="Tất cả">Tất cả chuyên khoa</option>
-            <option value="Da liễu & Dị ứng">Da liễu & Dị ứng</option>
-            <option value="Tim mạch">Tim mạch</option>
-            <option value="Nha khoa">Nha khoa</option>
-            <option value="Cơ xương khớp">Cơ xương khớp</option>
+            {departments.map((dept) => (
+              <option key={dept.slug} value={dept.name}>
+                {dept.name}
+              </option>
+            ))}
           </select>
         </div>
       </div>

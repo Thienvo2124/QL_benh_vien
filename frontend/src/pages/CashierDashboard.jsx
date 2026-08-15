@@ -516,7 +516,8 @@ const CashierDashboard = () => {
     const dept = app.dept || '';
     const status = app.status || '';
     
-    const isPaid = app.paymentStatus === 'paid';
+    // Chỉ hiển thị số đã cấp nếu chưa bị hủy/từ chối (rejected)
+    const isPaid = app.paymentStatus === 'paid' && status !== 'rejected';
     const matchesSearch = searchQuery === '' || 
       name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       phone.includes(searchQuery) ||
