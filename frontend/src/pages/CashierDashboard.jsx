@@ -106,6 +106,10 @@ const CashierDashboard = () => {
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
   
+  // Filter States for Issued Tab
+  const [issuedDeptFilter, setIssuedDeptFilter] = useState('Tất cả');
+  const [issuedStatusFilter, setIssuedStatusFilter] = useState('Tất cả');
+  
   // DOB Select States
   const [dobDay, setDobDay] = useState('');
   const [dobMonth, setDobMonth] = useState('');
@@ -469,13 +473,21 @@ const CashierDashboard = () => {
     const name = app.name || '';
     const phone = app.phone || '';
     const code = app.appointmentCode || '';
+    const dept = app.dept || '';
+    const status = app.status || '';
     
     const isPaid = app.paymentStatus === 'paid';
     const matchesSearch = searchQuery === '' || 
       name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       phone.includes(searchQuery) ||
       (code && code.toLowerCase().includes(searchQuery.toLowerCase()));
-    return isPaid && matchesSearch;
+      
+    const matchesDept = issuedDeptFilter === 'Tất cả' || dept === issuedDeptFilter;
+    const matchesStatus = issuedStatusFilter === 'Tất cả' || 
+      (issuedStatusFilter === 'completed' && status === 'completed') ||
+      (issuedStatusFilter === 'waiting' && status !== 'completed');
+      
+    return isPaid && matchesSearch && matchesDept && matchesStatus;
   });
 
   // Lọc danh sách đơn thuốc cần thu tiền
@@ -722,7 +734,7 @@ const CashierDashboard = () => {
       {/* TAB 3: SỐ ĐÃ CẤP */}
       {activeTab === 'issued' && (
         <div className="space-y-4 print:hidden">
-          {/* SEARCH BAR */}
+          {/* SEARCH BAR & FILTERS */}
           <div className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 flex flex-wrap items-center justify-between gap-4">
             <div className="relative flex-1 min-w-[280px] max-w-md">
               <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -733,6 +745,37 @@ const CashierDashboard = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] focus:bg-white transition-colors font-medium"
               />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Chuyên khoa:</span>
+                <select
+                  value={issuedDeptFilter}
+                  onChange={(e) => setIssuedDeptFilter(e.target.value)}
+                  className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-[#004e92] cursor-pointer"
+                >
+                  <option value="Tất cả">Tất cả</option>
+                  {departments.map((dept) => (
+                    <option key={dept.slug} value={dept.name}>
+                      {dept.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Trạng thái:</span>
+                <select
+                  value={issuedStatusFilter}
+                  onChange={(e) => setIssuedStatusFilter(e.target.value)}
+                  className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-[#004e92] cursor-pointer"
+                >
+                  <option value="Tất cả">Tất cả</option>
+                  <option value="waiting">Chờ vào khám</option>
+                  <option value="completed">Đã khám xong</option>
+                </select>
+              </div>
             </div>
           </div>
 
