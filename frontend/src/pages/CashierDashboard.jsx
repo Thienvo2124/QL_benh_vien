@@ -666,16 +666,6 @@ const CashierDashboard = () => {
           <CheckCircle className="w-4 h-4" /> 3. Số Đã Cấp ({issuedAppointments.length})
         </button>
         <button
-          onClick={() => setActiveTab('prescription')}
-          className={`pb-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
-            activeTab === 'prescription'
-              ? 'border-[#004e92] text-[#004e92]'
-              : 'border-transparent text-gray-400 hover:text-gray-600'
-          }`}
-        >
-          <Pill className="w-4 h-4" /> 4. Thu Tiền Đơn Thuốc ({unpaidPrescriptions.length})
-        </button>
-        <button
           onClick={() => setActiveTab('info')}
           className={`pb-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
             activeTab === 'info'
@@ -683,7 +673,17 @@ const CashierDashboard = () => {
               : 'border-transparent text-gray-400 hover:text-gray-600'
           }`}
         >
-          <FileText className="w-4 h-4" /> 5. Thông Tin Khám Bệnh ({appointmentsArr.length})
+          <FileText className="w-4 h-4" /> 4. Thông Tin Khám Bệnh ({appointmentsArr.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('prescription')}
+          className={`pb-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
+            activeTab === 'prescription'
+              ? 'border-[#004e92] text-[#004e92]'
+              : 'border-transparent text-gray-400 hover:text-gray-600'
+          }`}
+        >
+          <Pill className="w-4 h-4" /> 5. Thu Tiền Đơn Thuốc ({unpaidPrescriptions.length})
         </button>
       </div>
 
