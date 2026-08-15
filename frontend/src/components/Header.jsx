@@ -87,7 +87,7 @@ const Header = () => {
                     </div>
                     <div className="flex items-center gap-1.5 bg-blue-50 text-[#004e92] text-xs font-semibold px-2.5 py-1 rounded-full w-max mt-1 border border-blue-100 shadow-sm">
                       <Shield className="w-3.5 h-3.5" />
-                      <span>{user.role === 'admin' ? 'Quản trị viên hệ thống' : user.role === 'doctor' ? 'Bác sĩ chuyên khoa' : user.role === 'nurse' ? 'Y tá hệ thống' : user.role === 'cashier' ? 'Thu ngân bệnh viện' : 'Bệnh nhân'}</span>
+                      <span>{user.role === 'admin' ? 'Quản trị viên hệ thống' : user.role === 'doctor' ? 'Bác sĩ chuyên khoa' : user.role === 'nurse' ? 'Dược sĩ hệ thống' : user.role === 'cashier' ? 'Thu ngân bệnh viện' : 'Bệnh nhân'}</span>
                     </div>
                   </div>
 

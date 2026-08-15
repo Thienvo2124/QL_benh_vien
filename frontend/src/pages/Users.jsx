@@ -64,7 +64,7 @@ const Users = () => {
       {/* Tabs */}
       <div className="flex gap-2 mb-6 border-b border-gray-200 pb-2">
         {['all', 'admin', 'doctor', 'nurse', 'cashier', 'patient'].map((tab) => {
-          const labels = { all: 'Tất cả', admin: 'Quản trị viên', doctor: 'Bác sĩ', nurse: 'Y tá', cashier: 'Thu ngân', patient: 'Bệnh nhân' };
+          const labels = { all: 'Tất cả', admin: 'Quản trị viên', doctor: 'Bác sĩ', nurse: 'Dược sĩ', cashier: 'Thu ngân', patient: 'Bệnh nhân' };
           const isActive = filter === tab;
           return (
             <button
@@ -130,7 +130,7 @@ const Users = () => {
                         {user.role === 'nurse' && <Activity size={12} />}
                         {user.role === 'cashier' && <DollarSign size={12} />}
                         {user.role === 'patient' && <User size={12} />}
-                        {user.role === 'admin' ? 'Quản trị viên' : user.role === 'doctor' ? 'Bác sĩ' : user.role === 'nurse' ? 'Y tá' : user.role === 'cashier' ? 'Thu ngân' : 'Bệnh nhân'}
+                        {user.role === 'admin' ? 'Quản trị viên' : user.role === 'doctor' ? 'Bác sĩ' : user.role === 'nurse' ? 'Dược sĩ' : user.role === 'cashier' ? 'Thu ngân' : 'Bệnh nhân'}
                       </span>
                     </td>
                     <td className="p-4">
@@ -142,7 +142,7 @@ const Users = () => {
                           disabled={updatingId === user._id}
                         >
                           <option value="patient">Bệnh nhân</option>
-                          <option value="nurse">Y tá</option>
+                          <option value="nurse">Dược sĩ</option>
                           <option value="cashier">Thu ngân</option>
                           <option value="doctor">Bác sĩ</option>
                           <option value="admin">Quản trị viên</option>

@@ -145,7 +145,7 @@ const AdminLayout = () => {
                         : user?.role === 'doctor'
                         ? 'Bác sĩ chuyên khoa'
                         : user?.role === 'nurse'
-                        ? 'Y tá hệ thống'
+                        ? 'Dược sĩ hệ thống'
                         : user?.role === 'cashier'
                         ? 'Thu ngân bệnh viện'
                         : 'Nhân viên'}
