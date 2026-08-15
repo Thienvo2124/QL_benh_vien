@@ -245,21 +245,7 @@ const Profile = () => {
                   </div>
                 </div>
 
-                {/* Khối: Người bảo lãnh */}
-                <div>
-                  <h3 className="text-md font-bold text-[#004e92] mb-4 uppercase tracking-wider text-xs">Thông tin Người bảo lãnh</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <input type="text" placeholder="Tên người bảo lãnh (Bắt buộc nếu dưới 16 tuổi)" value={guarantorName} onChange={(e) => setGuarantorName(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]" />
-                    </div>
-                    <div>
-                      <input type="tel" placeholder="Số điện thoại người bảo lãnh" value={guarantorPhone} onChange={(e) => setGuarantorPhone(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]" />
-                    </div>
-                    <div className="sm:col-span-2">
-                      <input type="text" placeholder="Nhập số CCCD hoặc mã định danh của người bảo lãnh" value={guarantorIdCard} onChange={(e) => setGuarantorIdCard(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]" />
-                    </div>
-                  </div>
-                </div>
+
 
                 {/* Khối: Địa chỉ */}
                 <div>
