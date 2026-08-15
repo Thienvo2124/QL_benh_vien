@@ -443,9 +443,17 @@ const Patients = () => {
               setNewPatientName('');
               setNewAge(30);
               setNewGender('Nam');
+              setNewWeight('');
               setNewPhone('');
-              setNewDept('Da liễu & Dị ứng');
+              setNewAddress('');
+              setNewBhyt('Không có bảo hiểm');
+              setNewDept('');
               setNewDoctor('BS. CKII Nguyễn Tuấn Lâm');
+              setNewSymptoms('');
+              setNewDiagnosis('');
+              setNewTreatment('');
+              setNewAdvice('Đã tư vấn kỹ cho bệnh nhân về đơn thuốc và đơn tư vấn và bệnh nhân đồng ý sử dụng, khám lại sau 3 tuần.');
+              setPrescribedMedicines([]);
               setActiveModal('new');
             }}
             className="bg-[#004e92] hover:bg-blue-800 text-white font-bold px-6 py-3 rounded-2xl transition-colors shadow-lg flex items-center gap-2 text-sm transform hover:-translate-y-0.5"
@@ -889,16 +897,38 @@ const Patients = () => {
                           setNewPhone(selectedApp.phone);
                           setNewDept(selectedApp.dept);
                           setNewDoctor(selectedApp.doctor || 'BS. CKII Nguyễn Tuấn Lâm');
-                          const hasBhyt = selectedApp.bhyt && selectedApp.bhyt.trim() !== '' && selectedApp.bhyt !== 'Không có';
+                          
+                          // Tự động điền BHYT từ thông tin lúc tiếp nhận
+                          const bhytStr = selectedApp.bhyt ? String(selectedApp.bhyt).trim().toLowerCase() : '';
+                          const hasBhyt = bhytStr !== '' && 
+                                          bhytStr !== 'không có' && 
+                                          bhytStr !== 'không có bhyt' && 
+                                          bhytStr !== 'không' && 
+                                          bhytStr !== 'none' && 
+                                          bhytStr !== 'no';
                           setNewBhyt(hasBhyt ? 'Có bảo hiểm' : 'Không có bảo hiểm');
+
+                          // Tự động điền các thông tin lâm sàng khác
+                          setNewWeight(selectedApp.weight || '');
+                          setNewAddress(selectedApp.address || '');
+                          setNewSymptoms(selectedApp.reason || '');
+                          setNewDiagnosis('');
+                          setNewTreatment('');
+                          setPrescribedMedicines([]);
                         } else {
                           setNewPatientName('');
                           setNewAge(30);
                           setNewGender('Nam');
                           setNewPhone('');
-                          setNewDept('Da liễu & Dị ứng');
+                          setNewDept('');
                           setNewDoctor('BS. CKII Nguyễn Tuấn Lâm');
                           setNewBhyt('Không có bảo hiểm');
+                          setNewWeight('');
+                          setNewAddress('');
+                          setNewSymptoms('');
+                          setNewDiagnosis('');
+                          setNewTreatment('');
+                          setPrescribedMedicines([]);
                         }
                       }}
                       className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92] font-bold text-[#004e92] cursor-pointer"
