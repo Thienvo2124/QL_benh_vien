@@ -14,7 +14,7 @@ const Appointments = () => {
   const fetchAppointments = useCallback(async () => {
     setLoading(true);
     try {
-      const token = sessionStorage.getItem('token');
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       const queryParams = new URLSearchParams();
       if (statusFilter !== 'all') queryParams.append('status', statusFilter);
       if (dateFilter) queryParams.append('date', dateFilter);
@@ -45,7 +45,7 @@ const Appointments = () => {
   const handleUpdateStatus = async (id, newStatus) => {
     setUpdatingId(id);
     try {
-      const token = sessionStorage.getItem('token');
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       const response = await fetch(`${API_BASE_URL}/api/appointments/${id}/status`, {
         method: 'PATCH',
         headers: {
@@ -79,7 +79,7 @@ const Appointments = () => {
     }
     setUpdatingId(appId);
     try {
-      const token = sessionStorage.getItem('token');
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       const response = await fetch(`${API_BASE_URL}/api/appointments/${appId}`, {
         method: 'DELETE',
         headers: {

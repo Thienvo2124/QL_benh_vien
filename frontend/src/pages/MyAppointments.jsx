@@ -7,7 +7,7 @@ import Footer from '../components/Footer';
 import API_BASE_URL from '../config/api';
 
 const MyAppointments = () => {
-  const { user } = useContext(AuthContext);
+  const { user, token } = useContext(AuthContext);
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
@@ -16,7 +16,7 @@ const MyAppointments = () => {
   const fetchMyAppointments = useCallback(async () => {
     setLoading(true);
     try {
-      const token = sessionStorage.getItem('token');
+      // Use token from AuthContext
       const response = await fetch(`${API_BASE_URL}/api/appointments/my`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -44,7 +44,7 @@ const MyAppointments = () => {
     if (!window.confirm('Bạn có chắc chắn muốn hủy lịch hẹn này không?')) return;
     setUpdatingId(id);
     try {
-      const token = sessionStorage.getItem('token');
+      // Use token from AuthContext
       const response = await fetch(`${API_BASE_URL}/api/appointments/${id}/cancel`, {
         method: 'PATCH',
         headers: {

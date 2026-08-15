@@ -13,7 +13,7 @@ const ChatbotTrain = () => {
     setLoading(true);
     setError('');
     try {
-      const token = sessionStorage.getItem('token');
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
       const response = await fetch(`${API_BASE_URL}/api/chat/admin/queries`, { headers });
@@ -52,7 +52,7 @@ const ChatbotTrain = () => {
     setTrainingStatus((prev) => ({ ...prev, [queryId]: 'loading' }));
 
     try {
-      const token = sessionStorage.getItem('token');
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       const response = await fetch(`${API_BASE_URL}/api/chat/admin/correct`, {
         method: 'PUT',
         headers: {
