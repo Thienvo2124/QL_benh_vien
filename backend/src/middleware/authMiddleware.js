@@ -11,12 +11,12 @@ const protect = async (req, res, next) => {
       token = req.headers.authorization.split(" ")[1];
       const decoded = jwt.verify(token, JWT_SECRET);
       
-      const user = await User.findById(decoded.id).select("phone role");
+      const user = await User.findById(decoded.id).select("phone role fullName");
       if (!user) {
         return res.status(401).json({ message: "Tài khoản không tồn tại hoặc đã bị xóa." });
       }
 
-      req.user = { id: user._id, role: user.role, phone: user.phone };
+      req.user = { id: user._id, role: user.role, phone: user.phone, fullName: user.fullName || "Ẩn danh" };
       console.log("Middleware protect - user:", req.user);
       return next();
     } catch (error) {

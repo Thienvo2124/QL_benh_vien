@@ -347,20 +347,43 @@ router.put("/:id/medical-record", protect, adminOrDoctorOnly, async (req, res) =
       return res.status(400).json({ message: "ID lịch hẹn không hợp lệ." });
     }
 
-    const { symptoms, diagnosis, treatment, advice, medicines } = req.body;
+    const { 
+      name, gender, phone, weight, address, bhyt, dept, doctor, dob,
+      symptoms, diagnosis, treatment, advice, medicines 
+    } = req.body;
 
     const appointment = await Appointment.findById(req.params.id);
     if (!appointment) {
       return res.status(404).json({ message: "Không tìm thấy lịch hẹn." });
     }
 
+    // Cập nhật thông tin hành chính của bệnh nhân (nếu được thay đổi)
+    if (name !== undefined) appointment.name = name;
+    if (gender !== undefined) appointment.gender = gender;
+    if (phone !== undefined) appointment.phone = phone;
+    if (weight !== undefined) appointment.weight = weight;
+    if (address !== undefined) appointment.address = address;
+    if (bhyt !== undefined) appointment.bhyt = bhyt;
+    if (dept !== undefined) appointment.dept = dept;
+    if (doctor !== undefined) appointment.doctor = doctor;
+    if (dob !== undefined) appointment.dob = dob;
+
+    // Cập nhật thông tin lâm sàng và thuốc
     appointment.symptoms = symptoms || "";
     appointment.diagnosis = diagnosis || "";
     appointment.treatment = treatment || "";
     appointment.advice = advice || "";
     appointment.prescription = medicines || [];
-    appointment.prescriptionStatus = (medicines && medicines.length > 0) ? "unpaid" : "none";
+    
+    // Nếu là cập nhật, giữ nguyên trạng thái đóng tiền thuốc cũ nếu đã đóng
+    if (appointment.prescriptionStatus !== "paid") {
+      appointment.prescriptionStatus = (medicines && medicines.length > 0) ? "unpaid" : "none";
+    }
     appointment.status = "completed"; // Khám xong
+
+    // Lưu vết người cập nhật cuối cùng
+    appointment.updatedBy = `${req.user.fullName || 'Bác sĩ'} (${req.user.phone || 'N/A'})`;
+    appointment.updatedByRole = req.user.role || 'doctor';
 
     await appointment.save();
 

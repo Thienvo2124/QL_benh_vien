@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
-import { FileText, Search, Plus, Eye, User, Calendar, Phone, Activity, Pill, Clock, CheckCircle, AlertCircle, Filter, FileSpreadsheet, Printer, ShieldPlus, X } from 'lucide-react';
+import { useState, useEffect, useCallback, useContext } from 'react';
+import { FileText, Search, Plus, Eye, User, Calendar, Phone, Activity, Pill, Clock, CheckCircle, AlertCircle, Filter, FileSpreadsheet, Printer, ShieldPlus, X, Pencil, Trash2 } from 'lucide-react';
 import API_BASE_URL from '../config/api';
 import departments from '../data/departments';
+import { AuthContext } from '../contexts/AuthContext';
 
 const initialRecords = [
   {
@@ -87,8 +88,10 @@ const initialRecords = [
 ];
 
 const Patients = () => {
+  const { user } = useContext(AuthContext);
   const [appointments, setAppointments] = useState([]);
   const [medicines, setMedicines] = useState([]);
+  const [editingRecordId, setEditingRecordId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedDept, setSelectedDept] = useState('Tất cả');
@@ -200,7 +203,9 @@ const Patients = () => {
     orderCode: app.appointmentCode ? 'HD-' + app.appointmentCode.slice(-6) : '000000432904',
     treatCode: app.appointmentCode ? 'DT-' + app.appointmentCode.slice(-6) : '000000128400',
     medicines: app.prescription || [],
-    advice: app.advice || ''
+    advice: app.advice || '',
+    updatedBy: app.updatedBy || '',
+    updatedByRole: app.updatedByRole || ''
   }));
 
   const records = [...dbRecords, ...initialRecords];
@@ -231,10 +236,31 @@ const Patients = () => {
     setPrescribedMedicines(prescribedMedicines.filter((_, i) => i !== index));
   };
 
-  const handleCreateRecord = async (e) => {
-    e.preventDefault();
-    if (!selectedWaitingAppId) {
-      alert("Vui lòng chọn một bệnh nhân từ danh sách chờ khám!");
+  const handleOpenEditModal = (rec) => {
+    setEditingRecordId(rec.id);
+    setNewPatientName(rec.patientName);
+    setNewAge(rec.age);
+    setNewGender(rec.gender || 'Nam');
+    setNewWeight(rec.weight || '60 kg');
+    setNewPhone(rec.phone || '');
+    setNewAddress(rec.address || '');
+    setNewBhyt(rec.bhyt === 'Không có BHYT' ? 'Không có bảo hiểm' : rec.bhyt);
+    setNewDept(rec.dept);
+    setNewDoctor(rec.doctor);
+    setNewSymptoms(rec.symptoms || '');
+    setNewDiagnosis(rec.diagnosis || '');
+    setNewTreatment(rec.treatment || '');
+    setNewAdvice(rec.advice || 'Đã tư vấn kỹ cho bệnh nhân về đơn thuốc và đơn tư vấn và bệnh nhân đồng ý sử dụng, khám lại sau 3 tuần.');
+    setPrescribedMedicines(rec.medicines || []);
+    setActiveModal('edit');
+  };
+
+  const handleDeleteRecord = async (appId, patientName) => {
+    if (appId.startsWith('HS-2026') || appId.startsWith('HS-2025')) {
+      alert("Không thể xóa hồ sơ bệnh án mẫu / lịch sử (dữ liệu mặc định).");
+      return;
+    }
+    if (!window.confirm(`Bạn có chắc chắn muốn XÓA hoàn toàn hồ sơ bệnh án của bệnh nhân ${patientName}? Hành động này không thể hoàn tác.`)) {
       return;
     }
 
@@ -246,13 +272,75 @@ const Patients = () => {
         setLoading(false);
         return;
       }
-      const response = await fetch(`${API_BASE_URL}/api/appointments/${selectedWaitingAppId}/medical-record`, {
+      const response = await fetch(`${API_BASE_URL}/api/appointments/${appId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      let data = {};
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        data = { message: await response.text() };
+      }
+
+      if (response.ok) {
+        setSuccessMsg(`✅ Đã xóa thành công hồ sơ bệnh án của bệnh nhân ${patientName}!`);
+        fetchAppointmentsAndMedicines();
+        setTimeout(() => setSuccessMsg(''), 5000);
+      } else {
+        alert(data.message || "Không thể xóa hồ sơ bệnh án.");
+      }
+    } catch (error) {
+      console.error("Lỗi khi xóa hồ sơ:", error);
+      alert("Lỗi kết nối máy chủ.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveRecordSubmit = async (e) => {
+    e.preventDefault();
+    const appId = activeModal === 'new' ? selectedWaitingAppId : editingRecordId;
+    if (!appId) {
+      alert(activeModal === 'new' ? "Vui lòng chọn một bệnh nhân từ danh sách chờ khám!" : "Không tìm thấy ID lịch hẹn cần cập nhật.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      if (!token) {
+        alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+        setLoading(false);
+        return;
+      }
+
+      // Convert age back to DOB
+      const dobDate = new Date();
+      dobDate.setFullYear(new Date().getFullYear() - parseInt(newAge || 30));
+      dobDate.setMonth(0);
+      dobDate.setDate(1);
+
+      const response = await fetch(`${API_BASE_URL}/api/appointments/${appId}/medical-record`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
+          name: newPatientName,
+          gender: newGender,
+          phone: newPhone,
+          weight: newWeight,
+          address: newAddress,
+          bhyt: newBhyt,
+          dept: newDept,
+          doctor: newDoctor,
+          dob: dobDate.toISOString(),
           symptoms: newSymptoms,
           diagnosis: newDiagnosis,
           treatment: newTreatment,
@@ -267,12 +355,17 @@ const Patients = () => {
         data = await response.json();
       } else {
         const text = await response.text();
-        alert(`Lỗi server (${response.status}): ${text.substring(0, 200)}\n\nCó thể backend chưa được cập nhật route mới. Vui lòng thử lại sau.`);
+        alert(`Lỗi server (${response.status}): ${text.substring(0, 200)}\n\nVui lòng thử lại sau.`);
         return;
       }
+
       if (response.ok) {
-        setSuccessMsg(`Đã lưu thành công Hồ sơ bệnh án mới cho bệnh nhân ${newPatientName}!`);
+        setSuccessMsg(activeModal === 'new' 
+          ? `Đã lưu thành công Hồ sơ bệnh án mới cho bệnh nhân ${newPatientName}!` 
+          : `Đã cập nhật thành công Hồ sơ bệnh án của bệnh nhân ${newPatientName}!`
+        );
         setActiveModal(null);
+        setEditingRecordId(null);
         fetchAppointmentsAndMedicines();
         setTimeout(() => setSuccessMsg(''), 5000);
 
@@ -287,10 +380,10 @@ const Patients = () => {
         setNewTreatment('');
         setPrescribedMedicines([]);
       } else {
-        alert(`❌ Lỗi ${response.status}: ${data.message || "Không thể tạo bệnh án."}\n\nNếu lỗi 403 hoặc 401 hãy thử đăng xuất rồi đăng nhập lại.`);
+        alert(`❌ Lỗi ${response.status}: ${data.message || "Không thể lưu bệnh án."}`);
       }
     } catch (error) {
-      console.error("Lỗi khi tạo bệnh án:", error);
+      console.error("Lỗi khi lưu bệnh án:", error);
       alert(`Lỗi kết nối đến máy chủ: ${error.message}`);
     } finally {
       setLoading(false);
@@ -579,6 +672,20 @@ const Patients = () => {
                             <Eye className="w-4 h-4 transform group-hover:scale-110 transition-transform" />
                           </button>
                           <button
+                            onClick={() => handleOpenEditModal(rec)}
+                            className="p-2.5 bg-amber-50 hover:bg-amber-500 text-amber-600 hover:text-white rounded-xl transition-all shadow-sm group"
+                            title="Chỉnh sửa Hồ sơ Bệnh án"
+                          >
+                            <Pencil className="w-4 h-4 transform group-hover:scale-110 transition-transform" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteRecord(rec.id, rec.patientName)}
+                            className="p-2.5 bg-red-50 hover:bg-red-600 text-red-600 hover:text-white rounded-xl transition-all shadow-sm group"
+                            title="Xóa Hồ sơ Bệnh án"
+                          >
+                            <Trash2 className="w-4 h-4 transform group-hover:scale-110 transition-transform" />
+                          </button>
+                          <button
                             onClick={() => { setCurrentRecord(rec); setActiveModal('prescription'); }}
                             className="px-3 py-2 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5 text-xs border border-emerald-200 hover:border-transparent"
                             title="Xem & In Đơn Thuốc Mẫu Bộ Y Tế"
@@ -693,6 +800,23 @@ const Patients = () => {
                   ))}
                 </div>
               </div>
+
+              {/* Nhật ký cập nhật của Bác sĩ - Chỉ Admin xem được */}
+              {user?.role === 'admin' && (currentRecord.updatedBy || currentRecord.updatedByRole) && (
+                <div className="bg-red-50/50 p-5 rounded-2xl border border-red-100 space-y-2">
+                  <div className="text-xs font-bold text-red-700 uppercase tracking-wider flex items-center gap-2">
+                    <ShieldPlus className="w-4 h-4 text-red-600" /> Nhật ký sửa đổi (Chỉ Admin xem được)
+                  </div>
+                  <div className="text-xs text-gray-700 pl-6 border-l-2 border-red-500 space-y-1">
+                    <div>
+                      Người cập nhật cuối cùng: <strong className="text-gray-900">{currentRecord.updatedBy || 'N/A'}</strong>
+                    </div>
+                    <div>
+                      Vai trò tài khoản: <strong className="text-gray-900 capitalize">{currentRecord.updatedByRole || 'N/A'}</strong>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-end gap-4">
@@ -713,72 +837,92 @@ const Patients = () => {
         </div>
       )}
 
-      {/* MODAL 2: TẠO BỆNH ÁN MỚI */}
-      {activeModal === 'new' && (
+      {/* MODAL 2: TẠO HOẶC CHỈNH SỬA BỆNH ÁN */}
+      {(activeModal === 'new' || activeModal === 'edit') && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-start justify-center p-4 z-50 overflow-y-auto animate-fadeIn print:hidden">
           <div className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full my-8 flex flex-col overflow-hidden border border-gray-100">
             
             <div className="bg-[#004e92] p-6 text-white flex items-center justify-between">
               <h3 className="text-xl font-bold flex items-center gap-2">
-                <Plus className="w-6 h-6 text-blue-300" /> Khởi tạo Hồ sơ Bệnh án Mới
+                {activeModal === 'new' ? (
+                  <>
+                    <Plus className="w-6 h-6 text-blue-300" /> Khởi tạo Hồ sơ Bệnh án Mới
+                  </>
+                ) : (
+                  <>
+                    <Pencil className="w-6 h-6 text-blue-300" /> Chỉnh sửa Hồ sơ Bệnh án
+                  </>
+                )}
               </h3>
               <button 
-                onClick={() => setActiveModal(null)}
+                onClick={() => { setActiveModal(null); setEditingRecordId(null); }}
                 className="text-white hover:text-blue-200 font-bold text-2xl p-2 focus:outline-none"
               >
                 ✕
               </button>
             </div>
 
-             <form onSubmit={handleCreateRecord} className="p-6 space-y-6 flex-grow">
+             <form onSubmit={handleSaveRecordSubmit} className="p-6 space-y-6 flex-grow">
               
-              {/* Chọn bệnh nhân từ hàng chờ */}
-              <div className="bg-blue-50 p-5 rounded-2xl border border-blue-100 space-y-2">
-                <label className="block text-sm font-bold text-[#004e92] flex items-center gap-1.5">
-                  <User className="w-4 h-4" /> Chọn bệnh nhân từ danh sách chờ khám *
-                </label>
-                {waitingList.length > 0 ? (
-                  <select
-                    required
-                    value={selectedWaitingAppId}
-                    onChange={(e) => {
-                      const appId = e.target.value;
-                      setSelectedWaitingAppId(appId);
-                      const selectedApp = waitingList.find(app => app._id === appId);
-                      if (selectedApp) {
-                        setNewPatientName(selectedApp.name);
-                        setNewAge(calculateAge(selectedApp.dob));
-                        setNewGender(selectedApp.gender || 'Nam');
-                        setNewPhone(selectedApp.phone);
-                        setNewDept(selectedApp.dept);
-                        setNewDoctor(selectedApp.doctor || 'BS. CKII Nguyễn Tuấn Lâm');
-                        const hasBhyt = selectedApp.bhyt && selectedApp.bhyt.trim() !== '' && selectedApp.bhyt !== 'Không có';
-                        setNewBhyt(hasBhyt ? 'Có bảo hiểm' : 'Không có bảo hiểm');
-                      } else {
-                        setNewPatientName('');
-                        setNewAge(30);
-                        setNewGender('Nam');
-                        setNewPhone('');
-                        setNewDept('Da liễu & Dị ứng');
-                        setNewDoctor('BS. CKII Nguyễn Tuấn Lâm');
-                        setNewBhyt('Không có bảo hiểm');
-                      }
-                    }}
-                    className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92] font-bold text-[#004e92] cursor-pointer"
-                  >
-                    <option value="">-- Chọn bệnh nhân chờ khám --</option>
-                    {waitingList.map(app => (
-                      <option key={app._id} value={app._id}>
-                        {app.name} ({app.phone}) - Khoa: {app.dept} (STT: {app.queueNumber})
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <div className="text-sm font-semibold text-gray-500 italic py-1">
-                    Hàng chờ trống. Không có bệnh nhân nào đã đóng lệ phí khám và đang đợi bác sĩ.
+              {/* Chọn bệnh nhân từ hàng chờ - Ẩn khi đang chỉnh sửa */}
+              {activeModal === 'new' ? (
+                <div className="bg-blue-50 p-5 rounded-2xl border border-blue-100 space-y-2">
+                  <label className="block text-sm font-bold text-[#004e92] flex items-center gap-1.5">
+                    <User className="w-4 h-4" /> Chọn bệnh nhân từ danh sách chờ khám *
+                  </label>
+                  {waitingList.length > 0 ? (
+                    <select
+                      required
+                      value={selectedWaitingAppId}
+                      onChange={(e) => {
+                        const appId = e.target.value;
+                        setSelectedWaitingAppId(appId);
+                        const selectedApp = waitingList.find(app => app._id === appId);
+                        if (selectedApp) {
+                          setNewPatientName(selectedApp.name);
+                          setNewAge(calculateAge(selectedApp.dob));
+                          setNewGender(selectedApp.gender || 'Nam');
+                          setNewPhone(selectedApp.phone);
+                          setNewDept(selectedApp.dept);
+                          setNewDoctor(selectedApp.doctor || 'BS. CKII Nguyễn Tuấn Lâm');
+                          const hasBhyt = selectedApp.bhyt && selectedApp.bhyt.trim() !== '' && selectedApp.bhyt !== 'Không có';
+                          setNewBhyt(hasBhyt ? 'Có bảo hiểm' : 'Không có bảo hiểm');
+                        } else {
+                          setNewPatientName('');
+                          setNewAge(30);
+                          setNewGender('Nam');
+                          setNewPhone('');
+                          setNewDept('Da liễu & Dị ứng');
+                          setNewDoctor('BS. CKII Nguyễn Tuấn Lâm');
+                          setNewBhyt('Không có bảo hiểm');
+                        }
+                      }}
+                      className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92] font-bold text-[#004e92] cursor-pointer"
+                    >
+                      <option value="">-- Chọn bệnh nhân chờ khám --</option>
+                      {waitingList.map(app => (
+                        <option key={app._id} value={app._id}>
+                          {app.name} ({app.phone}) - Khoa: {app.dept} (STT: {app.queueNumber})
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <div className="text-sm font-semibold text-gray-500 italic py-1">
+                      Hàng chờ trống. Không có bệnh nhân nào đã đóng lệ phí khám và đang đợi bác sĩ.
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-amber-50 p-5 rounded-2xl border border-amber-100 flex items-center justify-between">
+                  <div>
+                    <span className="text-xs font-bold text-amber-800 block">CHẾ ĐỘ CHỈNH SỬA HỒ SƠ</span>
+                    <strong className="text-sm text-gray-900">ID Bệnh án: {editingRecordId}</strong>
                   </div>
-                )}
-              </div>
+                  <span className="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full border border-amber-200 shadow-sm">
+                    Đang chỉnh sửa
+                  </span>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <div className="sm:col-span-2">

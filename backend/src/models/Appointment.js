@@ -113,6 +113,14 @@ const appointmentSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    updatedBy: {
+      type: String,
+      default: "",
+    },
+    updatedByRole: {
+      type: String,
+      default: "",
+    },
   },
   { timestamps: true },
 );
