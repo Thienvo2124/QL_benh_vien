@@ -67,12 +67,7 @@ const AdminLayout = () => {
             </Link>
           )}
 
-          {['admin', 'cashier'].includes(user?.role) && (
-            <Link to="/dashboard/billing" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/billing' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
-              <DollarSign className="w-5 h-5 mr-3" />
-              Thu ngân & Viện phí
-            </Link>
-          )}
+
 
           {['admin', 'doctor', 'nurse'].includes(user?.role) && (
             <Link to="/dashboard/patients" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/patients' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
@@ -255,14 +250,6 @@ const AdminLayout = () => {
                       >
                         <Calendar className="w-4 h-4 text-yellow-600" />
                         Quản lý Lịch hẹn khám
-                      </Link>
-                      <Link
-                        to="/dashboard/billing"
-                        onClick={() => setIsProfileMenuOpen(false)}
-                        className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
-                      >
-                        <DollarSign className="w-4 h-4 text-emerald-600" />
-                        Thu ngân & Viện phí
                       </Link>
                     </>
                   )}
