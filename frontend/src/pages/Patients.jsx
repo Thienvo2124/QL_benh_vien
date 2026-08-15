@@ -1098,7 +1098,7 @@ const Patients = () => {
                         <option value="">-- Chọn thuốc --</option>
                         {medicines.map(med => (
                           <option key={med._id} value={med._id} disabled={med.stock <= 0}>
-                            {med.name} - {med.price.toLocaleString('vi-VN')} đ (Tồn: {med.stock} {med.unit || 'Viên'})
+                            {med.name} - {(med.price || 0).toLocaleString('vi-VN')} đ (Tồn: {med.stock} {med.unit || 'Viên'})
                           </option>
                         ))}
                       </select>
@@ -1153,8 +1153,8 @@ const Patients = () => {
                               <td className="p-3 font-semibold text-gray-900">{med.name}</td>
                               <td className="p-3 text-center font-bold">{med.qty}</td>
                               <td className="p-3">{med.unit}</td>
-                              <td className="p-3 text-right font-mono">{med.price.toLocaleString('vi-VN')} đ</td>
-                              <td className="p-3 text-right font-mono text-emerald-600 font-bold">{(med.price * med.qty).toLocaleString('vi-VN')} đ</td>
+                              <td className="p-3 text-right font-mono">{(med.price || 0).toLocaleString('vi-VN')} đ</td>
+                              <td className="p-3 text-right font-mono text-emerald-600 font-bold">{((med.price || 0) * med.qty).toLocaleString('vi-VN')} đ</td>
                               <td className="p-3 text-center">
                                 <button
                                   type="button"
