@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const Medicine = require("../models/Medicine");
 const { adminOrDoctorOnly, protect } = require("../middleware/authMiddleware");
+const { logActivity } = require("../utils/logger");
 
 const router = express.Router();
 
@@ -52,6 +53,8 @@ router.post("/", protect, adminOrDoctorOnly, async (req, res) => {
       expiryDate: new Date(expiryDate),
     });
 
+    logActivity(`Thêm thuốc mới vào kho (${name.trim()})`, `Tài khoản: ${req.user.fullName || req.user.phone}`, req.ip || "127.0.0.1", "Thành công");
+
     return res.status(201).json({ message: "Thêm thuốc mới thành công.", medicine });
   } catch (error) {
     if (error.name === "ValidationError") {
@@ -90,6 +93,8 @@ router.put("/:id", protect, adminOrDoctorOnly, async (req, res) => {
     if (!medicine) {
       return res.status(404).json({ message: "Không tìm thấy thuốc." });
     }
+
+    logActivity(`Cập nhật thông tin thuốc trong kho (${medicine.name})`, `Tài khoản: ${req.user.fullName || req.user.phone}`, req.ip || "127.0.0.1", "Thành công");
 
     return res.json({ message: "Cập nhật thông tin thuốc thành công.", medicine });
   } catch (error) {
@@ -131,6 +136,8 @@ router.patch("/:id", protect, adminOrDoctorOnly, async (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy thuốc." });
     }
 
+    logActivity(`Cập nhật nhanh thông tin thuốc (${medicine.name})`, `Tài khoản: ${req.user.fullName || req.user.phone}`, req.ip || "127.0.0.1", "Thành công");
+
     return res.json({ message: "Cập nhật thành công.", medicine });
   } catch (error) {
     if (error.name === "ValidationError") {
@@ -151,6 +158,8 @@ router.delete("/:id", protect, adminOrDoctorOnly, async (req, res) => {
     if (!medicine) {
       return res.status(404).json({ message: "Không tìm thấy thuốc." });
     }
+
+    logActivity(`Xóa thuốc khỏi kho (${medicine.name})`, `Tài khoản: ${req.user.fullName || req.user.phone}`, req.ip || "127.0.0.1", "Thành công");
 
     return res.json({ message: "Xóa thuốc thành công." });
   } catch (error) {

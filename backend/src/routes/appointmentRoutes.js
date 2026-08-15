@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const Appointment = require("../models/Appointment");
 const { adminOrDoctorOnly, protect } = require("../middleware/authMiddleware");
+const { logActivity } = require("../utils/logger");
 
 const router = express.Router();
 const VALID_STATUSES = ["pending", "approved", "rejected", "completed"];
@@ -120,6 +121,8 @@ router.post("/", async (req, res) => {
       appointmentCode: await createUniqueAppointmentCode(),
       initialFee: req.body.initialFee ? Number(req.body.initialFee) : 150000,
     });
+
+    logActivity(`Đặt lịch khám mới (Mã: ${appointment.appointmentCode})`, `Bệnh nhân: ${appointment.name} (${appointment.phone})`, req.ip || "127.0.0.1", "Thành công");
 
     return res.status(201).json({
       message: "Đặt lịch khám thành công.",
@@ -308,6 +311,8 @@ router.patch("/:id/pay-exam", protect, adminOrDoctorOnly, async (req, res) => {
 
     await appointment.save();
 
+    logActivity(`Thu phí khám ban đầu & Cấp số khám (Mã: ${appointment.appointmentCode}, STT: ${appointment.queueNumber})`, `Thu ngân: ${req.user.fullName || req.user.phone}`, req.ip || "127.0.0.1", "Thành công");
+
     return res.json({
       message: "Thu phí khám và tiếp nhận bệnh nhân thành công.",
       appointment,
@@ -329,6 +334,8 @@ router.delete("/:id", protect, adminOrDoctorOnly, async (req, res) => {
     if (!appointment) {
       return res.status(404).json({ message: "Không tìm thấy lịch hẹn để xóa." });
     }
+
+    logActivity(`Xóa hồ sơ lịch hẹn/bệnh án (Mã: ${appointment.appointmentCode})`, `Tài khoản: ${req.user.fullName || req.user.phone}`, req.ip || "127.0.0.1", "Thành công");
 
     return res.json({
       message: "Xóa lịch hẹn thành công.",
@@ -387,6 +394,8 @@ router.put("/:id/medical-record", protect, adminOrDoctorOnly, async (req, res) =
 
     await appointment.save();
 
+    logActivity(`Bác sĩ cập nhật hồ sơ bệnh án & đơn thuốc (Mã: ${appointment.appointmentCode})`, `Tài khoản: ${req.user.fullName || req.user.phone}`, req.ip || "127.0.0.1", "Thành công");
+
     return res.json({
       message: "Lưu hồ sơ bệnh án và đơn thuốc thành công.",
       appointment,
@@ -419,6 +428,8 @@ router.patch("/:id/pay-prescription", protect, adminOrDoctorOnly, async (req, re
     appointment.prescriptionPaymentMethod = paymentMethod || "Tiền mặt";
 
     await appointment.save();
+
+    logActivity(`Thu ngân thu tiền đơn thuốc (Mã: ${appointment.appointmentCode})`, `Thu ngân: ${req.user.fullName || req.user.phone}`, req.ip || "127.0.0.1", "Thành công");
 
     return res.json({
       message: "Thanh toán hóa đơn thuốc thành công.",

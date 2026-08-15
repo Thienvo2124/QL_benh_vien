@@ -1,6 +1,7 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { User, Building, Shield, FileText, Save, Key, Phone, Mail, MapPin, Clock, CheckCircle, Bell, Activity } from 'lucide-react';
 import { AuthContext } from '../contexts/AuthContext';
+import API_BASE_URL from '../config/api';
 
 const sampleLogs = [
   { id: 'LOG-001', time: '18:55 - 28/06/2026', user: 'Bệnh nhân (bacsi@gmail.com)', action: 'Đăng nhập vào cổng dịch vụ trực tuyến', ip: '192.168.1.45', status: 'Thành công' },
@@ -42,6 +43,35 @@ const Settings = () => {
     setSuccessMsg('Đã lưu toàn bộ thông tin cấu hình thành công!');
     setTimeout(() => setSuccessMsg(''), 5000);
   };
+
+  const [logs, setLogs] = useState([]);
+  const [logsLoading, setLogsLoading] = useState(false);
+
+  const fetchLogs = async () => {
+    setLogsLoading(true);
+    try {
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/users/logs`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setLogs(data);
+      }
+    } catch (err) {
+      console.error('Lỗi khi lấy log:', err);
+    } finally {
+      setLogsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'logs') {
+      fetchLogs();
+    }
+  }, [activeTab]);
 
   return (
     <div className="space-y-8 font-sans">
@@ -391,26 +421,48 @@ const Settings = () => {
                   </tr>
                 </thead>
                 <tbody className="text-sm divide-y divide-gray-100">
-                  {sampleLogs.map((log) => (
-                    <tr key={log.id} className="hover:bg-blue-50/20 transition-colors">
-                      <td className="p-4 font-bold text-[#004e92] text-xs font-mono">{log.id}</td>
-                      <td className="p-4 text-xs font-semibold text-gray-600">{log.time}</td>
-                      <td className="p-4 font-bold text-gray-800 text-xs">{log.user}</td>
-                      <td className="p-4 text-gray-700 text-sm font-medium">{log.action}</td>
-                      <td className="p-4 text-xs font-mono text-gray-500">{log.ip}</td>
-                      <td className="p-4 text-center">
-                        <span className="bg-green-100 text-green-800 border border-green-200 px-2.5 py-1 rounded-full text-xs font-semibold shadow-sm">
-                          {log.status}
-                        </span>
+                  {logsLoading ? (
+                    <tr>
+                      <td colSpan="6" className="p-8 text-center text-gray-500 font-semibold animate-pulse">
+                        Đang tải nhật ký hoạt động...
                       </td>
                     </tr>
-                  ))}
+                  ) : logs.length > 0 ? (
+                    logs.map((log) => (
+                      <tr key={log._id} className="hover:bg-blue-50/20 transition-colors">
+                        <td className="p-4 font-bold text-[#004e92] text-xs font-mono">
+                          LOG-{log._id ? log._id.substring(18).toUpperCase() : 'N/A'}
+                        </td>
+                        <td className="p-4 text-xs font-semibold text-gray-600">
+                          {new Date(log.createdAt).toLocaleString('vi-VN')}
+                        </td>
+                        <td className="p-4 font-bold text-gray-800 text-xs">{log.user}</td>
+                        <td className="p-4 text-gray-700 text-sm font-medium">{log.action}</td>
+                        <td className="p-4 text-xs font-mono text-gray-500">{log.ip}</td>
+                        <td className="p-4 text-center">
+                          <span className={`border px-2.5 py-1 rounded-full text-xs font-semibold shadow-sm ${
+                            log.status === 'Thành công'
+                              ? 'bg-green-100 text-green-800 border-green-200'
+                              : 'bg-red-100 text-red-800 border-red-200'
+                          }`}>
+                            {log.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="6" className="p-8 text-center text-gray-400 italic">
+                        Chưa có hoạt động nào được ghi nhận.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
 
             <div className="pt-4 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500">
-              <span>Đang hiển thị 6 sự kiện thao tác mới nhất trong hệ thống.</span>
+              <span>Đang hiển thị {logs.length} sự kiện thao tác mới nhất trong hệ thống.</span>
               <button 
                 onClick={() => alert('Đang xuất toàn bộ Log hệ thống ra file Excel...')}
                 className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-4 py-2 rounded-xl transition-colors shadow-sm"

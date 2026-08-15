@@ -1,7 +1,19 @@
 const express = require("express");
 const User = require("../models/User");
+const SystemLog = require("../models/SystemLog");
+const { protect, adminOrDoctorOnly } = require("../middleware/authMiddleware");
+const { logActivity } = require("../utils/logger");
 
 const router = express.Router();
+
+router.get("/logs", protect, adminOrDoctorOnly, async (req, res) => {
+  try {
+    const logs = await SystemLog.find().sort({ createdAt: -1 }).limit(100);
+    res.json(logs);
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server khi lấy nhật ký hoạt động", error: error.message });
+  }
+});
 
 router.get("/", async (req, res) => {
   try {
@@ -30,6 +42,8 @@ router.put("/:id/role", async (req, res) => {
     if (!updatedUser) {
       return res.status(404).json({ message: "Không tìm thấy người dùng" });
     }
+
+    logActivity(`Cập nhật vai trò người dùng thành '${role}'`, `Tài khoản: ${updatedUser.fullName || updatedUser.phone}`, req.ip || "127.0.0.1", "Thành công");
 
     res.json({ message: "Cập nhật quyền thành công", user: updatedUser });
   } catch (error) {
@@ -83,6 +97,8 @@ router.put("/:id/profile", async (req, res) => {
     if (!updatedUser) {
       return res.status(404).json({ message: "Không tìm thấy người dùng" });
     }
+
+    logActivity("Cập nhật thông tin chi tiết hồ sơ cá nhân", `Tài khoản: ${updatedUser.fullName || updatedUser.phone}`, req.ip || "127.0.0.1", "Thành công");
 
     res.json({ message: "Cập nhật hồ sơ thành công", user: updatedUser });
   } catch (error) {
