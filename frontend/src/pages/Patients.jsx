@@ -600,6 +600,23 @@ const Patients = () => {
                             setNewPhone(app.phone);
                             setNewDept(app.dept);
                             setNewDoctor(app.doctor || 'BS. CKII Nguyễn Tuấn Lâm');
+                            
+                            // Tự động điền BHYT
+                            const bhytStr = app.bhyt ? String(app.bhyt).trim().toLowerCase() : '';
+                            const hasBhyt = bhytStr !== '' && 
+                                            bhytStr !== 'không có' && 
+                                            bhytStr !== 'không có bhyt' && 
+                                            bhytStr !== 'không' && 
+                                            bhytStr !== 'none' && 
+                                            bhytStr !== 'no';
+                            setNewBhyt(hasBhyt ? 'Có bảo hiểm' : 'Không có bảo hiểm');
+
+                            // Tự động điền các thông tin lâm sàng khác
+                            setNewWeight(app.weight || '');
+                            setNewAddress(app.address || '');
+                            setNewSymptoms(app.reason || '');
+                            setNewDiagnosis('');
+                            setNewTreatment('');
                             setPrescribedMedicines([]);
                             setActiveModal('new');
                           }}
