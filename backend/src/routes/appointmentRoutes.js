@@ -296,11 +296,9 @@ router.patch("/:id/pay-exam", protect, adminOrDoctorOnly, async (req, res) => {
     const dateEnd = new Date(dateStart);
     dateEnd.setDate(dateEnd.getDate() + 1);
 
-    // Tính toán số thứ tự (STT) dựa trên bác sĩ và khoa trong cùng ngày
+    // Tính toán số thứ tự (STT) cấp phát theo ngày (toàn viện) để tránh trùng lặp số
     const count = await Appointment.countDocuments({
       date: { $gte: dateStart, $lt: dateEnd },
-      dept: appointment.dept,
-      doctor: appointment.doctor,
       paymentStatus: "paid",
     });
 
