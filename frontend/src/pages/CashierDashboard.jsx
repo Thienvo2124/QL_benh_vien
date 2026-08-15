@@ -133,7 +133,8 @@ const CashierDashboard = () => {
     reason: 'Đến khám trực tiếp tại quầy',
     autoPay: false,
     hasBHYT: false,
-    bhytCode: ''
+    bhytCode: '',
+    address: ''
   });
 
   // Fetch appointments for reception view
@@ -434,7 +435,8 @@ const CashierDashboard = () => {
           time: registerForm.time,
           reason: registerForm.reason,
           initialFee: getDeptPrice(registerForm.dept),
-          bhyt: registerForm.bhytCode
+          bhyt: registerForm.bhytCode,
+          address: registerForm.address
         })
       });
 
@@ -455,7 +457,8 @@ const CashierDashboard = () => {
           reason: 'Đến khám trực tiếp tại quầy',
           autoPay: false,
           hasBHYT: false,
-          bhytCode: ''
+          bhytCode: '',
+          address: ''
         });
         setDobDay('');
         setDobMonth('');
@@ -1083,6 +1086,17 @@ const CashierDashboard = () => {
                   />
                 </div>
               )}
+
+              <div className="md:col-span-2">
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">Địa chỉ liên hệ</label>
+                <input
+                  type="text"
+                  placeholder="Nhập địa chỉ liên hệ của bệnh nhân..."
+                  value={registerForm.address}
+                  onChange={(e) => setRegisterForm({ ...registerForm, address: e.target.value })}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92] font-semibold"
+                />
+              </div>
 
 
 

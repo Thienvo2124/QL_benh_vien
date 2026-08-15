@@ -79,6 +79,10 @@ const appointmentSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    address: {
+      type: String,
+      default: "",
+    },
     symptoms: {
       type: String,
       default: "",
