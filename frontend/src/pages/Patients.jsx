@@ -237,6 +237,10 @@ const Patients = () => {
   };
 
   const handleOpenEditModal = (rec) => {
+    if (rec.id.startsWith('HS-2026') || rec.id.startsWith('HS-2025')) {
+      alert("Không thể chỉnh sửa hồ sơ bệnh án mẫu / lịch sử (dữ liệu mặc định).");
+      return;
+    }
     setEditingRecordId(rec.id);
     setNewPatientName(rec.patientName);
     setNewAge(rec.age);
@@ -1189,7 +1193,7 @@ const Patients = () => {
                   type="submit"
                   className="bg-[#004e92] hover:bg-blue-800 text-white font-bold px-8 py-3 rounded-2xl transition-colors shadow-lg text-sm"
                 >
-                  Tạo Hồ sơ Bệnh án
+                  {activeModal === 'new' ? 'Tạo Hồ sơ Bệnh án' : 'Lưu thay đổi'}
                 </button>
               </div>
             </form>
