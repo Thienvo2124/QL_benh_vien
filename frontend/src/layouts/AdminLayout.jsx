@@ -1,11 +1,12 @@
 import { useContext, useState } from 'react';
 import { Link, Navigate, Outlet, useLocation } from 'react-router-dom';
-import { Activity, Calendar, Home, LogOut, Settings, Users, Pill, Globe, User, Shield, ChevronDown, Building, FileText, UserCheck, Bot, DollarSign } from 'lucide-react';
+import { Activity, Calendar, Home, LogOut, Settings, Users, Pill, Globe, User, Shield, ChevronDown, Building, FileText, UserCheck, Bot, DollarSign, Clipboard } from 'lucide-react';
 import { AuthContext } from '../contexts/AuthContext';
 
 const pathRoles = {
   '/dashboard/users': ['admin'],
   '/dashboard/medicines': ['admin', 'nurse'],
+  '/dashboard/pharmacy': ['admin', 'nurse'],
   '/dashboard/billing': ['admin', 'cashier'],
   '/dashboard/cashier': ['admin', 'cashier'],
   '/dashboard/patients': ['admin', 'doctor', 'nurse'],
@@ -64,6 +65,13 @@ const AdminLayout = () => {
             <Link to="/dashboard/medicines" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/medicines' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
               <Pill className="w-5 h-5 mr-3" />
               Kho thuốc
+            </Link>
+          )}
+
+          {['admin', 'nurse'].includes(user?.role) && (
+            <Link to="/dashboard/pharmacy" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/pharmacy' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
+              <Clipboard className="w-5 h-5 mr-3" />
+              Quầy Cấp Thuốc
             </Link>
           )}
 

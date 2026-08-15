@@ -440,4 +440,76 @@ router.patch("/:id/pay-prescription", protect, adminOrDoctorOnly, async (req, re
   }
 });
 
+// PATCH /api/appointments/:id/dispense
+// Dược sĩ xác nhận đã cấp phát thuốc cho bệnh nhân và tự động trừ số lượng thuốc trong kho
+router.patch("/:id/dispense", protect, adminOrDoctorOnly, async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "ID lịch hẹn không hợp lệ." });
+    }
+
+    const appointment = await Appointment.findById(req.params.id);
+    if (!appointment) {
+      return res.status(404).json({ message: "Không tìm thấy lịch hẹn." });
+    }
+
+    if (appointment.prescriptionStatus === "none") {
+      return res.status(400).json({ message: "Bệnh nhân này không có đơn thuốc." });
+    }
+
+    if (appointment.prescriptionStatus === "unpaid") {
+      return res.status(400).json({ message: "Đơn thuốc này chưa được thanh toán tại quầy thu ngân." });
+    }
+
+    if (appointment.prescriptionStatus === "dispensed") {
+      return res.status(400).json({ message: "Đơn thuốc này đã được cấp phát rồi." });
+    }
+
+    // Thực hiện trừ kho thuốc
+    const Medicine = require("../models/Medicine");
+    const errors = [];
+    
+    // Kiểm tra hàng tồn kho trước khi trừ
+    for (const item of appointment.prescription) {
+      if (item.medicineId) {
+        const medicine = await Medicine.findById(item.medicineId);
+        if (!medicine) {
+          errors.push(`Không tìm thấy thuốc ${item.name} trong kho.`);
+        } else if (medicine.quantity < item.qty) {
+          errors.push(`Thuốc ${item.name} không đủ số lượng trong kho (Còn: ${medicine.quantity}, Yêu cầu: ${item.qty}).`);
+        }
+      }
+    }
+
+    if (errors.length > 0) {
+      return res.status(400).json({ message: "Kho không đủ thuốc để cấp phát.", errors });
+    }
+
+    // Trừ kho thực tế
+    for (const item of appointment.prescription) {
+      if (item.medicineId) {
+        await Medicine.findByIdAndUpdate(item.medicineId, {
+          $inc: { quantity: -item.qty }
+        });
+      }
+    }
+
+    // Cập nhật trạng thái đơn thuốc
+    appointment.prescriptionStatus = "dispensed";
+    appointment.updatedBy = `${req.user.fullName || 'Dược sĩ'} (${req.user.phone || 'N/A'})`;
+    appointment.updatedByRole = req.user.role || 'nurse';
+
+    await appointment.save();
+
+    logActivity(`Cấp phát đơn thuốc thành công & Trừ kho (Mã: ${appointment.appointmentCode})`, `Dược sĩ: ${req.user.fullName || req.user.phone}`, req.ip || "127.0.0.1", "Thành công");
+
+    return res.json({
+      message: "Cấp phát thuốc thành công và đã cập nhật kho dược.",
+      appointment,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+});
+
 module.exports = router;

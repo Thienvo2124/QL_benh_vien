@@ -110,7 +110,7 @@ const appointmentSchema = new mongoose.Schema(
     ],
     prescriptionStatus: {
       type: String,
-      enum: ["none", "unpaid", "paid"],
+      enum: ["none", "unpaid", "paid", "dispensed"],
       default: "none",
     },
     prescriptionPaymentMethod: {
