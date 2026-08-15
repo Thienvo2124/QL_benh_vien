@@ -220,6 +220,46 @@ const CashierDashboard = () => {
     }
   };
 
+  // Xóa số khám / Hủy tiếp nhận lịch hẹn
+  const handleDeleteAppointment = async (appId, patientName, queueNum) => {
+    const formattedNum = String(queueNum || 0).padStart(2, '0');
+    if (!window.confirm(`Bạn có chắc chắn muốn XÓA số khám ${formattedNum} của bệnh nhân ${patientName}? Lịch hẹn này sẽ bị xóa khỏi hệ thống.`)) {
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/appointments/${appId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      let data = {};
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        data = { message: await response.text() };
+      }
+
+      if (response.ok) {
+        setNotification(`✅ Đã xóa thành công số khám ${formattedNum} của bệnh nhân ${patientName}!`);
+        fetchAppointments();
+        setTimeout(() => setNotification(''), 5000);
+      } else {
+        alert(data.message || "Không thể xóa số khám.");
+      }
+    } catch (error) {
+      console.error("Lỗi khi xóa số khám:", error);
+      alert("Lỗi kết nối máy chủ.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Xem và in lại biên lại đóng phí khám
   const handleRePrintReceipt = (app) => {
     setReceiptData({
@@ -836,12 +876,22 @@ const CashierDashboard = () => {
                           </span>
                         </td>
                         <td className="p-5 text-center">
-                          <button
-                            onClick={() => handleRePrintReceipt(app)}
-                            className="bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white font-bold py-2 px-3.5 rounded-xl transition-all text-xs flex items-center gap-1.5 shadow-sm mx-auto border border-emerald-200 hover:border-transparent"
-                          >
-                            <Printer className="w-3.5 h-3.5" /> In lại biên lai
-                          </button>
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => handleRePrintReceipt(app)}
+                              className="bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white font-bold py-2 px-3 rounded-xl transition-all text-xs flex items-center gap-1.5 shadow-sm border border-emerald-200 hover:border-transparent"
+                              title="In lại biên lai đóng phí"
+                            >
+                              <Printer className="w-3.5 h-3.5" /> Biên lai
+                            </button>
+                            <button
+                              onClick={() => handleDeleteAppointment(app._id, app.name, app.queueNumber)}
+                              className="bg-red-50 hover:bg-red-600 text-red-600 hover:text-white font-bold p-2.5 rounded-xl transition-all shadow-sm border border-red-200 hover:border-transparent flex items-center justify-center"
+                              title="Xóa số khám / Hủy lịch hẹn"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
