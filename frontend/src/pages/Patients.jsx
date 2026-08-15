@@ -340,12 +340,6 @@ const Patients = () => {
         </div>
         <div className="flex items-center gap-4">
           <button
-            onClick={() => alert('Đang xuất toàn bộ CSDL Bệnh án ra file Excel...')}
-            className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-5 py-3 rounded-2xl transition-colors shadow-sm flex items-center gap-2 text-sm"
-          >
-            <FileSpreadsheet className="w-4 h-4 text-green-600" /> Xuất dữ liệu (Excel)
-          </button>
-          <button
             onClick={() => {
               setSelectedWaitingAppId('');
               setNewPatientName('');
