@@ -826,7 +826,7 @@ const CashierDashboard = () => {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-100">
-                    <th className="p-5 font-medium w-16 text-center">STT</th>
+                    <th className="p-5 font-medium w-28 text-center">STT / Mã HĐ</th>
                     <th className="p-5 font-medium">Bệnh nhân & Liên hệ</th>
                     <th className="p-5 font-medium">Khoa điều phối</th>
                     <th className="p-5 font-medium">Bác sĩ phụ trách</th>
@@ -840,9 +840,14 @@ const CashierDashboard = () => {
                     issuedAppointments.map((app) => (
                       <tr key={app._id} className="hover:bg-blue-50/20 transition-colors">
                         <td className="p-5 text-center">
-                          <span className="bg-blue-50 text-[#004e92] text-sm font-black px-3 py-1.5 rounded-xl border border-blue-100 shadow-sm">
-                            {String(app.queueNumber || 0).padStart(2, '0')}
-                          </span>
+                          <div className="flex flex-col items-center gap-1.5 justify-center">
+                            <span className="bg-blue-50 text-[#004e92] text-sm font-black px-3 py-1 rounded-xl border border-blue-100 shadow-sm min-w-[36px] inline-block">
+                              {String(app.queueNumber || 0).padStart(2, '0')}
+                            </span>
+                            <span className="text-[10px] font-bold text-gray-500 font-mono tracking-wider bg-gray-50 border border-gray-100 px-1.5 py-0.5 rounded-md">
+                              {app.appointmentCode || 'N/A'}
+                            </span>
+                          </div>
                         </td>
                         <td className="p-5 font-semibold text-gray-900">
                           <div className="font-bold text-gray-950 flex items-center gap-1.5 text-base">
