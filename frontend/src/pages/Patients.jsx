@@ -106,7 +106,7 @@ const Patients = () => {
   const [newWeight, setNewWeight] = useState('60 kg');
   const [newPhone, setNewPhone] = useState('');
   const [newAddress, setNewAddress] = useState('');
-  const [newBhyt, setNewBhyt] = useState('');
+  const [newBhyt, setNewBhyt] = useState('Không có bảo hiểm');
   const [newDept, setNewDept] = useState('Da liễu & Dị ứng');
   const [newDoctor, setNewDoctor] = useState('BS. CKII Nguyễn Tuấn Lâm');
   const [newSymptoms, setNewSymptoms] = useState('');
@@ -281,7 +281,7 @@ const Patients = () => {
         setNewPatientName('');
         setNewPhone('');
         setNewAddress('');
-        setNewBhyt('');
+        setNewBhyt('Không có bảo hiểm');
         setNewSymptoms('');
         setNewDiagnosis('');
         setNewTreatment('');
@@ -764,6 +764,16 @@ const Patients = () => {
                         setNewPhone(selectedApp.phone);
                         setNewDept(selectedApp.dept);
                         setNewDoctor(selectedApp.doctor || 'BS. CKII Nguyễn Tuấn Lâm');
+                        const hasBhyt = selectedApp.bhyt && selectedApp.bhyt.trim() !== '' && selectedApp.bhyt !== 'Không có';
+                        setNewBhyt(hasBhyt ? 'Có bảo hiểm' : 'Không có bảo hiểm');
+                      } else {
+                        setNewPatientName('');
+                        setNewAge(30);
+                        setNewGender('Nam');
+                        setNewPhone('');
+                        setNewDept('Da liễu & Dị ứng');
+                        setNewDoctor('BS. CKII Nguyễn Tuấn Lâm');
+                        setNewBhyt('Không có bảo hiểm');
                       }
                     }}
                     className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92] font-bold text-[#004e92] cursor-pointer"
@@ -788,10 +798,10 @@ const Patients = () => {
                   <input
                     type="text"
                     required
-                    readOnly
-                    placeholder="Chọn từ danh sách chờ khám..."
+                    placeholder="Nhập họ và tên..."
                     value={newPatientName}
-                    className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-2xl text-sm text-gray-500 focus:outline-none cursor-not-allowed"
+                    onChange={(e) => setNewPatientName(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92]"
                   />
                 </div>
                 
@@ -800,21 +810,23 @@ const Patients = () => {
                   <input
                     type="number"
                     required
-                    readOnly
+                    placeholder="Nhập tuổi..."
                     value={newAge}
-                    className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-2xl text-sm text-gray-500 focus:outline-none cursor-not-allowed"
+                    onChange={(e) => setNewAge(parseInt(e.target.value) || '')}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92]"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Giới tính</label>
-                  <input
-                    type="text"
-                    required
-                    readOnly
+                  <select
                     value={newGender}
-                    className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-2xl text-sm text-gray-500 focus:outline-none cursor-not-allowed"
-                  />
+                    onChange={(e) => setNewGender(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] cursor-pointer"
+                  >
+                    <option value="Nam">Nam</option>
+                    <option value="Nữ">Nữ</option>
+                  </select>
                 </div>
 
                 <div>
@@ -833,9 +845,10 @@ const Patients = () => {
                   <input
                     type="tel"
                     required
-                    readOnly
+                    placeholder="Nhập số điện thoại..."
                     value={newPhone}
-                    className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-2xl text-sm text-gray-500 focus:outline-none cursor-not-allowed"
+                    onChange={(e) => setNewPhone(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92]"
                   />
                 </div>
 
@@ -851,25 +864,30 @@ const Patients = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Mã thẻ BHYT</label>
-                  <input
-                    type="text"
-                    placeholder="Không có BHYT"
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Bảo hiểm y tế</label>
+                  <select
                     value={newBhyt}
                     onChange={(e) => setNewBhyt(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] font-mono uppercase"
-                  />
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] cursor-pointer"
+                  >
+                    <option value="Có bảo hiểm">Có bảo hiểm</option>
+                    <option value="Không có bảo hiểm">Không có bảo hiểm</option>
+                  </select>
                 </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Chuyên khoa khám</label>
-                  <input
-                    type="text"
-                    required
-                    readOnly
+                  <select
                     value={newDept}
-                    className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-2xl text-sm text-gray-500 focus:outline-none cursor-not-allowed"
-                  />
+                    onChange={(e) => setNewDept(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] cursor-pointer"
+                  >
+                    {departments.map((dept) => (
+                      <option key={dept.slug} value={dept.name}>
+                        {dept.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="sm:col-span-2">
@@ -877,9 +895,10 @@ const Patients = () => {
                   <input
                     type="text"
                     required
-                    readOnly
+                    placeholder="Tên bác sĩ phụ trách..."
                     value={newDoctor}
-                    className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-2xl text-sm text-gray-500 focus:outline-none cursor-not-allowed"
+                    onChange={(e) => setNewDoctor(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92]"
                   />
                 </div>
               </div>
