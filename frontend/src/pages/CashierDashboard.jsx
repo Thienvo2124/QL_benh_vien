@@ -448,6 +448,21 @@ const CashierDashboard = () => {
     ...((Array.isArray(prescriptionBills) ? prescriptionBills : []).filter(mock => !dbPrescriptionBills.some(db => db.patientName === mock.patientName)))
   ];
 
+  // Lọc danh sách lịch hẹn cần thu tiền khám
+  const unpaidAppointments = appointmentsArr.filter(app => {
+    if (!app) return false;
+    const name = app.name || '';
+    const phone = app.phone || '';
+    const code = app.appointmentCode || '';
+    
+    const isUnpaid = app.paymentStatus === 'unpaid' && app.status !== 'rejected';
+    const matchesSearch = searchQuery === '' || 
+      name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      phone.includes(searchQuery) ||
+      (code && code.toLowerCase().includes(searchQuery.toLowerCase()));
+    return isUnpaid && matchesSearch;
+  });
+
   // Lọc danh sách lịch hẹn đã đóng phí khám và cấp số khám
   const issuedAppointments = appointmentsArr.filter(app => {
     if (!app) return false;
