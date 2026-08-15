@@ -7,8 +7,6 @@ const navItems = [
   ['/', 'Trang chủ'],
   ['/booking', 'Đặt lịch'],
   ['/my-appointments', 'Lịch hẹn của tôi'],
-  ['/doctors', 'Bác sĩ'],
-  ['/pricing', 'Bảng giá'],
 ];
 
 const Header = () => {
