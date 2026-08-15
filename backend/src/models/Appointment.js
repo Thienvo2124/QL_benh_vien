@@ -75,6 +75,10 @@ const appointmentSchema = new mongoose.Schema(
       enum: ["Tiền mặt", "Chuyển khoản", "Chưa thanh toán"],
       default: "Chưa thanh toán",
     },
+    bhyt: {
+      type: String,
+      default: "",
+    },
     symptoms: {
       type: String,
       default: "",

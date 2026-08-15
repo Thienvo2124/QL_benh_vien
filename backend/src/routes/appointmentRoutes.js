@@ -68,6 +68,7 @@ router.post("/", async (req, res) => {
       date: req.body.date,
       time: normalizeText(req.body.time),
       reason: normalizeText(req.body.reason),
+      bhyt: req.body.bhyt ? normalizeText(req.body.bhyt) : "",
     };
 
     const missingFields = validateRequiredFields(payload);
@@ -120,6 +121,7 @@ router.post("/", async (req, res) => {
       reason: payload.reason,
       appointmentCode: await createUniqueAppointmentCode(),
       initialFee: req.body.initialFee ? Number(req.body.initialFee) : 150000,
+      bhyt: payload.bhyt || "",
     });
 
     logActivity(`Đặt lịch khám mới (Mã: ${appointment.appointmentCode})`, `Bệnh nhân: ${appointment.name} (${appointment.phone})`, req.ip || "127.0.0.1", "Thành công");

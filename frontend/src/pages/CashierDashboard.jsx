@@ -131,7 +131,9 @@ const CashierDashboard = () => {
     date: new Date().toLocaleDateString('sv-SE'),
     time: getCurrentTimeStr(),
     reason: 'Đến khám trực tiếp tại quầy',
-    autoPay: false
+    autoPay: false,
+    hasBHYT: false,
+    bhytCode: ''
   });
 
   // Fetch appointments for reception view
@@ -431,7 +433,8 @@ const CashierDashboard = () => {
           date: registerForm.date,
           time: registerForm.time,
           reason: registerForm.reason,
-          initialFee: getDeptPrice(registerForm.dept)
+          initialFee: getDeptPrice(registerForm.dept),
+          bhyt: registerForm.bhytCode
         })
       });
 
@@ -450,7 +453,9 @@ const CashierDashboard = () => {
           date: new Date().toLocaleDateString('sv-SE'),
           time: getCurrentTimeStr(),
           reason: 'Đến khám trực tiếp tại quầy',
-          autoPay: false
+          autoPay: false,
+          hasBHYT: false,
+          bhytCode: ''
         });
         setDobDay('');
         setDobMonth('');
@@ -1049,6 +1054,36 @@ const CashierDashboard = () => {
                 />
               </div>
 
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">Có Bảo hiểm y tế không?</label>
+                <select
+                  value={registerForm.hasBHYT ? 'yes' : 'no'}
+                  onChange={(e) => setRegisterForm({ 
+                    ...registerForm, 
+                    hasBHYT: e.target.value === 'yes',
+                    bhytCode: e.target.value === 'no' ? '' : registerForm.bhytCode 
+                  })}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92] cursor-pointer font-semibold"
+                >
+                  <option value="no">Không có BHYT</option>
+                  <option value="yes">Có BHYT</option>
+                </select>
+              </div>
+
+              {registerForm.hasBHYT && (
+                <div>
+                  <label className="block text-xs font-bold text-[#004e92] mb-1.5">Mã số thẻ BHYT *</label>
+                  <input
+                    type="text"
+                    required={registerForm.hasBHYT}
+                    placeholder="Nhập mã thẻ BHYT (VD: GD479...)"
+                    value={registerForm.bhytCode}
+                    onChange={(e) => setRegisterForm({ ...registerForm, bhytCode: e.target.value.toUpperCase() })}
+                    className="w-full px-4 py-3 bg-blue-50/50 border border-[#004e92]/30 rounded-xl text-sm focus:outline-none focus:border-[#004e92] font-bold text-[#004e92] uppercase"
+                  />
+                </div>
+              )}
+
 
 
 
@@ -1287,7 +1322,7 @@ const CashierDashboard = () => {
                               <Phone size={12} className="text-gray-400" /> {app.phone}
                             </div>
                             <div className="text-xs text-gray-400 mt-0.5">
-                              NS: {formatDateSafe(app.dob)} | GT: {app.gender || 'Nam'}
+                              NS: {formatDateSafe(app.dob)} | GT: {app.gender || 'Nam'} | BHYT: <span className="font-semibold text-gray-700">{app.bhyt || 'Không'}</span>
                             </div>
                           </td>
                           <td className="p-5">
