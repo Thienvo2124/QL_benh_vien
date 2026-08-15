@@ -530,7 +530,6 @@ const Patients = () => {
                   <th className="p-5 font-medium">Bệnh nhân & Định danh</th>
                   <th className="p-5 font-medium">Chuyên khoa / Bác sĩ</th>
                   <th className="p-5 font-medium">Chẩn đoán sơ bộ</th>
-                  <th className="p-5 font-medium w-36 text-center">Trạng thái</th>
                   <th className="p-5 font-medium w-36 text-center">Thao tác</th>
                 </tr>
               </thead>
@@ -571,17 +570,6 @@ const Patients = () => {
                         </div>
                       </td>
                       <td className="p-5 text-center">
-                        <span className={`px-3 py-1.5 rounded-full text-xs font-bold border inline-block shadow-sm ${
-                          rec.status === 'Đang điều trị'
-                            ? 'bg-amber-50 text-amber-700 border-amber-200'
-                            : rec.status === 'Đã khỏi'
-                            ? 'bg-green-50 text-green-700 border-green-200'
-                            : 'bg-blue-50 text-blue-700 border-blue-200'
-                        }`}>
-                          {rec.status}
-                        </span>
-                      </td>
-                      <td className="p-5 text-center">
                         <div className="flex items-center justify-center gap-2">
                           <button
                             onClick={() => { setCurrentRecord(rec); setActiveModal('view'); }}
@@ -603,7 +591,7 @@ const Patients = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="7" className="p-12 text-center text-gray-400">
+                    <td colSpan="6" className="p-12 text-center text-gray-400">
                       Không tìm thấy hồ sơ bệnh án nào phù hợp với bộ lọc.
                     </td>
                   </tr>
