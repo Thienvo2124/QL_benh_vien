@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { 
   DollarSign, Search, User, Calendar, Phone, Activity, Pill, 
   Printer, CheckCircle, AlertCircle, RefreshCw, CreditCard, 
-  ArrowRight, Users, PlusCircle, Check, X, Tag, FileText
+  ArrowRight, Users, PlusCircle, Check, X, Tag, FileText, Trash2
 } from 'lucide-react';
 import departments from '../data/departments';
 
@@ -1317,28 +1317,38 @@ const CashierDashboard = () => {
                             </span>
                           </td>
                           <td className="p-5 text-center">
-                            <button
-                              onClick={() => {
-                                setReceiptData({
-                                  type: 'exam',
-                                  code: app.appointmentCode,
-                                  patientName: app.name,
-                                  phone: app.phone,
-                                  dob: app.dob,
-                                  paymentMethod: app.paymentMethod === 'Chưa thanh toán' ? 'Tiền mặt' : app.paymentMethod,
-                                  queueNumber: app.queueNumber || 1,
-                                  dept: app.dept,
-                                  doctor: app.doctor,
-                                  time: app.time,
-                                  date: app.date,
-                                  fee: app.initialFee || 150000,
-                                });
-                                setShowReceiptModal(true);
-                              }}
-                              className="px-3 py-1.5 bg-gray-50 hover:bg-blue-50 text-gray-600 hover:text-blue-700 rounded-xl transition-all text-xs border border-gray-200 hover:border-blue-200 font-bold flex items-center justify-center gap-1 mx-auto"
-                            >
-                              <Printer className="w-3.5 h-3.5" /> In lại phiếu
-                            </button>
+                            <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+                              <button
+                                onClick={() => {
+                                  setReceiptData({
+                                    type: 'exam',
+                                    code: app.appointmentCode,
+                                    patientName: app.name,
+                                    phone: app.phone,
+                                    dob: app.dob,
+                                    paymentMethod: app.paymentMethod === 'Chưa thanh toán' ? 'Tiền mặt' : app.paymentMethod,
+                                    queueNumber: app.queueNumber || 1,
+                                    dept: app.dept,
+                                    doctor: app.doctor,
+                                    time: app.time,
+                                    date: app.date,
+                                    fee: app.initialFee || 150000,
+                                  });
+                                  setShowReceiptModal(true);
+                                }}
+                                className="px-3 py-1.5 bg-gray-50 hover:bg-blue-50 text-gray-600 hover:text-blue-700 rounded-xl transition-all text-xs border border-gray-200 hover:border-blue-200 font-bold flex items-center justify-center gap-1"
+                              >
+                                <Printer className="w-3.5 h-3.5" /> In lại phiếu
+                              </button>
+                              
+                              <button
+                                onClick={() => handleDeleteAppointment(app._id, app.name, app.queueNumber)}
+                                className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-all text-xs border border-red-100 hover:border-red-200 font-bold flex items-center justify-center gap-1"
+                                title="Xóa tiếp nhận lịch khám"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" /> Xóa
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
