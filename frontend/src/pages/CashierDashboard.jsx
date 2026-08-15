@@ -109,6 +109,11 @@ const CashierDashboard = () => {
   // Filter States for Issued Tab
   const [issuedDeptFilter, setIssuedDeptFilter] = useState('Tất cả');
   const [issuedStatusFilter, setIssuedStatusFilter] = useState('Tất cả');
+
+  // Filter States for Info Tab
+  const [infoDeptFilter, setInfoDeptFilter] = useState('Tất cả');
+  const [infoTypeFilter, setInfoTypeFilter] = useState('Tất cả');
+  const [infoPaidFilter, setInfoPaidFilter] = useState('Tất cả');
   
   // DOB Select States
   const [dobDay, setDobDay] = useState('');
@@ -552,13 +557,26 @@ const CashierDashboard = () => {
     const phone = app.phone || '';
     const code = app.appointmentCode || '';
     const dept = app.dept || '';
+    const paymentStatus = app.paymentStatus || 'unpaid';
+    const isWalkIn = app.reason === 'Đến khám trực tiếp tại quầy' || !app.reason;
     
     const matchesSearch = infoSearchQuery === '' || 
       name.toLowerCase().includes(infoSearchQuery.toLowerCase()) ||
       phone.includes(infoSearchQuery) ||
       (code && code.toLowerCase().includes(infoSearchQuery.toLowerCase())) ||
       (dept && dept.toLowerCase().includes(infoSearchQuery.toLowerCase()));
-    return matchesSearch;
+
+    const matchesDept = infoDeptFilter === 'Tất cả' || dept === infoDeptFilter;
+    
+    const matchesType = infoTypeFilter === 'Tất cả' || 
+      (infoTypeFilter === 'Vãng lai' && isWalkIn) ||
+      (infoTypeFilter === 'Đặt trước' && !isWalkIn);
+      
+    const matchesPaid = infoPaidFilter === 'Tất cả' || 
+      (infoPaidFilter === 'Đã thanh toán' && paymentStatus === 'paid') ||
+      (infoPaidFilter === 'Chưa thanh toán' && paymentStatus === 'unpaid');
+
+    return matchesSearch && matchesDept && matchesType && matchesPaid;
   });
 
   // Thống kê doanh thu nhanh (chỉ tính các hóa đơn đã thu trong session hiện tại)
@@ -1189,8 +1207,52 @@ const CashierDashboard = () => {
               />
             </div>
             
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Chuyên khoa:</span>
+                <select
+                  value={infoDeptFilter}
+                  onChange={(e) => setInfoDeptFilter(e.target.value)}
+                  className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-[#004e92] cursor-pointer"
+                >
+                  <option value="Tất cả">Tất cả chuyên khoa</option>
+                  {departments.map((dept) => (
+                    <option key={dept.slug} value={dept.name}>
+                      {dept.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Loại hình:</span>
+                <select
+                  value={infoTypeFilter}
+                  onChange={(e) => setInfoTypeFilter(e.target.value)}
+                  className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-[#004e92] cursor-pointer"
+                >
+                  <option value="Tất cả">Tất cả</option>
+                  <option value="Vãng lai">🚶 Vãng lai</option>
+                  <option value="Đặt trước">🌐 Đặt trước</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Thanh toán:</span>
+                <select
+                  value={infoPaidFilter}
+                  onChange={(e) => setInfoPaidFilter(e.target.value)}
+                  className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-[#004e92] cursor-pointer"
+                >
+                  <option value="Tất cả">Tất cả</option>
+                  <option value="Đã thanh toán">Đã thanh toán</option>
+                  <option value="Chưa thanh toán">Chưa thanh toán</option>
+                </select>
+              </div>
+            </div>
+
             <div className="text-sm text-gray-500 font-semibold">
-              Tổng số tiếp nhận hôm nay: <strong className="text-gray-900">{appointmentsArr.length} bệnh nhân</strong>
+              Kết quả lọc: <strong className="text-gray-900">{allAppointmentsFiltered.length} / {appointmentsArr.length} bệnh nhân</strong>
             </div>
           </div>
 
