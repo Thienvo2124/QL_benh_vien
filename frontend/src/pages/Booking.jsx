@@ -38,11 +38,6 @@ const Booking = () => {
   const [aiSuggesting, setAiSuggesting] = useState(false);
   const [suggestedDept, setSuggestedDept] = useState(null);
 
-  // Day/Month/Year dropdown states for date of birth
-  const [dobDay, setDobDay] = useState('');
-  const [dobMonth, setDobMonth] = useState('');
-  const [dobYear, setDobYear] = useState('');
-
   // UMC UI states: Address, Captcha, BuoiKham
   const [address, setAddress] = useState('');
   const [captcha, setCaptcha] = useState('');
@@ -76,15 +71,6 @@ const Booking = () => {
       if (user.bhytCode) {
         setHasBHYT(true);
       }
-      // Điền trực tiếp vào các ô chọn ngày sinh nếu user có ngày sinh
-      if (user.birthDate) {
-        const parts = user.birthDate.split('-');
-        if (parts.length === 3) {
-          setDobYear(parts[0]);
-          setDobMonth(parts[1]);
-          setDobDay(parts[2]);
-        }
-      }
     } else if (!isForSelf) {
       // Clear thông tin khi chọn đặt cho người thân
       setForm((prev) => ({
@@ -96,9 +82,6 @@ const Booking = () => {
         bhyt: '',
       }));
       setHasBHYT(false);
-      setDobDay('');
-      setDobMonth('');
-      setDobYear('');
     }
   }, [user, isForSelf]);
 
@@ -174,14 +157,7 @@ const Booking = () => {
     // Validations
     if (!form.name.trim()) return setError('Vui lòng nhập Họ và tên.');
     if (!form.phone.trim()) return setError('Vui lòng nhập Số điện thoại.');
-    
-    // Kiểm tra Ngày sinh từ các ô chọn dropdown
-    let dobValue = '';
-    if (dobDay && dobMonth && dobYear) {
-      dobValue = `${dobYear}-${dobMonth}-${dobDay}`;
-    }
-    if (!dobValue) return setError('Vui lòng chọn đầy đủ Ngày sinh.');
-    
+    if (!form.dob) return setError('Vui lòng chọn Ngày sinh.');
     if (!form.gender) return setError('Vui lòng chọn Giới tính.');
     if (hasBHYT && !form.bhyt.trim()) return setError('Vui lòng nhập Mã số thẻ BHYT.');
     if (!form.dept) return setError('Vui lòng chọn Chuyên khoa khám.');
@@ -196,7 +172,6 @@ const Booking = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
-          dob: dobValue, // Gửi dobValue xây dựng động từ các ô chọn
           doctor: form.doctor || 'Hệ thống tự phân công'
         }),
       });
@@ -369,40 +344,12 @@ const Booking = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-bold text-gray-700 mb-1.5">Ngày sinh *</label>
-                      <div className="grid grid-cols-3 gap-2">
-                        <select
-                          className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:border-[#004e92] font-semibold bg-white cursor-pointer"
-                          value={dobDay}
-                          onChange={(e) => setDobDay(e.target.value)}
-                        >
-                          <option value="">Ngày</option>
-                          {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => {
-                            const val = String(d).padStart(2, '0');
-                            return <option key={d} value={val}>{d}</option>;
-                          })}
-                        </select>
-                        <select
-                          className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:border-[#004e92] font-semibold bg-white cursor-pointer"
-                          value={dobMonth}
-                          onChange={(e) => setDobMonth(e.target.value)}
-                        >
-                          <option value="">Tháng</option>
-                          {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => {
-                            const val = String(m).padStart(2, '0');
-                            return <option key={m} value={val}>Tháng {m}</option>;
-                          })}
-                        </select>
-                        <select
-                          className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:border-[#004e92] font-semibold bg-white cursor-pointer"
-                          value={dobYear}
-                          onChange={(e) => setDobYear(e.target.value)}
-                        >
-                          <option value="">Năm</option>
-                          {Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i).map((y) => (
-                            <option key={y} value={String(y)}>{y}</option>
-                          ))}
-                        </select>
-                      </div>
+                      <input
+                        type="date"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] transition-colors bg-white font-semibold text-gray-700 cursor-pointer"
+                        value={form.dob}
+                        onChange={(e) => set('dob', e.target.value)}
+                      />
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-gray-700 mb-1.5">Số điện thoại *</label>
