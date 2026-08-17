@@ -36,19 +36,10 @@ const Booking = () => {
   const [aiSuggesting, setAiSuggesting] = useState(false);
   const [suggestedDept, setSuggestedDept] = useState(null);
 
-  // Hàm tiện ích tách ngày/tháng/năm từ form.dob
-  const getDobParts = () => {
-    if (!form.dob) return { day: '', month: '', year: '' };
-    const parts = form.dob.split('-');
-    if (parts.length !== 3) return { day: '', month: '', year: '' };
-    return {
-      year: parts[0],
-      month: parseInt(parts[1], 10).toString(),
-      day: parseInt(parts[2], 10).toString(),
-    };
-  };
-
-  const { day: dobDay, month: dobMonth, year: dobYear } = getDobParts();
+  // Day/Month/Year dropdown states for date of birth
+  const [dobDay, setDobDay] = useState('');
+  const [dobMonth, setDobMonth] = useState('');
+  const [dobYear, setDobYear] = useState('');
 
   // UMC UI states: Address, Captcha, BuoiKham
   const [address, setAddress] = useState('');
@@ -69,16 +60,22 @@ const Booking = () => {
     generateCaptcha();
   }, []);
 
-  // Cập nhật form.dob trực tiếp từ việc thay đổi của từng ô chọn
+  // Cập nhật nguyên tử dobDay/dobMonth/dobYear và form.dob
   const handleDobChange = (type, value) => {
-    const { day, month, year } = getDobParts();
-    let newDay = day;
-    let newMonth = month;
-    let newYear = year;
+    let newDay = dobDay;
+    let newMonth = dobMonth;
+    let newYear = dobYear;
 
-    if (type === 'day') newDay = value;
-    if (type === 'month') newMonth = value;
-    if (type === 'year') newYear = value;
+    if (type === 'day') {
+      newDay = value;
+      setDobDay(value);
+    } else if (type === 'month') {
+      newMonth = value;
+      setDobMonth(value);
+    } else if (type === 'year') {
+      newYear = value;
+      setDobYear(value);
+    }
 
     if (newDay && newMonth && newYear) {
       const formattedDob = `${newYear}-${newMonth.padStart(2, '0')}-${newDay.padStart(2, '0')}`;
@@ -91,6 +88,21 @@ const Booking = () => {
       }
     }
   };
+
+  // Đồng bộ form.dob ngược về dropdowns (chỉ khi có giá trị hợp lệ từ bên ngoài điền vào)
+  useEffect(() => {
+    if (form.dob) {
+      const parts = form.dob.split('-');
+      if (parts.length === 3) {
+        const y = parts[0];
+        const m = parseInt(parts[1], 10).toString();
+        const d = parseInt(parts[2], 10).toString();
+        if (y !== dobYear) setDobYear(y);
+        if (m !== dobMonth) setDobMonth(m);
+        if (d !== dobDay) setDobDay(d);
+      }
+    }
+  }, [form.dob]);
 
   // Điền tự động thông tin từ tài khoản đăng nhập khi vào trang
   useEffect(() => {
@@ -548,6 +560,9 @@ const Booking = () => {
                     generateCaptcha();
                     setCode('');
                     setError('');
+                    setDobDay('');
+                    setDobMonth('');
+                    setDobYear('');
                   }}
                   className="px-6 py-3 border-2 border-[#004e92] text-[#004e92] font-bold rounded-xl hover:bg-blue-50 transition-colors text-sm"
                 >
