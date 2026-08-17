@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Clock, CheckCircle, XCircle, RefreshCw, AlertTriangle, User, Phone, Eye, X, FileText, Sparkles } from 'lucide-react';
+import { Calendar, Clock, CheckCircle, XCircle, RefreshCw, AlertTriangle, User, Phone, Eye, X, FileText, Sparkles, Search } from 'lucide-react';
 import { AuthContext } from '../contexts/AuthContext';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -12,6 +12,20 @@ const MyAppointments = () => {
   const [loading, setLoading] = useState(true);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
+  
+  // Bộ lọc và Tìm kiếm
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  const filteredAppointments = appointments.filter((app) => {
+    const matchesStatus = statusFilter === 'all' || app.status === statusFilter;
+    const matchesSearch =
+      !searchTerm ||
+      (app.name && app.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (app.dept && app.dept.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (app.appointmentCode && app.appointmentCode.toLowerCase().includes(searchTerm.toLowerCase()));
+    return matchesStatus && matchesSearch;
+  });
 
   const fetchMyAppointments = useCallback(async () => {
     setLoading(true);
@@ -192,6 +206,75 @@ const MyAppointments = () => {
             </button>
           </div>
 
+          {/* Bộ lọc và Tìm kiếm */}
+          <div className="flex flex-col lg:flex-row gap-4 mb-6 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+            {/* Tìm kiếm */}
+            <div className="flex-1 relative">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Tìm theo Mã lịch, Tên bệnh nhân hoặc Chuyên khoa..."
+                className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#004e92] transition-colors font-semibold"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            
+            {/* Bộ lọc trạng thái */}
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setStatusFilter('all')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  statusFilter === 'all'
+                    ? 'bg-[#004e92] text-white shadow-md'
+                    : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Tất cả ({appointments.length})
+              </button>
+              <button
+                onClick={() => setStatusFilter('pending')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  statusFilter === 'pending'
+                    ? 'bg-amber-500 text-white shadow-md'
+                    : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Chờ xác nhận ({appointments.filter(a => a.status === 'pending').length})
+              </button>
+              <button
+                onClick={() => setStatusFilter('approved')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  statusFilter === 'approved'
+                    ? 'bg-green-600 text-white shadow-md'
+                    : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Đã duyệt ({appointments.filter(a => a.status === 'approved').length})
+              </button>
+              <button
+                onClick={() => setStatusFilter('completed')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  statusFilter === 'completed'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Đã khám ({appointments.filter(a => a.status === 'completed').length})
+              </button>
+              <button
+                onClick={() => setStatusFilter('rejected')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  statusFilter === 'rejected'
+                    ? 'bg-red-600 text-white shadow-md'
+                    : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Đã hủy ({appointments.filter(a => a.status === 'rejected').length})
+              </button>
+            </div>
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
@@ -225,8 +308,17 @@ const MyAppointments = () => {
                       </div>
                     </td>
                   </tr>
+                ) : filteredAppointments.length === 0 ? (
+                  <tr>
+                    <td colSpan="5" className="p-16 text-center text-gray-500 font-medium">
+                      <div className="flex flex-col items-center justify-center gap-3">
+                        <AlertTriangle className="w-10 h-10 text-gray-400" />
+                        <span className="text-base">Không tìm thấy lịch hẹn nào khớp với bộ lọc của bạn.</span>
+                      </div>
+                    </td>
+                  </tr>
                 ) : (
-                  appointments.map((app, index) => (
+                  filteredAppointments.map((app, index) => (
                     <tr key={app._id || index} className="hover:bg-blue-50/20 transition-colors">
                       <td className="p-4 font-bold text-gray-700 text-center">{index + 1}</td>
                       <td className="p-4">
