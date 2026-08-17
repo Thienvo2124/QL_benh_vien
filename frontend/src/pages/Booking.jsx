@@ -474,21 +474,18 @@ const Booking = () => {
                       max={maxDate}
                       className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] transition-colors bg-white cursor-pointer font-semibold text-gray-700"
                       value={form.date}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (!val) {
-                          set('date', '');
-                          return;
-                        }
-                        const d = new Date(val);
-                        if (d.getDay() === 0) {
-                          alert("Bệnh viện không làm việc vào Chủ Nhật. Vui lòng chọn ngày khác từ Thứ Hai đến Thứ Bảy!");
-                          set('date', '');
-                        } else {
-                          set('date', val);
-                        }
-                      }}
+                      onChange={(e) => set('date', e.target.value)}
                     />
+                    <div className="mt-1.5 space-y-1">
+                      <p className="text-[11px] text-gray-500 font-semibold">
+                        * Lưu ý: Bệnh viện hoạt động từ Thứ Hai đến Thứ Bảy và <strong className="text-[#004e92]">BUỔI SÁNG Chủ Nhật</strong>.
+                      </p>
+                      {form.date && new Date(form.date).getDay() === 0 && (
+                        <p className="text-[11px] text-amber-600 font-bold flex items-center gap-1">
+                          ⚠️ Bạn đã chọn Chủ Nhật. Lịch khám sẽ tự động được xếp vào buổi sáng.
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   {/* Triệu chứng */}
