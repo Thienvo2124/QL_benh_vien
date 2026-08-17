@@ -381,7 +381,7 @@ const Booking = () => {
                         >
                           <option value="">Ngày</option>
                           {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
-                            <option key={d} value={d}>{d}</option>
+                            <option key={d} value={String(d)}>{d}</option>
                           ))}
                         </select>
                         <select
@@ -391,7 +391,7 @@ const Booking = () => {
                         >
                           <option value="">Tháng</option>
                           {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                            <option key={m} value={m}>Tháng {m}</option>
+                            <option key={m} value={String(m)}>Tháng {m}</option>
                           ))}
                         </select>
                         <select
@@ -401,7 +401,7 @@ const Booking = () => {
                         >
                           <option value="">Năm</option>
                           {Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i).map((y) => (
-                            <option key={y} value={y}>{y}</option>
+                            <option key={y} value={String(y)}>{y}</option>
                           ))}
                         </select>
                       </div>
