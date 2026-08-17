@@ -798,8 +798,8 @@ const Billing = () => {
 
       {/* MODAL IN PHIẾU THU THỰC TẾ (HỖ TRỢ IN KHÁCH HÀNG) */}
       {showReceiptModal && receiptData && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[9999] print:static print:bg-white print:p-0">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden flex flex-col max-h-[90vh] print:max-h-full print:shadow-none print:w-full print:rounded-none">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[9999] print:absolute print:inset-0 print:bg-white print:p-0 print-modal-parent">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden flex flex-col max-h-[90vh] print:max-h-full print:shadow-none print:w-full print:rounded-none print-modal-content">
             
             {/* Header Modal (Ẩn khi in) */}
             <div className="bg-gray-100 p-4 border-b border-gray-200 flex justify-between items-center print:hidden">

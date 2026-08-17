@@ -14,3 +14,52 @@
 .animate-slider {
   animation: slideInFade 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
+
+/* Cấu hình in ấn khổ K80 (80mm) cho Hóa đơn / Phiếu thu */
+@media print {
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+  html, body {
+    width: 80mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  /* Ẩn toàn bộ giao diện app chính ngoài modal in */
+  #root > *:not(.print-modal-parent) {
+    display: none !important;
+  }
+  /* Đảm bảo khung cha modal in chiếm trọn khổ K80 */
+  .print-modal-parent {
+    position: absolute !important;
+    inset: 0 !important;
+    background: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+    width: 80mm !important;
+    height: auto !important;
+    min-height: 100% !important;
+  }
+  /* Nội dung biên lai in */
+  .print-modal-content {
+    width: 80mm !important;
+    max-width: 80mm !important;
+    padding: 15px !important;
+    box-sizing: border-box !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    background: #ffffff !important;
+  }
+  #receipt-print-area {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}

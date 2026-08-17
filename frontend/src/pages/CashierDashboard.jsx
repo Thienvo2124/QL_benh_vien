@@ -1422,8 +1422,8 @@ const CashierDashboard = () => {
 
       {/* MODAL: IN BIÊN LAI / HÓA ĐƠN KÈM PHIẾU XẾP HÀNG */}
       {showReceiptModal && receiptData && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto animate-fadeIn print:absolute print:inset-0 print:bg-white print:p-0">
-          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl p-6 relative border border-gray-100 print:shadow-none print:border-none print:p-0">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto animate-fadeIn print:absolute print:inset-0 print:bg-white print:p-0 print-modal-parent">
+          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl p-6 relative border border-gray-100 print:shadow-none print:border-none print:p-0 print-modal-content">
             <button 
               onClick={() => setShowReceiptModal(false)}
               className="absolute top-4 right-4 bg-gray-100 hover:bg-red-50 text-gray-500 hover:text-red-600 p-2 rounded-full transition-colors print:hidden"
