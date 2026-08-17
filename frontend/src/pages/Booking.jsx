@@ -89,21 +89,6 @@ const Booking = () => {
     }
   };
 
-  // Đồng bộ form.dob ngược về dropdowns (chỉ khi có giá trị hợp lệ từ bên ngoài điền vào)
-  useEffect(() => {
-    if (form.dob) {
-      const parts = form.dob.split('-');
-      if (parts.length === 3) {
-        const y = parts[0];
-        const m = parts[1]; // Giữ nguyên dạng 2 chữ số (ví dụ: "04")
-        const d = parts[2]; // Giữ nguyên dạng 2 chữ số (ví dụ: "18")
-        if (y !== dobYear) setDobYear(y);
-        if (m !== dobMonth) setDobMonth(m);
-        if (d !== dobDay) setDobDay(d);
-      }
-    }
-  }, [form.dob]);
-
   // Điền tự động thông tin từ tài khoản đăng nhập khi vào trang
   useEffect(() => {
     if (user && isForSelf) {
@@ -114,6 +99,16 @@ const Booking = () => {
         dob: user.birthDate || '',
         gender: user.gender || '',
       }));
+      
+      // Điền trực tiếp vào các ô chọn ngày sinh nếu user có ngày sinh
+      if (user.birthDate) {
+        const parts = user.birthDate.split('-');
+        if (parts.length === 3) {
+          setDobYear(parts[0]);
+          setDobMonth(parts[1]);
+          setDobDay(parts[2]);
+        }
+      }
     } else if (!isForSelf) {
       // Clear thông tin khi chọn đặt cho người thân
       setForm((prev) => ({
@@ -123,6 +118,9 @@ const Booking = () => {
         dob: '',
         gender: '',
       }));
+      setDobDay('');
+      setDobMonth('');
+      setDobYear('');
     }
   }, [user, isForSelf]);
 
