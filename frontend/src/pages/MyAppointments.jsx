@@ -223,16 +223,6 @@ const MyAppointments = () => {
             {/* Bộ lọc trạng thái */}
             <div className="flex flex-wrap gap-2">
               <button
-                onClick={() => setStatusFilter('all')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                  statusFilter === 'all'
-                    ? 'bg-[#004e92] text-white shadow-md'
-                    : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                Tất cả ({appointments.length})
-              </button>
-              <button
                 onClick={() => setStatusFilter('pending')}
                 className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                   statusFilter === 'pending'
@@ -271,6 +261,16 @@ const MyAppointments = () => {
                 }`}
               >
                 Đã hủy ({appointments.filter(a => a.status === 'rejected').length})
+              </button>
+              <button
+                onClick={() => setStatusFilter('all')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  statusFilter === 'all'
+                    ? 'bg-[#004e92] text-white shadow-md'
+                    : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Tất cả ({appointments.length})
               </button>
             </div>
           </div>
