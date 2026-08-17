@@ -29,21 +29,26 @@
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
-  /* Ẩn toàn bộ giao diện app chính ngoài modal in */
-  #root > *:not(.print-modal-parent) {
-    display: none !important;
+  /* Ẩn toàn bộ giao diện thông thường bằng visibility */
+  body {
+    visibility: hidden !important;
   }
-  /* Đảm bảo khung cha modal in chiếm trọn khổ K80 */
+  /* Chỉ hiển thị modal in */
+  .print-modal-parent,
+  .print-modal-parent * {
+    visibility: visible !important;
+  }
+  /* Đảm bảo khung cha modal in chiếm trọn khổ K80 và định vị ở góc trên cùng */
   .print-modal-parent {
     position: absolute !important;
-    inset: 0 !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 80mm !important;
+    height: auto !important;
     background: #ffffff !important;
     padding: 0 !important;
     margin: 0 !important;
     display: block !important;
-    width: 80mm !important;
-    height: auto !important;
-    min-height: 100% !important;
   }
   /* Nội dung biên lai in */
   .print-modal-content {
