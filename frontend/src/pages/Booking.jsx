@@ -19,7 +19,7 @@ const initialForm = {
   dept: '',
   doctor: '',
   date: '',
-  time: '',
+  time: 'Trong ngày',
   reason: '',
 };
 
@@ -465,62 +465,30 @@ const Booking = () => {
                     </select>
                   </div>
 
-                  {/* Ngày khám, Buổi khám, Giờ khám */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-gray-700 mb-1.5">Ngày khám bệnh *</label>
-                      <input
-                        type="date"
-                        min={minDate}
-                        max={maxDate}
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] transition-colors bg-white cursor-pointer font-semibold text-gray-700"
-                        value={form.date}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          if (!val) {
-                            set('date', '');
-                            return;
-                          }
-                          const d = new Date(val);
-                          if (d.getDay() === 0) {
-                            alert("Bệnh viện không làm việc vào Chủ Nhật. Vui lòng chọn ngày khác từ Thứ Hai đến Thứ Bảy!");
-                            set('date', '');
-                          } else {
-                            set('date', val);
-                          }
-                        }}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-gray-700 mb-1.5">Buổi khám *</label>
-                      <select
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] transition-colors bg-white cursor-pointer font-semibold"
-                        value={buoiKham}
-                        onChange={(e) => {
-                          setBuoiKham(e.target.value);
-                          set('time', ''); // Reset giờ
-                        }}
-                      >
-                        <option value="Sáng">☀️ Buổi sáng</option>
-                        <option value="Chiều">⛅ Buổi chiều</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-gray-700 mb-1.5">Giờ khám bệnh *</label>
-                      <select
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] transition-colors bg-white cursor-pointer font-medium disabled:bg-gray-50 disabled:cursor-not-allowed"
-                        value={form.time}
-                        disabled={!form.date}
-                        onChange={(e) => set('time', e.target.value)}
-                      >
-                        <option value="">-- Chọn khung giờ --</option>
-                        {(buoiKham === 'Sáng' ? morningTimes : afternoonTimes).map((t) => (
-                          <option key={t} value={t}>{t}</option>
-                        ))}
-                      </select>
-                    </div>
+                  {/* Ngày khám */}
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Ngày khám bệnh *</label>
+                    <input
+                      type="date"
+                      min={minDate}
+                      max={maxDate}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] transition-colors bg-white cursor-pointer font-semibold text-gray-700"
+                      value={form.date}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (!val) {
+                          set('date', '');
+                          return;
+                        }
+                        const d = new Date(val);
+                        if (d.getDay() === 0) {
+                          alert("Bệnh viện không làm việc vào Chủ Nhật. Vui lòng chọn ngày khác từ Thứ Hai đến Thứ Bảy!");
+                          set('date', '');
+                        } else {
+                          set('date', val);
+                        }
+                      }}
+                    />
                   </div>
 
                   {/* Triệu chứng */}
