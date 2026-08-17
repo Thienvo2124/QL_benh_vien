@@ -179,7 +179,8 @@ const CashierDashboard = () => {
       fee: app.initialFee || 150000,
       paymentMethod: chosenMethod,
       queueNumber: null,
-      code: app.appointmentCode
+      code: app.appointmentCode,
+      address: app.address
     });
     setShowReceiptModal(true);
   };
@@ -215,7 +216,8 @@ const CashierDashboard = () => {
           fee: data.appointment.initialFee,
           paymentMethod: data.appointment.paymentMethod,
           queueNumber: data.appointment.queueNumber,
-          code: data.appointment.appointmentCode
+          code: data.appointment.appointmentCode,
+          address: data.appointment.address
         });
         setShowReceiptModal(true);
         setTimeout(() => setNotification(''), 5000);
@@ -284,7 +286,8 @@ const CashierDashboard = () => {
       fee: app.initialFee || 150000,
       paymentMethod: app.paymentMethod || 'Tiền mặt',
       queueNumber: app.queueNumber,
-      code: app.appointmentCode
+      code: app.appointmentCode,
+      address: app.address
     });
     setShowReceiptModal(true);
   };
@@ -1382,6 +1385,7 @@ const CashierDashboard = () => {
                                     time: app.time,
                                     date: app.date,
                                     fee: app.initialFee || 150000,
+                                    address: app.address,
                                   });
                                   setShowReceiptModal(true);
                                 }}
@@ -1457,8 +1461,14 @@ const CashierDashboard = () => {
                 </div>
                 {receiptData.dob && (
                   <div className="flex justify-between">
-                    <span>Năm sinh:</span>
-                    <span className="text-gray-900">{getYearSafe(receiptData.dob)}</span>
+                    <span>Ngày sinh:</span>
+                    <span className="text-gray-900">{formatDateSafe(receiptData.dob)}</span>
+                  </div>
+                )}
+                {receiptData.address && (
+                  <div className="flex justify-between">
+                    <span>Địa chỉ:</span>
+                    <span className="text-gray-900 text-right max-w-[220px] break-words">{receiptData.address}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
