@@ -279,7 +279,7 @@ const Booking = () => {
                     </li>
                     <li className="flex gap-2">
                       <span className="text-blue-300 font-bold">2.</span>
-                      <span>Quý khách hàng vui lòng cung cấp thông tin chính xác để được phục vụ tốt nhất. Trong trường hợp cung cấp sai số điện thoại hoặc email, cuộc hẹn sẽ tự động bị hủy bỏ.</span>
+                      <span>Quý khách hàng vui lòng cung cấp thông tin chính xác để được phục vụ tốt nhất. Trong trường hợp cung cấp sai số điện thoại hoặc gmail, cuộc hẹn sẽ tự động bị hủy bỏ.</span>
                     </li>
                     <li className="flex gap-2">
                       <span className="text-blue-300 font-bold">3.</span>
@@ -331,7 +331,7 @@ const Booking = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-gray-700 mb-1.5">Email</label>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5">Gmail</label>
                       <input
                         type="email"
                         placeholder="example@gmail.com"
