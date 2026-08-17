@@ -22,6 +22,7 @@ const initialForm = {
   time: 'Trong ngày',
   reason: '',
   bhyt: '',
+  address: '',
 };
 
 const Booking = () => {
@@ -38,8 +39,7 @@ const Booking = () => {
   const [aiSuggesting, setAiSuggesting] = useState(false);
   const [suggestedDept, setSuggestedDept] = useState(null);
 
-  // UMC UI states: Address, Captcha, BuoiKham
-  const [address, setAddress] = useState('');
+  // UMC UI states: Captcha, BuoiKham
   const [captcha, setCaptcha] = useState('');
   const [userCaptcha, setUserCaptcha] = useState('');
   const [buoiKham, setBuoiKham] = useState('Sáng');
@@ -67,6 +67,7 @@ const Booking = () => {
         dob: user.birthDate || '',
         gender: user.gender || '',
         bhyt: user.bhytCode || '',
+        address: user.address || '',
       }));
       if (user.bhytCode) {
         setHasBHYT(true);
@@ -80,6 +81,7 @@ const Booking = () => {
         dob: '',
         gender: '',
         bhyt: '',
+        address: '',
       }));
       setHasBHYT(false);
     }
@@ -383,8 +385,8 @@ const Booking = () => {
                         type="text"
                         placeholder="Nhập địa chỉ thường trú (đường, phường, quận...)"
                         className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] transition-colors"
-                        value={address}
-                        onChange={(e) => setAddress(e.target.value)}
+                        value={form.address}
+                        onChange={(e) => set('address', e.target.value)}
                       />
                     </div>
                   </div>
@@ -522,7 +524,6 @@ const Booking = () => {
                   onClick={() => {
                     setStep(1);
                     setForm(initialForm);
-                    setAddress('');
                     setUserCaptcha('');
                     generateCaptcha();
                     setCode('');
