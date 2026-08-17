@@ -122,33 +122,19 @@ const Booking = () => {
 
   const selectedDept = departments.find((dept) => dept.name === form.dept);
 
-  // Tính 7 ngày tiếp theo để chọn
-  const getNext7Days = () => {
-    const days = [];
-    const weekdays = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+  // Tính ngày tối thiểu (hôm nay) và tối đa (30 ngày sau) để giới hạn lịch
+  const getMinMaxDates = () => {
+    const today = new Date();
+    const minStr = today.toLocaleDateString('sv-SE'); // Định dạng YYYY-MM-DD
     
-    for (let i = 0; i < 7; i++) {
-      const d = new Date();
-      d.setDate(d.getDate() + i);
-      
-      // Không cho đặt lịch vào Chủ Nhật
-      if (d.getDay() === 0) continue;
-
-      const dateString = d.toISOString().split('T')[0];
-      const dayName = weekdays[d.getDay()];
-      const dayNum = d.getDate().toString().padStart(2, '0');
-      const monthNum = (d.getMonth() + 1).toString().padStart(2, '0');
-      
-      days.push({
-        dateString,
-        dayName: i === 0 ? 'Hôm nay' : dayName,
-        label: `${dayNum}/${monthNum}`,
-      });
-    }
-    return days;
+    const maxDate = new Date();
+    maxDate.setDate(today.getDate() + 30);
+    const maxStr = maxDate.toLocaleDateString('sv-SE');
+    
+    return { min: minStr, max: maxStr };
   };
 
-  const next7Days = getNext7Days();
+  const { min: minDate, max: maxDate } = getMinMaxDates();
 
   // Gọi AI tư vấn khoa dựa trên triệu chứng
   const handleAiSuggest = async () => {
@@ -483,18 +469,27 @@ const Booking = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-xs font-bold text-gray-700 mb-1.5">Ngày khám bệnh *</label>
-                      <select
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] transition-colors bg-white cursor-pointer font-semibold"
+                      <input
+                        type="date"
+                        min={minDate}
+                        max={maxDate}
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] transition-colors bg-white cursor-pointer font-semibold text-gray-700"
                         value={form.date}
-                        onChange={(e) => set('date', e.target.value)}
-                      >
-                        <option value="">-- Chọn ngày khám --</option>
-                        {next7Days.map((day) => (
-                          <option key={day.dateString} value={day.dateString}>
-                            {day.dayName} ({day.label})
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (!val) {
+                            set('date', '');
+                            return;
+                          }
+                          const d = new Date(val);
+                          if (d.getDay() === 0) {
+                            alert("Bệnh viện không làm việc vào Chủ Nhật. Vui lòng chọn ngày khác từ Thứ Hai đến Thứ Bảy!");
+                            set('date', '');
+                          } else {
+                            set('date', val);
+                          }
+                        }}
+                      />
                     </div>
 
                     <div>
