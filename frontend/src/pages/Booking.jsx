@@ -348,28 +348,6 @@ const Booking = () => {
                       Vui lòng điền thông tin vào form dưới đây để đăng ký khám bệnh theo yêu cầu!
                     </p>
                   </div>
-
-                  {/* Toggle Đối tượng khám */}
-                  <div className="flex bg-gray-100 p-1 rounded-xl text-xs font-bold w-max self-start sm:self-auto">
-                    <button
-                      type="button"
-                      onClick={() => setIsForSelf(true)}
-                      className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 ${
-                        isForSelf ? 'bg-white text-[#004e92] shadow-sm' : 'text-gray-500'
-                      }`}
-                    >
-                      <UserCheck size={14} /> Cho bản thân
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setIsForSelf(false)}
-                      className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 ${
-                        !isForSelf ? 'bg-white text-[#004e92] shadow-sm' : 'text-gray-500'
-                      }`}
-                    >
-                      <UserPlus size={14} /> Cho người thân
-                    </button>
-                  </div>
                 </div>
 
                 {user && isForSelf && (
