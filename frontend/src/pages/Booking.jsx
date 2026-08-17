@@ -334,7 +334,7 @@ const Booking = () => {
                       <label className="block text-xs font-bold text-gray-700 mb-1.5">Email</label>
                       <input
                         type="email"
-                        placeholder="nhap.email@vi-du.com"
+                        placeholder="example@gmail.com"
                         className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] transition-colors"
                         value={form.email || ''}
                         onChange={(e) => set('email', e.target.value)}
