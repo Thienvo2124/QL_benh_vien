@@ -36,10 +36,19 @@ const Booking = () => {
   const [aiSuggesting, setAiSuggesting] = useState(false);
   const [suggestedDept, setSuggestedDept] = useState(null);
 
-  // Day/Month/Year dropdown states for date of birth
-  const [dobDay, setDobDay] = useState('');
-  const [dobMonth, setDobMonth] = useState('');
-  const [dobYear, setDobYear] = useState('');
+  // Hàm tiện ích tách ngày/tháng/năm từ form.dob
+  const getDobParts = () => {
+    if (!form.dob) return { day: '', month: '', year: '' };
+    const parts = form.dob.split('-');
+    if (parts.length !== 3) return { day: '', month: '', year: '' };
+    return {
+      year: parts[0],
+      month: parseInt(parts[1], 10).toString(),
+      day: parseInt(parts[2], 10).toString(),
+    };
+  };
+
+  const { day: dobDay, month: dobMonth, year: dobYear } = getDobParts();
 
   // UMC UI states: Address, Captcha, BuoiKham
   const [address, setAddress] = useState('');
@@ -60,22 +69,16 @@ const Booking = () => {
     generateCaptcha();
   }, []);
 
-  // Cập nhật nguyên tử dobDay/dobMonth/dobYear và form.dob
+  // Cập nhật form.dob trực tiếp từ việc thay đổi của từng ô chọn
   const handleDobChange = (type, value) => {
-    let newDay = dobDay;
-    let newMonth = dobMonth;
-    let newYear = dobYear;
+    const { day, month, year } = getDobParts();
+    let newDay = day;
+    let newMonth = month;
+    let newYear = year;
 
-    if (type === 'day') {
-      newDay = value;
-      setDobDay(value);
-    } else if (type === 'month') {
-      newMonth = value;
-      setDobMonth(value);
-    } else if (type === 'year') {
-      newYear = value;
-      setDobYear(value);
-    }
+    if (type === 'day') newDay = value;
+    if (type === 'month') newMonth = value;
+    if (type === 'year') newYear = value;
 
     if (newDay && newMonth && newYear) {
       const formattedDob = `${newYear}-${newMonth.padStart(2, '0')}-${newDay.padStart(2, '0')}`;
@@ -88,25 +91,6 @@ const Booking = () => {
       }
     }
   };
-
-  // Chỉ đồng bộ form.dob ngược về dropdowns khi form.dob thay đổi bên ngoài (ví dụ tự điền profile hoặc clear form)
-  useEffect(() => {
-    if (form.dob) {
-      const parts = form.dob.split('-');
-      if (parts.length === 3) {
-        const y = parts[0];
-        const m = parseInt(parts[1], 10).toString();
-        const d = parseInt(parts[2], 10).toString();
-        if (y !== dobYear) setDobYear(y);
-        if (m !== dobMonth) setDobMonth(m);
-        if (d !== dobDay) setDobDay(d);
-      }
-    } else {
-      if (dobDay !== '') setDobDay('');
-      if (dobMonth !== '') setDobMonth('');
-      if (dobYear !== '') setDobYear('');
-    }
-  }, [form.dob]);
 
   // Điền tự động thông tin từ tài khoản đăng nhập khi vào trang
   useEffect(() => {
