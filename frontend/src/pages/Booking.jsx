@@ -21,6 +21,7 @@ const initialForm = {
   date: '',
   time: 'Trong ngày',
   reason: '',
+  bhyt: '',
 };
 
 const Booking = () => {
@@ -28,6 +29,7 @@ const Booking = () => {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(initialForm);
   const [isForSelf, setIsForSelf] = useState(true);
+  const [hasBHYT, setHasBHYT] = useState(false);
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -64,7 +66,11 @@ const Booking = () => {
         phone: user.phone || '',
         dob: user.birthDate || '',
         gender: user.gender || '',
+        bhyt: user.bhytCode || '',
       }));
+      if (user.bhytCode) {
+        setHasBHYT(true);
+      }
     } else if (!isForSelf) {
       // Clear thông tin khi chọn đặt cho người thân
       setForm((prev) => ({
@@ -73,7 +79,9 @@ const Booking = () => {
         phone: '',
         dob: '',
         gender: '',
+        bhyt: '',
       }));
+      setHasBHYT(false);
     }
   }, [user, isForSelf]);
 
@@ -151,6 +159,7 @@ const Booking = () => {
     if (!form.phone.trim()) return setError('Vui lòng nhập Số điện thoại.');
     if (!form.dob) return setError('Vui lòng chọn Ngày sinh.');
     if (!form.gender) return setError('Vui lòng chọn Giới tính.');
+    if (hasBHYT && !form.bhyt.trim()) return setError('Vui lòng nhập Mã số thẻ BHYT.');
     if (!form.dept) return setError('Vui lòng chọn Chuyên khoa khám.');
     if (!form.date) return setError('Vui lòng chọn Ngày khám.');
     if (!form.time) return setError('Vui lòng chọn Giờ khám.');
@@ -380,6 +389,39 @@ const Booking = () => {
                     </div>
                   </div>
 
+                  {/* Bảo hiểm y tế */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5">Có Bảo hiểm y tế không?</label>
+                      <select
+                        value={hasBHYT ? 'yes' : 'no'}
+                        onChange={(e) => {
+                          const yes = e.target.value === 'yes';
+                          setHasBHYT(yes);
+                          if (!yes) set('bhyt', '');
+                        }}
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] transition-colors bg-white cursor-pointer font-semibold text-gray-700"
+                      >
+                        <option value="no">Không có BHYT</option>
+                        <option value="yes">Có BHYT</option>
+                      </select>
+                    </div>
+
+                    {hasBHYT && (
+                      <div className="animate-fadeIn">
+                        <label className="block text-xs font-bold text-[#004e92] mb-1.5">Mã số thẻ BHYT *</label>
+                        <input
+                          type="text"
+                          required={hasBHYT}
+                          placeholder="Nhập mã thẻ BHYT (VD: GD479...)"
+                          value={form.bhyt}
+                          onChange={(e) => set('bhyt', e.target.value.toUpperCase())}
+                          className="w-full border border-[#004e92]/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] transition-colors bg-blue-50/35 font-bold text-[#004e92] uppercase"
+                        />
+                      </div>
+                    )}
+                  </div>
+
 
                   {/* Chuyên khoa */}
                   <div className="mb-4">
@@ -485,9 +527,7 @@ const Booking = () => {
                     generateCaptcha();
                     setCode('');
                     setError('');
-                    setDobDay('');
-                    setDobMonth('');
-                    setDobYear('');
+                    setHasBHYT(false);
                   }}
                   className="px-6 py-3 border-2 border-[#004e92] text-[#004e92] font-bold rounded-xl hover:bg-blue-50 transition-colors text-sm"
                 >
