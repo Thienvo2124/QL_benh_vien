@@ -60,10 +60,25 @@ const Booking = () => {
     generateCaptcha();
   }, []);
 
-  // Sync Day/Month/Year dropdowns with form.dob
-  useEffect(() => {
-    if (dobDay && dobMonth && dobYear) {
-      const formattedDob = `${dobYear}-${dobMonth.padStart(2, '0')}-${dobDay.padStart(2, '0')}`;
+  // Cập nhật nguyên tử dobDay/dobMonth/dobYear và form.dob
+  const handleDobChange = (type, value) => {
+    let newDay = dobDay;
+    let newMonth = dobMonth;
+    let newYear = dobYear;
+
+    if (type === 'day') {
+      newDay = value;
+      setDobDay(value);
+    } else if (type === 'month') {
+      newMonth = value;
+      setDobMonth(value);
+    } else if (type === 'year') {
+      newYear = value;
+      setDobYear(value);
+    }
+
+    if (newDay && newMonth && newYear) {
+      const formattedDob = `${newYear}-${newMonth.padStart(2, '0')}-${newDay.padStart(2, '0')}`;
       if (form.dob !== formattedDob) {
         setForm(prev => ({ ...prev, dob: formattedDob }));
       }
@@ -72,9 +87,9 @@ const Booking = () => {
         setForm(prev => ({ ...prev, dob: '' }));
       }
     }
-  }, [dobDay, dobMonth, dobYear]);
+  };
 
-  // Sync form.dob back to Day/Month/Year dropdowns (e.g. on profile autofill or clear)
+  // Chỉ đồng bộ form.dob ngược về dropdowns khi form.dob thay đổi bên ngoài (ví dụ tự điền profile hoặc clear form)
   useEffect(() => {
     if (form.dob) {
       const parts = form.dob.split('-');
@@ -377,7 +392,7 @@ const Booking = () => {
                         <select
                           className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:border-[#004e92] font-semibold bg-white cursor-pointer"
                           value={dobDay}
-                          onChange={(e) => setDobDay(e.target.value)}
+                          onChange={(e) => handleDobChange('day', e.target.value)}
                         >
                           <option value="">Ngày</option>
                           {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
@@ -387,7 +402,7 @@ const Booking = () => {
                         <select
                           className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:border-[#004e92] font-semibold bg-white cursor-pointer"
                           value={dobMonth}
-                          onChange={(e) => setDobMonth(e.target.value)}
+                          onChange={(e) => handleDobChange('month', e.target.value)}
                         >
                           <option value="">Tháng</option>
                           {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
@@ -397,7 +412,7 @@ const Booking = () => {
                         <select
                           className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:border-[#004e92] font-semibold bg-white cursor-pointer"
                           value={dobYear}
-                          onChange={(e) => setDobYear(e.target.value)}
+                          onChange={(e) => handleDobChange('year', e.target.value)}
                         >
                           <option value="">Năm</option>
                           {Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i).map((y) => (
