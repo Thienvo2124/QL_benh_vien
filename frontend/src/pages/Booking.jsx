@@ -78,7 +78,7 @@ const Booking = () => {
     }
 
     if (newDay && newMonth && newYear) {
-      const formattedDob = `${newYear}-${newMonth.padStart(2, '0')}-${newDay.padStart(2, '0')}`;
+      const formattedDob = `${newYear}-${newMonth}-${newDay}`;
       if (form.dob !== formattedDob) {
         setForm(prev => ({ ...prev, dob: formattedDob }));
       }
@@ -95,8 +95,8 @@ const Booking = () => {
       const parts = form.dob.split('-');
       if (parts.length === 3) {
         const y = parts[0];
-        const m = parseInt(parts[1], 10).toString();
-        const d = parseInt(parts[2], 10).toString();
+        const m = parts[1]; // Giữ nguyên dạng 2 chữ số (ví dụ: "04")
+        const d = parts[2]; // Giữ nguyên dạng 2 chữ số (ví dụ: "18")
         if (y !== dobYear) setDobYear(y);
         if (m !== dobMonth) setDobMonth(m);
         if (d !== dobDay) setDobDay(d);
@@ -391,9 +391,10 @@ const Booking = () => {
                           onChange={(e) => handleDobChange('day', e.target.value)}
                         >
                           <option value="">Ngày</option>
-                          {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
-                            <option key={d} value={String(d)}>{d}</option>
-                          ))}
+                          {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => {
+                            const val = String(d).padStart(2, '0');
+                            return <option key={d} value={val}>{d}</option>;
+                          })}
                         </select>
                         <select
                           className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:border-[#004e92] font-semibold bg-white cursor-pointer"
@@ -401,9 +402,10 @@ const Booking = () => {
                           onChange={(e) => handleDobChange('month', e.target.value)}
                         >
                           <option value="">Tháng</option>
-                          {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                            <option key={m} value={String(m)}>Tháng {m}</option>
-                          ))}
+                          {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => {
+                            const val = String(m).padStart(2, '0');
+                            return <option key={m} value={val}>Tháng {m}</option>;
+                          })}
                         </select>
                         <select
                           className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:border-[#004e92] font-semibold bg-white cursor-pointer"
