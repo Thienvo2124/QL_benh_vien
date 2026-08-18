@@ -140,16 +140,16 @@ const Appointments = () => {
     const dateB = new Date(b.date);
     
     if (dateA.getTime() !== dateB.getTime()) {
-      return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+      return sortOrder === 'newest' ? dateA - dateB : dateB - dateA;
     }
     
     if (a.time && b.time) {
-      return sortOrder === 'newest' ? b.time.localeCompare(a.time) : a.time.localeCompare(b.time);
+      return sortOrder === 'newest' ? a.time.localeCompare(b.time) : b.time.localeCompare(a.time);
     }
     
     return sortOrder === 'newest' 
-      ? new Date(b.createdAt) - new Date(a.createdAt) 
-      : new Date(a.createdAt) - new Date(b.createdAt);
+      ? new Date(a.createdAt) - new Date(b.createdAt) 
+      : new Date(b.createdAt) - new Date(a.createdAt);
   });
 
   const getStatusBadge = (status) => {
