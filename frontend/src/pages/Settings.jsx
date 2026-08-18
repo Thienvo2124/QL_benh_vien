@@ -121,7 +121,7 @@ const Settings = () => {
   useEffect(() => {
     if (activeTab === 'logs') {
       fetchLogs();
-    } else if (activeTab === 'system') {
+    } else if (activeTab === 'system' || activeTab === 'email') {
       fetchSystemSettings();
     }
   }, [activeTab]);
@@ -167,6 +167,16 @@ const Settings = () => {
           }`}
         >
           <Building className="w-4 h-4" /> Thông tin Bệnh viện
+        </button>
+        <button
+          onClick={() => { setActiveTab('email'); setSuccessMsg(''); }}
+          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all ${
+            activeTab === 'email'
+              ? 'bg-[#004e92] text-white shadow-lg transform -translate-y-0.5'
+              : 'text-gray-600 hover:bg-gray-300/50'
+          }`}
+        >
+          <Mail className="w-4 h-4" /> Gửi Mail & Nhắc lịch
         </button>
         <button
           onClick={() => { setActiveTab('security'); setSuccessMsg(''); }}
@@ -375,6 +385,123 @@ const Settings = () => {
               </button>
             </div>
           </form>
+        )}
+
+        {/* TAB: EMAIL CONFIG */}
+        {activeTab === 'email' && (
+          <div className="space-y-10">
+            <form onSubmit={handleSaveEmail} className="space-y-6">
+              <h3 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-3 flex items-center gap-2">
+                <Mail className="w-5 h-5 text-[#004e92]" /> Cấu hình Gửi Mail & Nhắc lịch khám
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Gmail gửi thư tự động (SMTP)</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="example@gmail.com"
+                    value={emailUser}
+                    onChange={(e) => setEmailUser(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] focus:bg-white transition-colors font-medium text-gray-900"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center justify-between">
+                    <span>Mật khẩu ứng dụng Google (16 ký tự)</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowEmailPass(!showEmailPass)}
+                      className="text-xs text-[#004e92] hover:underline font-bold"
+                    >
+                      {showEmailPass ? 'Ẩn' : 'Hiện'}
+                    </button>
+                  </label>
+                  <input
+                    type={showEmailPass ? 'text' : 'password'}
+                    required
+                    placeholder="Mật khẩu ứng dụng 16 ký tự"
+                    value={emailPass}
+                    onChange={(e) => setEmailPass(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] focus:bg-white transition-colors font-medium text-gray-900"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Thời gian gửi email nhắc lịch tự động trước khi khám
+                  </label>
+                  <select
+                    value={reminderHours}
+                    onChange={(e) => setReminderHours(Number(e.target.value))}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] focus:bg-white transition-colors font-semibold text-gray-900 cursor-pointer"
+                  >
+                    <option value={0}>Tắt nhắc nhở</option>
+                    <option value={1}>1 giờ trước khám</option>
+                    <option value={2}>2 giờ trước khám</option>
+                    <option value={3}>3 giờ trước khám</option>
+                    <option value={6}>6 giờ trước khám</option>
+                    <option value={12}>12 giờ trước khám</option>
+                    <option value={24}>24 giờ trước khám</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="pt-6 border-t border-gray-100 flex justify-end">
+                <button
+                  type="submit"
+                  className="bg-[#004e92] hover:bg-blue-800 text-white font-bold py-3 px-8 rounded-2xl transition-colors shadow-lg flex items-center gap-2 text-sm"
+                >
+                  <Save className="w-4 h-4" /> Lưu cấu hình Email
+                </button>
+              </div>
+            </form>
+
+            <form onSubmit={handleTestEmail} className="bg-gray-50 p-6 rounded-3xl border border-gray-200/60 space-y-6">
+              <div>
+                <h4 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-green-600" /> Thử nghiệm gửi Email & Kết nối SMTP
+                </h4>
+                <p className="text-xs text-gray-500 mt-1">
+                  Nhập địa chỉ nhận test để hệ thống gửi thử một email mẫu nhằm kiểm tra xem tài khoản Gmail gửi và mật khẩu ứng dụng bạn cấu hình bên trên đã chuẩn xác chưa.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-4 items-end">
+                <div className="flex-1 min-w-[200px]">
+                  <label className="block text-xs font-bold text-gray-700 mb-2">Địa chỉ Gmail nhận thư test</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="email-nhan-test@gmail.com"
+                    value={testRecipient}
+                    onChange={(e) => setTestRecipient(e.target.value)}
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] transition-colors"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={testLoading || !testRecipient}
+                  className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-2xl transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {testLoading ? 'Đang gửi...' : 'Gửi thử ngay'}
+                </button>
+              </div>
+
+              {testSuccess && (
+                <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-2xl text-xs font-semibold">
+                  🎉 {testSuccess}
+                </div>
+              )}
+
+              {testError && (
+                <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-2xl text-xs font-semibold whitespace-pre-wrap">
+                  ❌ Gửi test thất bại! Chi tiết lỗi: {testError}
+                </div>
+              )}
+            </form>
+          </div>
         )}
 
         {/* TAB 3: SECURITY */}

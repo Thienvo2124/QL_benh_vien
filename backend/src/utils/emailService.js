@@ -1,12 +1,22 @@
 const nodemailer = require("nodemailer");
+const SystemSetting = require("../models/SystemSetting");
 
-// Create transporter using SMTP Gmail settings from environment variables
-const createTransporter = () => {
-  const user = process.env.EMAIL_USER;
-  const pass = process.env.EMAIL_PASS || process.env.EMAIL_APP_PASS;
+// Create transporter using SMTP Gmail settings dynamically from database or fallback to .env
+const createTransporter = async () => {
+  let user = process.env.EMAIL_USER;
+  let pass = process.env.EMAIL_PASS || process.env.EMAIL_APP_PASS;
+
+  try {
+    const userSetting = await SystemSetting.findOne({ key: "email_user" });
+    const passSetting = await SystemSetting.findOne({ key: "email_pass" });
+    if (userSetting && userSetting.value) user = userSetting.value;
+    if (passSetting && passSetting.value) pass = passSetting.value;
+  } catch (error) {
+    console.error("[EmailService] Lỗi đọc cấu hình SMTP từ DB, dùng mặc định .env:", error);
+  }
 
   if (!user || !pass) {
-    console.warn("⚠️ EMAIL_USER hoặc EMAIL_PASS không được cấu hình trong môi trường. Việc gửi email sẽ bị bỏ qua.");
+    console.warn("⚠️ EMAIL_USER hoặc EMAIL_PASS không được cấu hình trong DB hay .env. Việc gửi email sẽ bị bỏ qua.");
     return null;
   }
 
@@ -24,7 +34,7 @@ const createTransporter = () => {
  * @param {Object} app Đối tượng lịch hẹn (Appointment)
  */
 const sendBookingConfirmation = async (app) => {
-  const transporter = createTransporter();
+  const transporter = await createTransporter();
   if (!transporter) return;
 
   if (!app.email) {
@@ -35,8 +45,15 @@ const sendBookingConfirmation = async (app) => {
   const dateStr = app.date ? new Date(app.date).toLocaleDateString("vi-VN") : "N/A";
   const doctorText = app.doctor ? `BS. ${app.doctor}` : "Bác sĩ trực chuyên khoa";
 
+  // Try to read user for "from" field
+  let fromUser = process.env.EMAIL_USER;
+  try {
+    const userSetting = await SystemSetting.findOne({ key: "email_user" });
+    if (userSetting && userSetting.value) fromUser = userSetting.value;
+  } catch (err) {}
+
   const mailOptions = {
-    from: `"Bệnh viện Nhân Dân" <${process.env.EMAIL_USER}>`,
+    from: `"Bệnh viện Nhân Dân" <${fromUser || "no-reply@gmail.com"}>`,
     to: app.email,
     subject: `[Bệnh viện Nhân Dân] Xác nhận đăng ký lịch hẹn khám thành công - Mã: ${app.appointmentCode}`,
     html: `
@@ -110,16 +127,23 @@ const sendBookingConfirmation = async (app) => {
  * @param {Number} hours Số giờ nhắc nhở trước khi khám
  */
 const sendAppointmentReminder = async (app, hours) => {
-  const transporter = createTransporter();
-  if (!transporter) return;
+  const transporter = await createTransporter();
+  if (!transporter) return false;
 
-  if (!app.email) return;
+  if (!app.email) return false;
 
   const dateStr = app.date ? new Date(app.date).toLocaleDateString("vi-VN") : "N/A";
   const doctorText = app.doctor ? `BS. ${app.doctor}` : "Bác sĩ trực chuyên khoa";
 
+  // Try to read user for "from" field
+  let fromUser = process.env.EMAIL_USER;
+  try {
+    const userSetting = await SystemSetting.findOne({ key: "email_user" });
+    if (userSetting && userSetting.value) fromUser = userSetting.value;
+  } catch (err) {}
+
   const mailOptions = {
-    from: `"Bệnh viện Nhân Dân" <${process.env.EMAIL_USER}>`,
+    from: `"Bệnh viện Nhân Dân" <${fromUser || "no-reply@gmail.com"}>`,
     to: app.email,
     subject: `[Nhắc lịch khám] Lịch khám bệnh của bạn tại Bệnh viện Nhân Dân sắp diễn ra`,
     html: `
@@ -179,7 +203,54 @@ const sendAppointmentReminder = async (app, hours) => {
   }
 };
 
+/**
+ * Gửi email kiểm tra kết nối SMTP
+ * @param {String} toEmail Địa chỉ người nhận
+ * @param {Object} credentials Cấu hình SMTP tùy chọn { user, pass }
+ */
+const sendTestEmail = async (toEmail, credentials = {}) => {
+  let user = credentials.user || process.env.EMAIL_USER;
+  let pass = credentials.pass || process.env.EMAIL_PASS || process.env.EMAIL_APP_PASS;
+
+  if (!credentials.user || !credentials.pass) {
+    try {
+      const userSetting = await SystemSetting.findOne({ key: "email_user" });
+      const passSetting = await SystemSetting.findOne({ key: "email_pass" });
+      if (userSetting && userSetting.value) user = userSetting.value;
+      if (passSetting && passSetting.value) pass = passSetting.value;
+    } catch (err) {}
+  }
+
+  if (!user || !pass) {
+    throw new Error("Chưa cấu hình tài khoản Gmail gửi hoặc Mật khẩu ứng dụng.");
+  }
+
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: user,
+      pass: pass,
+    },
+  });
+
+  const mailOptions = {
+    from: `"Bệnh viện Nhân Dân" <${user}>`,
+    to: toEmail,
+    subject: `[SMTP Test] Kiểm tra kết nối hòm thư tự động thành công`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 20px auto; padding: 20px; border: 1px solid #10b981; border-radius: 10px; background-color: #f0fdf4;">
+        <h3 style="color: #10b981; margin-top: 0;">🎉 Kết nối SMTP thành công!</h3>
+        <p>Hệ thống gửi thư tự động của <strong>Bệnh viện Nhân Dân</strong> đã kết nối thành công với tài khoản Gmail của bạn.</p>
+        <p style="font-size: 13px; color: #555;">Thời gian kiểm tra: ${new Date().toLocaleString("vi-VN")}</p>
+      </div>
+    `,
+  };
+
+  return await transporter.sendMail(mailOptions);
+};
+
 module.exports = {
   sendBookingConfirmation,
   sendAppointmentReminder,
+  sendTestEmail,
 };

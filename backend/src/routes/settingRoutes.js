@@ -46,4 +46,23 @@ router.post("/", protect, adminOrDoctorOnly, async (req, res) => {
   }
 });
 
+// POST test-email connectivity (Admin only)
+const { sendTestEmail } = require("../utils/emailService");
+router.post("/test-email", protect, adminOrDoctorOnly, async (req, res) => {
+  const { recipientEmail, email_user, email_pass } = req.body;
+  if (!recipientEmail) {
+    return res.status(400).json({ message: "Vui lòng cung cấp địa chỉ email nhận test." });
+  }
+
+  try {
+    await sendTestEmail(recipientEmail, { user: email_user, pass: email_pass });
+    return res.json({ message: "Gửi email thử nghiệm thành công! Hãy kiểm tra hòm thư của bạn." });
+  } catch (error) {
+    return res.status(500).json({ 
+      message: "Lỗi kết nối SMTP gửi mail thất bại.", 
+      error: error.message 
+    });
+  }
+});
+
 module.exports = router;
