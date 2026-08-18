@@ -506,14 +506,17 @@ const MyAppointments = () => {
                 className="p-4 bg-white border-2 border-blue-100 rounded-2xl shadow-inner"
               >
                 <QRCodeSVG
-                  value={JSON.stringify({
-                    code: qrAppointment.appointmentCode || 'BV-ND-REG',
-                    name: qrAppointment.name,
-                    dept: qrAppointment.dept,
-                    doctor: qrAppointment.doctor ? `BS. ${qrAppointment.doctor}` : 'Bác sĩ trực chuyên khoa',
-                    date: qrAppointment.date ? new Date(qrAppointment.date).toLocaleDateString('vi-VN') : '',
-                    time: qrAppointment.time || ''
-                  })}
+                  value={[
+                    'BENH VIEN NHAN DAN',
+                    '========================',
+                    `Ma lich hen : ${qrAppointment.appointmentCode || 'BV-ND-REG'}`,
+                    `Benh nhan   : ${qrAppointment.name || ''}`,
+                    `Chuyen khoa : ${qrAppointment.dept || ''}`,
+                    `Bac si      : ${qrAppointment.doctor ? `BS. ${qrAppointment.doctor}` : 'Bac si truc chuyen khoa'}`,
+                    `Ngay kham   : ${qrAppointment.date ? new Date(qrAppointment.date).toLocaleDateString('vi-VN') : ''}`,
+                    `Gio kham    : ${qrAppointment.time || ''}`,
+                    '========================',
+                  ].join('\n')}
                   size={200}
                   bgColor="#ffffff"
                   fgColor="#004e92"
