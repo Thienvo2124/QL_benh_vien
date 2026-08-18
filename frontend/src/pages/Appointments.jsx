@@ -2,12 +2,27 @@ import { useState, useEffect, useCallback } from 'react';
 import { Calendar, CheckCircle, XCircle, Clock, Check, X, Eye, Search, RefreshCw, User, Phone, FileText, AlertCircle, Sparkles, AlertTriangle, Trash2 } from 'lucide-react';
 import API_BASE_URL from '../config/api';
 
+const DEPARTMENTS = [
+  "Nội tổng quát",
+  "Ngoại tổng quát",
+  "Nhi khoa",
+  "Sản phụ khoa",
+  "Răng hàm mặt",
+  "Tai mũi họng",
+  "Mắt",
+  "Da liễu",
+  "Hô hấp",
+  "Tiêm ngừa",
+  "Gói khám sức khỏe tổng quát Cơ bản"
+];
+
 const Appointments = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all'); // all, pending, approved, completed, rejected
   const [search, setSearch] = useState('');
   const [dateFilter, setDateFilter] = useState('');
+  const [deptFilter, setDeptFilter] = useState('all');
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
 
@@ -18,6 +33,7 @@ const Appointments = () => {
       const queryParams = new URLSearchParams();
       if (statusFilter !== 'all') queryParams.append('status', statusFilter);
       if (dateFilter) queryParams.append('date', dateFilter);
+      if (deptFilter !== 'all') queryParams.append('dept', deptFilter);
 
       const response = await fetch(`${API_BASE_URL}/api/appointments?${queryParams.toString()}`, {
         headers: {
@@ -36,7 +52,7 @@ const Appointments = () => {
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, dateFilter]);
+  }, [statusFilter, dateFilter, deptFilter]);
 
   useEffect(() => {
     fetchAppointments();
@@ -213,6 +229,22 @@ const Appointments = () => {
                 className="w-full pl-11 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92] focus:bg-white transition-colors"
               />
             </div>
+
+            {/* Bộ lọc Khoa */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-600">Khoa khám:</span>
+              <select
+                value={deptFilter}
+                onChange={(e) => setDeptFilter(e.target.value)}
+                className="py-2.5 px-4 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92] focus:bg-white transition-colors cursor-pointer font-semibold"
+              >
+                <option value="all">Tất cả khoa</option>
+                {DEPARTMENTS.map((dept) => (
+                  <option key={dept} value={dept}>{dept}</option>
+                ))}
+              </select>
+            </div>
+
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-gray-600">Ngày khám:</span>
               <input
