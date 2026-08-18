@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const Appointment = require("../models/Appointment");
 const { adminOrDoctorOnly, protect } = require("../middleware/authMiddleware");
 const { logActivity } = require("../utils/logger");
+const { sendBookingConfirmation } = require("../utils/emailService");
 
 const router = express.Router();
 const VALID_STATUSES = ["pending", "approved", "rejected", "completed"];
@@ -129,6 +130,11 @@ router.post("/", async (req, res) => {
     });
 
     logActivity(`Đặt lịch khám mới (Mã: ${appointment.appointmentCode})`, `Bệnh nhân: ${appointment.name} (${appointment.phone})`, req.ip || "127.0.0.1", "Thành công");
+
+    // Gửi email xác nhận đặt lịch ngầm (không chặn response)
+    sendBookingConfirmation(appointment).catch(err => {
+      console.error("[appointmentRoutes] Lỗi gửi email xác nhận đặt lịch:", err);
+    });
 
     return res.status(201).json({
       message: "Đặt lịch khám thành công.",

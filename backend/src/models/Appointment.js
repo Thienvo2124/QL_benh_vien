@@ -61,6 +61,10 @@ const appointmentSchema = new mongoose.Schema(
       default: "pending",
       index: true,
     },
+    reminderSent: {
+      type: Boolean,
+      default: false,
+    },
     paymentStatus: {
       type: String,
       enum: ["unpaid", "paid"],

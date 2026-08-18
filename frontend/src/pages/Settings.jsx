@@ -28,6 +28,7 @@ const Settings = () => {
   const [emailContact, setEmailContact] = useState('info@bvndgiadinh.org.vn');
   const [address, setAddress] = useState('Số 1 Nơ Trang Long, P. Gia Định, Hà Nội');
   const [openHours, setOpenHours] = useState('07:00 - 17:00 (Thứ 2 - Thứ 7)');
+  const [reminderHours, setReminderHours] = useState(3);
 
   // Tab 3: Security state
   const [currentPassword, setCurrentPassword] = useState('');
@@ -37,6 +38,56 @@ const Settings = () => {
   const [enable2FA, setEnable2FA] = useState(true);
 
   const [successMsg, setSuccessMsg] = useState('');
+
+  const fetchSystemSettings = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/settings`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.hospName) setHospName(data.hospName);
+        if (data.hotline) setHotline(data.hotline);
+        if (data.emailContact) setEmailContact(data.emailContact);
+        if (data.address) setAddress(data.address);
+        if (data.openHours) setOpenHours(data.openHours);
+        if (data.reminder_hours !== undefined) setReminderHours(Number(data.reminder_hours));
+      }
+    } catch (err) {
+      console.error('Lỗi khi tải cấu hình hệ thống:', err);
+    }
+  };
+
+  const handleSaveSystem = async (e) => {
+    e.preventDefault();
+    try {
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/settings`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          hospName,
+          hotline,
+          emailContact,
+          address,
+          openHours,
+          reminder_hours: reminderHours
+        })
+      });
+
+      if (response.ok) {
+        setSuccessMsg('Đã lưu cấu hình Bệnh viện thành công!');
+        setTimeout(() => setSuccessMsg(''), 5000);
+      } else {
+        const errData = await response.json();
+        alert(`Lỗi: ${errData.message || 'Không thể lưu cài đặt'}`);
+      }
+    } catch (err) {
+      console.error('Lỗi lưu cài đặt:', err);
+      alert('Lỗi kết nối máy chủ.');
+    }
+  };
 
   const handleSave = (e) => {
     e.preventDefault();
@@ -70,6 +121,8 @@ const Settings = () => {
   useEffect(() => {
     if (activeTab === 'logs') {
       fetchLogs();
+    } else if (activeTab === 'system') {
+      fetchSystemSettings();
     }
   }, [activeTab]);
 
@@ -223,7 +276,7 @@ const Settings = () => {
 
         {/* TAB 2: SYSTEM */}
         {activeTab === 'system' && (
-          <form onSubmit={handleSave} className="space-y-6">
+          <form onSubmit={handleSaveSystem} className="space-y-6">
             <h3 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-3 flex items-center gap-2">
               <Building className="w-5 h-5 text-[#004e92]" /> Thiết lập Thông tin Bệnh viện / Phòng khám
             </h3>
@@ -291,6 +344,25 @@ const Settings = () => {
                   onChange={(e) => setAddress(e.target.value)}
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] focus:bg-white transition-colors font-medium text-gray-900"
                 />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
+                  <Bell className="w-4 h-4 text-[#004e92]" /> Thời gian gửi email nhắc lịch trước giờ khám
+                </label>
+                <select
+                  value={reminderHours}
+                  onChange={(e) => setReminderHours(Number(e.target.value))}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] focus:bg-white transition-colors font-semibold text-gray-900 cursor-pointer"
+                >
+                  <option value={0}>Tắt nhắc nhở</option>
+                  <option value={1}>1 giờ trước khám</option>
+                  <option value={2}>2 giờ trước khám</option>
+                  <option value={3}>3 giờ trước khám</option>
+                  <option value={6}>6 giờ trước khám</option>
+                  <option value={12}>12 giờ trước khám</option>
+                  <option value={24}>24 giờ trước khám</option>
+                </select>
               </div>
             </div>
 
