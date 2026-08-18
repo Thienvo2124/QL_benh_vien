@@ -453,11 +453,6 @@ const Booking = () => {
                       <p className="text-[11px] text-gray-500 font-semibold">
                         * Lưu ý: Bệnh viện hoạt động từ Thứ Hai đến Thứ Bảy và <strong className="text-[#004e92]">BUỔI SÁNG Chủ Nhật</strong>.
                       </p>
-                      {form.date && new Date(form.date).getDay() === 0 && (
-                        <p className="text-[11px] text-amber-600 font-bold flex items-center gap-1">
-                          ⚠️ Bạn đã chọn Chủ Nhật. Lịch khám sẽ tự động được xếp vào buổi sáng.
-                        </p>
-                      )}
                     </div>
                   </div>
 
