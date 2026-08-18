@@ -45,6 +45,12 @@ const Settings = () => {
   const [testLoading, setTestLoading] = useState(false);
   const [testSuccess, setTestSuccess] = useState('');
   const [testError, setTestError] = useState('');
+  
+  // Custom templates
+  const [emailConfirmSubject, setEmailConfirmSubject] = useState('');
+  const [emailConfirmContent, setEmailConfirmContent] = useState('');
+  const [emailReminderSubject, setEmailReminderSubject] = useState('');
+  const [emailReminderContent, setEmailReminderContent] = useState('');
 
   const [successMsg, setSuccessMsg] = useState('');
 
@@ -61,6 +67,10 @@ const Settings = () => {
         if (data.reminder_hours !== undefined) setReminderHours(Number(data.reminder_hours));
         if (data.email_user) setEmailUser(data.email_user);
         if (data.email_pass) setEmailPass(data.email_pass);
+        if (data.email_confirm_subject) setEmailConfirmSubject(data.email_confirm_subject);
+        if (data.email_confirm_content) setEmailConfirmContent(data.email_confirm_content);
+        if (data.email_reminder_subject) setEmailReminderSubject(data.email_reminder_subject);
+        if (data.email_reminder_content) setEmailReminderContent(data.email_reminder_content);
       }
     } catch (err) {
       console.error('Lỗi khi tải cấu hình hệ thống:', err);
@@ -113,7 +123,11 @@ const Settings = () => {
         body: JSON.stringify({
           email_user: emailUser,
           email_pass: emailPass,
-          reminder_hours: reminderHours
+          reminder_hours: reminderHours,
+          email_confirm_subject: emailConfirmSubject,
+          email_confirm_content: emailConfirmContent,
+          email_reminder_subject: emailReminderSubject,
+          email_reminder_content: emailReminderContent
         })
       });
 
@@ -522,6 +536,90 @@ const Settings = () => {
                     <option value={12}>12 giờ trước khám</option>
                     <option value={24}>24 giờ trước khám</option>
                   </select>
+                </div>
+              </div>
+
+              {/* Divider & Template Editor */}
+              <div className="border-t border-gray-100 pt-6 space-y-6">
+                <div>
+                  <h4 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-[#004e92]" /> Biên soạn Mẫu nội dung gửi Mail
+                  </h4>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Tự do thay đổi tiêu đề và nội dung HTML của email gửi đi. Bạn có thể sử dụng các thẻ động sau để hiển thị thông tin thực tế của bệnh nhân:
+                  </p>
+                  
+                  <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] text-[#004e92] font-semibold">
+                    <div><code>{`{name}`}</code>: Tên bệnh nhân</div>
+                    <div><code>{`{appointmentCode}`}</code>: Mã lịch hẹn</div>
+                    <div><code>{`{dept}`}</code>: Khoa khám bệnh</div>
+                    <div><code>{`{doctor}`}</code>: Tên bác sĩ</div>
+                    <div><code>{`{date}`}</code>: Ngày khám bệnh</div>
+                    <div><code>{`{time}`}</code>: Giờ khám bệnh</div>
+                    <div><code>{`{hours}`}</code>: Số tiếng nhắc trước</div>
+                  </div>
+                </div>
+
+                <div className="space-y-8">
+                  {/* Confirm Email Template */}
+                  <div className="bg-gray-50/50 p-5 rounded-3xl border border-gray-200/60 space-y-4">
+                    <h5 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-600" /> 1. Thư Xác nhận đặt lịch thành công
+                    </h5>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1.5">Tiêu đề (Subject)</label>
+                        <input
+                          type="text"
+                          required
+                          value={emailConfirmSubject}
+                          onChange={(e) => setEmailConfirmSubject(e.target.value)}
+                          className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-2xl text-xs font-semibold focus:outline-none focus:border-[#004e92] transition-colors"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1.5">Nội dung HTML (Body)</label>
+                        <textarea
+                          rows={8}
+                          required
+                          value={emailConfirmContent}
+                          onChange={(e) => setEmailConfirmContent(e.target.value)}
+                          className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-mono focus:outline-none focus:border-[#004e92] transition-colors"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Reminder Email Template */}
+                  <div className="bg-gray-50/50 p-5 rounded-3xl border border-gray-200/60 space-y-4">
+                    <h5 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                      <Bell className="w-4 h-4 text-amber-600" /> 2. Thư Nhắc lịch khám sắp diễn ra
+                    </h5>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1.5">Tiêu đề (Subject)</label>
+                        <input
+                          type="text"
+                          required
+                          value={emailReminderSubject}
+                          onChange={(e) => setEmailReminderSubject(e.target.value)}
+                          className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-2xl text-xs font-semibold focus:outline-none focus:border-[#004e92] transition-colors"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1.5">Nội dung HTML (Body)</label>
+                        <textarea
+                          rows={8}
+                          required
+                          value={emailReminderContent}
+                          onChange={(e) => setEmailReminderContent(e.target.value)}
+                          className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-mono focus:outline-none focus:border-[#004e92] transition-colors"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
