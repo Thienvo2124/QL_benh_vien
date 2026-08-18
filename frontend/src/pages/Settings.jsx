@@ -37,6 +37,15 @@ const Settings = () => {
   const [enableAlerts, setEnableAlerts] = useState(true);
   const [enable2FA, setEnable2FA] = useState(true);
 
+  // Tab 3: Email states
+  const [emailUser, setEmailUser] = useState('');
+  const [emailPass, setEmailPass] = useState('');
+  const [showEmailPass, setShowEmailPass] = useState(false);
+  const [testRecipient, setTestRecipient] = useState('');
+  const [testLoading, setTestLoading] = useState(false);
+  const [testSuccess, setTestSuccess] = useState('');
+  const [testError, setTestError] = useState('');
+
   const [successMsg, setSuccessMsg] = useState('');
 
   const fetchSystemSettings = async () => {
@@ -50,6 +59,8 @@ const Settings = () => {
         if (data.address) setAddress(data.address);
         if (data.openHours) setOpenHours(data.openHours);
         if (data.reminder_hours !== undefined) setReminderHours(Number(data.reminder_hours));
+        if (data.email_user) setEmailUser(data.email_user);
+        if (data.email_pass) setEmailPass(data.email_pass);
       }
     } catch (err) {
       console.error('Lỗi khi tải cấu hình hệ thống:', err);
@@ -86,6 +97,72 @@ const Settings = () => {
     } catch (err) {
       console.error('Lỗi lưu cài đặt:', err);
       alert('Lỗi kết nối máy chủ.');
+    }
+  };
+
+  const handleSaveEmail = async (e) => {
+    e.preventDefault();
+    try {
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/settings`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          email_user: emailUser,
+          email_pass: emailPass,
+          reminder_hours: reminderHours
+        })
+      });
+
+      if (response.ok) {
+        setSuccessMsg('Đã lưu cấu hình Email & Nhắc lịch thành công!');
+        setTimeout(() => setSuccessMsg(''), 5000);
+      } else {
+        const errData = await response.json();
+        alert(`Lỗi: ${errData.message || 'Không thể lưu cài đặt'}`);
+      }
+    } catch (err) {
+      console.error('Lỗi lưu cài đặt:', err);
+      alert('Lỗi kết nối máy chủ.');
+    }
+  };
+
+  const handleTestEmail = async (e) => {
+    e.preventDefault();
+    if (!testRecipient) return;
+    setTestLoading(true);
+    setTestSuccess('');
+    setTestError('');
+
+    try {
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/settings/test-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          recipientEmail: testRecipient,
+          email_user: emailUser,
+          email_pass: emailPass
+        })
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setTestSuccess(data.message || 'Gửi email test thành công!');
+      } else {
+        setTestError(data.error || data.message || 'Gửi email test thất bại.');
+      }
+    } catch (err) {
+      console.error('Lỗi gửi email test:', err);
+      setTestError('Lỗi kết nối máy chủ khi gửi thử.');
+    } finally {
+      setTestLoading(false);
     }
   };
 
