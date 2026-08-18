@@ -777,9 +777,6 @@ const Settings = () => {
               <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                 <Activity className="w-5 h-5 text-[#004e92]" /> Nhật ký Truy cập & Thao tác Hệ thống
               </h3>
-              <span className="text-xs bg-blue-50 text-[#004e92] font-bold px-3 py-1 rounded-full border border-blue-200">
-                Lưu trữ tự động 30 ngày
-              </span>
             </div>
 
             <div className="overflow-x-auto">
