@@ -61,6 +61,7 @@ router.post("/", async (req, res) => {
     const payload = {
       name: normalizeText(req.body.name),
       phone: normalizeText(req.body.phone),
+      email: req.body.email ? normalizeText(req.body.email) : "",
       dob: req.body.dob,
       gender: normalizeText(req.body.gender),
       dept: normalizeText(req.body.dept),
@@ -113,6 +114,7 @@ router.post("/", async (req, res) => {
     const appointment = await Appointment.create({
       name: payload.name,
       phone: payload.phone,
+      email: payload.email || "",
       dob,
       gender: payload.gender || "",
       dept: payload.dept,
@@ -357,7 +359,7 @@ router.put("/:id/medical-record", protect, adminOrDoctorOnly, async (req, res) =
     }
 
     const { 
-      name, gender, phone, weight, address, bhyt, dept, doctor, dob,
+      name, gender, phone, email, weight, address, bhyt, dept, doctor, dob,
       symptoms, diagnosis, treatment, advice, medicines 
     } = req.body;
 
@@ -370,6 +372,7 @@ router.put("/:id/medical-record", protect, adminOrDoctorOnly, async (req, res) =
     if (name !== undefined) appointment.name = name;
     if (gender !== undefined) appointment.gender = gender;
     if (phone !== undefined) appointment.phone = phone;
+    if (email !== undefined) appointment.email = email;
     if (weight !== undefined) appointment.weight = weight;
     if (address !== undefined) appointment.address = address;
     if (bhyt !== undefined) appointment.bhyt = bhyt;

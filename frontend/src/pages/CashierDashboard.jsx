@@ -124,6 +124,7 @@ const CashierDashboard = () => {
   const [registerForm, setRegisterForm] = useState({
     name: '',
     phone: '',
+    email: '',
     dob: '',
     gender: 'Nam',
     dept: '',
@@ -430,6 +431,7 @@ const CashierDashboard = () => {
         body: JSON.stringify({
           name: registerForm.name,
           phone: registerForm.phone,
+          email: registerForm.email,
           dob: dobValue,
           gender: registerForm.gender,
           dept: registerForm.dept,
@@ -451,6 +453,7 @@ const CashierDashboard = () => {
         setRegisterForm({
           name: '',
           phone: '',
+          email: '',
           dob: '',
           gender: 'Nam',
           dept: '',
@@ -950,7 +953,7 @@ const CashierDashboard = () => {
           </h3>
           
           <form onSubmit={handleWalkInRegister} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1.5">Họ và tên bệnh nhân *</label>
                 <input
@@ -971,6 +974,17 @@ const CashierDashboard = () => {
                   placeholder="09XXXXXXXX"
                   value={registerForm.phone}
                   onChange={(e) => setRegisterForm({ ...registerForm, phone: e.target.value })}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92] font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">Gmail</label>
+                <input
+                  type="email"
+                  placeholder="example@gmail.com"
+                  value={registerForm.email}
+                  onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })}
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92] font-semibold"
                 />
               </div>
