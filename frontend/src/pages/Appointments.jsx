@@ -23,6 +23,7 @@ const Appointments = () => {
   const [search, setSearch] = useState('');
   const [dateFilter, setDateFilter] = useState('');
   const [deptFilter, setDeptFilter] = useState('all');
+  const [sortOrder, setSortOrder] = useState('newest'); // newest, oldest
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
 
@@ -132,6 +133,23 @@ const Appointments = () => {
     const matchPhone = app.phone?.includes(search.trim());
     const matchCode = app.appointmentCode?.toLowerCase().includes(search.toLowerCase());
     return matchName || matchPhone || matchCode;
+  });
+
+  const sortedAppointments = [...filteredAppointments].sort((a, b) => {
+    const dateA = new Date(a.date);
+    const dateB = new Date(b.date);
+    
+    if (dateA.getTime() !== dateB.getTime()) {
+      return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+    }
+    
+    if (a.time && b.time) {
+      return sortOrder === 'newest' ? b.time.localeCompare(a.time) : a.time.localeCompare(b.time);
+    }
+    
+    return sortOrder === 'newest' 
+      ? new Date(b.createdAt) - new Date(a.createdAt) 
+      : new Date(a.createdAt) - new Date(b.createdAt);
   });
 
   const getStatusBadge = (status) => {
@@ -245,6 +263,19 @@ const Appointments = () => {
               </select>
             </div>
 
+            {/* Sắp xếp */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-600">Sắp xếp:</span>
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+                className="py-2.5 px-4 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92] focus:bg-white transition-colors cursor-pointer font-semibold"
+              >
+                <option value="newest">Mới nhất đến cũ nhất</option>
+                <option value="oldest">Cũ nhất đến mới nhất</option>
+              </select>
+            </div>
+
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-gray-600">Ngày khám:</span>
               <input
@@ -290,7 +321,7 @@ const Appointments = () => {
                       </div>
                     </td>
                   </tr>
-                ) : filteredAppointments.length === 0 ? (
+                ) : sortedAppointments.length === 0 ? (
                   <tr>
                     <td colSpan="6" className="p-12 text-center text-gray-500 font-medium">
                       <div className="flex flex-col items-center justify-center gap-3">
@@ -300,7 +331,7 @@ const Appointments = () => {
                     </td>
                   </tr>
                 ) : (
-                  filteredAppointments.map((app, index) => (
+                  sortedAppointments.map((app, index) => (
                     <tr key={app._id} className="hover:bg-blue-50/30 transition-colors">
                       <td className="p-4 font-bold text-gray-700 text-center">{index + 1}</td>
                       <td className="p-4">
