@@ -18,7 +18,14 @@ const MyAppointments = () => {
   const [statusFilter, setStatusFilter] = useState('all');
 
   const filteredAppointments = appointments.filter((app) => {
-    const matchesStatus = statusFilter === 'all' || app.status === statusFilter;
+    let matchesStatus = false;
+    if (statusFilter === 'all') {
+      matchesStatus = true;
+    } else if (statusFilter === 'current') {
+      matchesStatus = app.status === 'pending' || app.status === 'approved';
+    } else {
+      matchesStatus = app.status === statusFilter;
+    }
     const matchesSearch =
       !searchTerm ||
       (app.name && app.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -223,24 +230,14 @@ const MyAppointments = () => {
             {/* Bộ lọc trạng thái */}
             <div className="flex flex-wrap gap-2">
               <button
-                onClick={() => setStatusFilter('pending')}
+                onClick={() => setStatusFilter('current')}
                 className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                  statusFilter === 'pending'
+                  statusFilter === 'current'
                     ? 'bg-amber-500 text-white shadow-md'
                     : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                Chờ xác nhận ({appointments.filter(a => a.status === 'pending').length})
-              </button>
-              <button
-                onClick={() => setStatusFilter('approved')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                  statusFilter === 'approved'
-                    ? 'bg-green-600 text-white shadow-md'
-                    : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                Đã duyệt ({appointments.filter(a => a.status === 'approved').length})
+                Lịch hiện tại ({appointments.filter(a => a.status === 'pending' || a.status === 'approved').length})
               </button>
               <button
                 onClick={() => setStatusFilter('completed')}
