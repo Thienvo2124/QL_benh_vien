@@ -309,13 +309,6 @@ const Booking = () => {
                   </div>
                 </div>
 
-                {user && isForSelf && (
-                  <div className="bg-blue-50/60 border border-blue-100 text-blue-800 text-xs px-4 py-3 rounded-2xl flex items-center gap-2">
-                    <Smile size={16} className="text-[#004e92] flex-shrink-0" />
-                    <span>Chào <strong>{user.fullName}</strong>, thông tin hồ sơ của bạn đã được tự động nhập dưới đây.</span>
-                  </div>
-                )}
-
                 <form onSubmit={handleSubmit} className="space-y-5">
                   
                   {/* Họ tên & Email */}
