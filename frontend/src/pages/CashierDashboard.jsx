@@ -998,9 +998,10 @@ const CashierDashboard = () => {
                     onChange={(e) => setDobDay(e.target.value)}
                   >
                     <option value="">Ngày</option>
-                    {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
-                      <option key={d} value={String(d)}>Ngày {d}</option>
-                    ))}
+                    {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => {
+                      const val = String(d).padStart(2, '0');
+                      return <option key={d} value={val}>{d}</option>;
+                    })}
                   </select>
                   <select
                     className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:border-[#004e92] font-semibold bg-white cursor-pointer"
@@ -1008,9 +1009,10 @@ const CashierDashboard = () => {
                     onChange={(e) => setDobMonth(e.target.value)}
                   >
                     <option value="">Tháng</option>
-                    {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                      <option key={m} value={String(m)}>Tháng {m}</option>
-                    ))}
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => {
+                      const val = String(m).padStart(2, '0');
+                      return <option key={m} value={val}>{m}</option>;
+                    })}
                   </select>
                   <select
                     className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:border-[#004e92] font-semibold bg-white cursor-pointer"
