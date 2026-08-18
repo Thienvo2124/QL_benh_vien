@@ -32,3 +32,12 @@ npm run dev
 
 admin123@gmail.com
 123456
+
+
+https://myaccount.google.com/
+Bảo mật -> bật Xác minh 2 bước
+Mật khẩu ứng dụng
+Đặt tên ứng dụng tùy ý (ví dụ: Gửi mail bệnh viện) rồi bấm Tạo (Create).
+Google sẽ cấp cho bạn một mật khẩu gồm 16 ký tự
+Hãy sao chép 16 ký tự đó, dán vào ô Mật khẩu ứng dụng Google (16 ký tự) trên trang cấu hình Admin của bạn 
+nhấn Lưu cấu hình Email, rồi bấm Gửi thử ngay một lần nữa nhé!

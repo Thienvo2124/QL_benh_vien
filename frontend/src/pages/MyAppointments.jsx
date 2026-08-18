@@ -1,16 +1,19 @@
-import { useState, useEffect, useContext, useCallback } from 'react';
+import { useState, useEffect, useContext, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Clock, CheckCircle, XCircle, RefreshCw, AlertTriangle, User, Phone, Eye, X, FileText, Sparkles, Search } from 'lucide-react';
+import { Calendar, Clock, CheckCircle, XCircle, RefreshCw, AlertTriangle, User, Phone, Eye, X, FileText, Sparkles, Search, QrCode, Download } from 'lucide-react';
 import { AuthContext } from '../contexts/AuthContext';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import API_BASE_URL from '../config/api';
+import { QRCodeSVG } from 'qrcode.react';
 
 const MyAppointments = () => {
   const { user, token } = useContext(AuthContext);
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [qrAppointment, setQrAppointment] = useState(null);
+  const qrRef = useRef(null);
   const [updatingId, setUpdatingId] = useState(null);
   
   // Bộ lọc và Tìm kiếm
@@ -351,6 +354,14 @@ const MyAppointments = () => {
                           >
                             <Eye className="w-4 h-4" />
                           </button>
+                          <button
+                            onClick={() => setQrAppointment(app)}
+                            className="p-2 bg-blue-50 hover:bg-blue-100 text-[#004e92] border border-blue-200 rounded-xl transition-colors shadow-sm flex items-center gap-1 text-xs font-bold"
+                            title="Xem mã QR"
+                          >
+                            <QrCode className="w-4 h-4" />
+                            <span className="hidden sm:inline">Mã QR</span>
+                          </button>
                           {app.status === 'pending' && (
                             <button
                               onClick={() => handleCancelAppointment(app._id)}
@@ -458,6 +469,108 @@ const MyAppointments = () => {
               <button
                 onClick={() => setSelectedAppointment(null)}
                 className="bg-white hover:bg-gray-100 text-gray-700 font-bold py-3 px-6 rounded-2xl transition-colors border border-gray-200 shadow-sm"
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+      {/* Modal QR Code */}
+      {qrAppointment && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-sm w-full overflow-hidden border border-gray-100">
+            {/* Header */}
+            <div className="bg-[#004e92] text-white p-5 flex justify-between items-center">
+              <div>
+                <div className="flex items-center gap-2">
+                  <QrCode className="w-5 h-5 text-blue-300" />
+                  <span className="font-bold text-lg">Mã QR Lịch hẹn</span>
+                </div>
+                <p className="text-blue-200 text-xs mt-1">Xuất trình mã này khi đến bệnh viện</p>
+              </div>
+              <button
+                onClick={() => setQrAppointment(null)}
+                className="w-9 h-9 rounded-full bg-blue-800 hover:bg-blue-700 flex items-center justify-center transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* QR Code */}
+            <div className="p-6 flex flex-col items-center gap-5">
+              <div
+                ref={qrRef}
+                className="p-4 bg-white border-2 border-blue-100 rounded-2xl shadow-inner"
+              >
+                <QRCodeSVG
+                  value={JSON.stringify({
+                    code: qrAppointment.appointmentCode || 'BV-ND-REG',
+                    name: qrAppointment.name,
+                    dept: qrAppointment.dept,
+                    doctor: qrAppointment.doctor ? `BS. ${qrAppointment.doctor}` : 'Bác sĩ trực chuyên khoa',
+                    date: qrAppointment.date ? new Date(qrAppointment.date).toLocaleDateString('vi-VN') : '',
+                    time: qrAppointment.time || ''
+                  })}
+                  size={200}
+                  bgColor="#ffffff"
+                  fgColor="#004e92"
+                  level="M"
+                />
+              </div>
+
+              {/* Appointment info summary */}
+              <div className="w-full bg-blue-50 rounded-2xl border border-blue-100 p-4 space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Mã lịch hẹn</span>
+                  <span className="font-bold text-[#004e92]">{qrAppointment.appointmentCode || 'BV-ND-REG'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Bệnh nhân</span>
+                  <span className="font-bold text-gray-800">{qrAppointment.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Chuyên khoa</span>
+                  <span className="font-bold text-gray-800">{qrAppointment.dept}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Ngày &amp; Giờ khám</span>
+                  <span className="font-bold text-gray-800">
+                    {qrAppointment.date ? new Date(qrAppointment.date).toLocaleDateString('vi-VN') : '—'} · {qrAppointment.time || '—'}
+                  </span>
+                </div>
+              </div>
+
+              <p className="text-xs text-gray-400 text-center">
+                Nhân viên bệnh viện sẽ quét mã này để tra cứu và xử lý nhanh thủ tục cho bạn.
+              </p>
+            </div>
+
+            {/* Footer buttons */}
+            <div className="px-6 pb-6 flex gap-3">
+              <button
+                onClick={() => {
+                  const svg = qrRef.current?.querySelector('svg');
+                  if (!svg) return;
+                  const serializer = new XMLSerializer();
+                  const svgStr = serializer.serializeToString(svg);
+                  const blob = new Blob([svgStr], { type: 'image/svg+xml' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `QR_${qrAppointment.appointmentCode || 'lichhen'}.svg`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+                className="flex-1 bg-[#004e92] hover:bg-blue-800 text-white font-bold py-3 rounded-2xl transition-colors flex items-center justify-center gap-2 shadow-md text-sm"
+              >
+                <Download className="w-4 h-4" /> Tải ảnh QR
+              </button>
+              <button
+                onClick={() => setQrAppointment(null)}
+                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 rounded-2xl transition-colors text-sm"
               >
                 Đóng
               </button>
