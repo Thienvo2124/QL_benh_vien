@@ -48,98 +48,37 @@ const Settings = () => {
   
   // Custom templates
   const [emailConfirmSubject, setEmailConfirmSubject] = useState('[Bệnh viện Nhân Dân] Xác nhận đăng ký lịch hẹn khám thành công - Mã: {appointmentCode}');
-  const [emailConfirmContent, setEmailConfirmContent] = useState(`<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 12px; background-color: #fcfcfc;">
-  <div style="text-align: center; border-bottom: 2px solid #004e92; padding-bottom: 15px; margin-bottom: 20px;">
-    <h2 style="color: #004e92; margin: 0;">BỆNH VIỆN NHÂN DÂN</h2>
-    <p style="color: #666; font-size: 14px; margin: 5px 0 0 0;">Uy tín - Tận tâm - Sức khỏe của bạn là sứ mệnh của chúng tôi</p>
-  </div>
-  
-  <div style="line-height: 1.6; color: #333;">
-    <p>Xin chào <strong>{name}</strong>,</p>
-    <p>Chúc mừng bạn đã đăng ký lịch khám bệnh trực tuyến thành công tại <strong>Bệnh viện Nhân Dân</strong>. Dưới đây là thông tin chi tiết về lịch khám của bạn:</p>
-    
-    <div style="background-color: #f0f7ff; border-left: 4px solid #004e92; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0;">
-      <table style="width: 100%; border-collapse: collapse;">
-        <tr>
-          <td style="padding: 5px 0; color: #555; width: 140px;"><strong>Mã lịch hẹn:</strong></td>
-          <td style="padding: 5px 0; color: #004e92; font-size: 16px;"><strong>{appointmentCode}</strong></td>
-        </tr>
-        <tr>
-          <td style="padding: 5px 0; color: #555;"><strong>Chuyên khoa:</strong></td>
-          <td style="padding: 5px 0;">{dept}</td>
-        </tr>
-        <tr>
-          <td style="padding: 5px 0; color: #555;"><strong>Bác sĩ khám:</strong></td>
-          <td style="padding: 5px 0;">{doctor}</td>
-        </tr>
-        <tr>
-          <td style="padding: 5px 0; color: #555;"><strong>Ngày khám:</strong></td>
-          <td style="padding: 5px 0; color: #d97706; font-weight: bold;">{date}</td>
-        </tr>
-        <tr>
-          <td style="padding: 5px 0; color: #555;"><strong>Khung giờ:</strong></td>
-          <td style="padding: 5px 0; color: #1d4ed8; font-weight: bold;">{time}</td>
-        </tr>
-      </table>
-    </div>
-    
-    <p style="margin-top: 20px;"><strong>⚠️ Lưu ý quan trọng:</strong></p>
-    <ul style="padding-left: 20px; color: #555;">
-      <li>Quý khách vui lòng đến trước giờ hẹn khám 15-30 phút để hoàn tất thủ tục tiếp nhận và đo sinh hiệu ban đầu.</li>
-      <li>Khi đi mang theo Thẻ BHYT (nếu có) và CCCD để đối chiếu thông tin nhanh chóng.</li>
-      <li>Nếu có bất kỳ thay đổi nào hoặc cần hủy lịch hẹn, vui lòng thực hiện trước 24 giờ trên hệ thống của chúng tôi hoặc liên hệ Hotline tổng đài hỗ trợ.</li>
-    </ul>
-  </div>
-  
-  <div style="margin-top: 30px; border-top: 1px solid #e0e0e0; padding-top: 15px; text-align: center; font-size: 12px; color: #888;">
-    <p style="margin: 0;">Email này được gửi tự động từ hệ thống quản lý của Bệnh viện Nhân Dân.</p>
-    <p style="margin: 5px 0 0 0;">Mọi thắc mắc vui lòng liên hệ Hotline: <strong>1900 2115</strong></p>
-  </div>
-</div>`);
+  const [emailConfirmContent, setEmailConfirmContent] = useState(`Xin chào {name},
+
+Chúc mừng bạn đã đăng ký lịch khám bệnh trực tuyến thành công tại Bệnh viện Nhân Dân.
+
+Dưới đây là thông tin chi tiết về lịch khám của bạn:
+- Mã lịch hẹn: {appointmentCode}
+- Chuyên khoa: {dept}
+- Bác sĩ khám: {doctor}
+- Ngày khám: {date}
+- Khung giờ: {time}
+
+⚠️ Lưu ý quan trọng:
+- Quý khách vui lòng đến trước giờ hẹn khám 15-30 phút để hoàn tất thủ tục tiếp nhận và đo sinh hiệu ban đầu.
+- Khi đi mang theo Thẻ BHYT (nếu có) và CCCD để đối chiếu thông tin nhanh chóng.
+- Nếu có bất kỳ thay đổi nào hoặc cần hủy lịch hẹn, vui lòng thực hiện trước 24 giờ trên hệ thống của chúng tôi hoặc liên hệ Hotline tổng đài hỗ trợ.
+
+Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
   const [emailReminderSubject, setEmailReminderSubject] = useState('[Nhắc lịch khám] Lịch khám bệnh của bạn tại Bệnh viện Nhân Dân sắp diễn ra');
-  const [emailReminderContent, setEmailReminderContent] = useState(`<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ffccd5; border-radius: 12px; background-color: #fffafb;">
-  <div style="text-align: center; border-bottom: 2px solid #e11d48; padding-bottom: 15px; margin-bottom: 20px;">
-    <h2 style="color: #e11d48; margin: 0;">BỆNH VIỆN NHÂN DÂN</h2>
-    <p style="color: #666; font-size: 14px; margin: 5px 0 0 0;">Thông báo nhắc nhở lịch khám bệnh tự động</p>
-  </div>
-  
-  <div style="line-height: 1.6; color: #333;">
-    <p>Xin chào <strong>{name}</strong>,</p>
-    <p>Bệnh viện Nhân Dân xin thông báo nhắc nhở: Lịch khám bệnh của bạn sẽ diễn ra sau khoảng <strong>{hours} giờ</strong> nữa. Vui lòng sắp xếp thời gian để tới khám đúng hẹn.</p>
-    
-    <div style="background-color: #fff1f2; border-left: 4px solid #e11d48; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0;">
-      <table style="width: 100%; border-collapse: collapse;">
-        <tr>
-          <td style="padding: 5px 0; color: #555; width: 140px;"><strong>Mã lịch hẹn:</strong></td>
-          <td style="padding: 5px 0; color: #e11d48; font-size: 16px;"><strong>{appointmentCode}</strong></td>
-        </tr>
-        <tr>
-          <td style="padding: 5px 0; color: #555;"><strong>Chuyên khoa:</strong></td>
-          <td style="padding: 5px 0;">{dept}</td>
-        </tr>
-        <tr>
-          <td style="padding: 5px 0; color: #555;"><strong>Bác sĩ khám:</strong></td>
-          <td style="padding: 5px 0;">{doctor}</td>
-        </tr>
-        <tr>
-          <td style="padding: 5px 0; color: #555;"><strong>Ngày khám:</strong></td>
-          <td style="padding: 5px 0; color: #d97706; font-weight: bold;">{date}</td>
-        </tr>
-        <tr>
-          <td style="padding: 5px 0; color: #555;"><strong>Khung giờ:</strong></td>
-          <td style="padding: 5px 0; color: #1d4ed8; font-weight: bold;">{time}</td>
-        </tr>
-      </table>
-    </div>
-    
-    <p>Cảm ơn quý khách đã tin tưởng dịch vụ chăm sức khỏe của Bệnh viện Nhân Dân. Chúc quý khách nhiều sức khỏe!</p>
-  </div>
-  
-  <div style="margin-top: 30px; border-top: 1px solid #ffccd5; padding-top: 15px; text-align: center; font-size: 12px; color: #888;">
-    <p style="margin: 0;">Email này được gửi tự động từ hệ thống quản lý của Bệnh viện Nhân Dân.</p>
-    <p style="margin: 5px 0 0 0;">Mọi thắc mắc vui lòng liên hệ Hotline: <strong>1900 2115</strong></p>
-  </div>
-</div>`);
+  const [emailReminderContent, setEmailReminderContent] = useState(`Xin chào {name},
+
+Bệnh viện Nhân Dân xin thông báo nhắc nhở: Lịch khám bệnh của bạn tại chuyên khoa {dept} sẽ diễn ra sau khoảng {hours} giờ nữa.
+
+Thông tin chi tiết lịch hẹn:
+- Mã lịch hẹn: {appointmentCode}
+- Bác sĩ khám: {doctor}
+- Ngày khám: {date}
+- Khung giờ: {time}
+
+Vui lòng sắp xếp thời gian để tới khám đúng hẹn.
+
+Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
 
   const [successMsg, setSuccessMsg] = useState('');
 
@@ -635,7 +574,7 @@ const Settings = () => {
                     <FileText className="w-5 h-5 text-[#004e92]" /> Biên soạn Mẫu nội dung gửi Mail
                   </h4>
                   <p className="text-xs text-gray-500 mt-1">
-                    Tự do thay đổi tiêu đề và nội dung HTML của email gửi đi. Bạn có thể sử dụng các thẻ động sau để hiển thị thông tin thực tế của bệnh nhân:
+                    Tự do thay đổi tiêu đề và nội dung văn bản của email gửi đi. Bạn chỉ cần nhập các câu từ bình thường, hệ thống sẽ tự động định dạng và trang trí thư thật đẹp mắt trước khi gửi. Sử dụng các thẻ động sau:
                   </p>
                   
                   <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] text-[#004e92] font-semibold">
@@ -658,7 +597,7 @@ const Settings = () => {
                     
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-xs font-bold text-gray-700 mb-1.5">Tiêu đề (Subject)</label>
+                        <label className="block text-xs font-bold text-gray-700 mb-1.5">Tiêu đề email</label>
                         <input
                           type="text"
                           required
@@ -668,13 +607,13 @@ const Settings = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-gray-700 mb-1.5">Nội dung HTML (Body)</label>
+                        <label className="block text-xs font-bold text-gray-700 mb-1.5">Nội dung thư (Plain Text)</label>
                         <textarea
                           rows={8}
                           required
                           value={emailConfirmContent}
                           onChange={(e) => setEmailConfirmContent(e.target.value)}
-                          className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-mono focus:outline-none focus:border-[#004e92] transition-colors"
+                          className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-medium focus:outline-none focus:border-[#004e92] transition-colors"
                         />
                       </div>
                     </div>
@@ -688,7 +627,7 @@ const Settings = () => {
                     
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-xs font-bold text-gray-700 mb-1.5">Tiêu đề (Subject)</label>
+                        <label className="block text-xs font-bold text-gray-700 mb-1.5">Tiêu đề email</label>
                         <input
                           type="text"
                           required
@@ -698,13 +637,13 @@ const Settings = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-gray-700 mb-1.5">Nội dung HTML (Body)</label>
+                        <label className="block text-xs font-bold text-gray-700 mb-1.5">Nội dung thư (Plain Text)</label>
                         <textarea
                           rows={8}
                           required
                           value={emailReminderContent}
                           onChange={(e) => setEmailReminderContent(e.target.value)}
-                          className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-mono focus:outline-none focus:border-[#004e92] transition-colors"
+                          className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-medium focus:outline-none focus:border-[#004e92] transition-colors"
                         />
                       </div>
                     </div>

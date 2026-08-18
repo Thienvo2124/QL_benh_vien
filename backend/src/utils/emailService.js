@@ -2,99 +2,38 @@ const nodemailer = require("nodemailer");
 const SystemSetting = require("../models/SystemSetting");
 
 const DEFAULT_CONFIRM_SUBJECT = "[Bệnh viện Nhân Dân] Xác nhận đăng ký lịch hẹn khám thành công - Mã: {appointmentCode}";
-const DEFAULT_CONFIRM_CONTENT = `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 12px; background-color: #fcfcfc;">
-  <div style="text-align: center; border-bottom: 2px solid #004e92; padding-bottom: 15px; margin-bottom: 20px;">
-    <h2 style="color: #004e92; margin: 0;">BỆNH VIỆN NHÂN DÂN</h2>
-    <p style="color: #666; font-size: 14px; margin: 5px 0 0 0;">Uy tín - Tận tâm - Sức khỏe của bạn là sứ mệnh của chúng tôi</p>
-  </div>
-  
-  <div style="line-height: 1.6; color: #333;">
-    <p>Xin chào <strong>{name}</strong>,</p>
-    <p>Chúc mừng bạn đã đăng ký lịch khám bệnh trực tuyến thành công tại <strong>Bệnh viện Nhân Dân</strong>. Dưới đây là thông tin chi tiết về lịch khám của bạn:</p>
-    
-    <div style="background-color: #f0f7ff; border-left: 4px solid #004e92; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0;">
-      <table style="width: 100%; border-collapse: collapse;">
-        <tr>
-          <td style="padding: 5px 0; color: #555; width: 140px;"><strong>Mã lịch hẹn:</strong></td>
-          <td style="padding: 5px 0; color: #004e92; font-size: 16px;"><strong>{appointmentCode}</strong></td>
-        </tr>
-        <tr>
-          <td style="padding: 5px 0; color: #555;"><strong>Chuyên khoa:</strong></td>
-          <td style="padding: 5px 0;">{dept}</td>
-        </tr>
-        <tr>
-          <td style="padding: 5px 0; color: #555;"><strong>Bác sĩ khám:</strong></td>
-          <td style="padding: 5px 0;">{doctor}</td>
-        </tr>
-        <tr>
-          <td style="padding: 5px 0; color: #555;"><strong>Ngày khám:</strong></td>
-          <td style="padding: 5px 0; color: #d97706; font-weight: bold;">{date}</td>
-        </tr>
-        <tr>
-          <td style="padding: 5px 0; color: #555;"><strong>Khung giờ:</strong></td>
-          <td style="padding: 5px 0; color: #1d4ed8; font-weight: bold;">{time}</td>
-        </tr>
-      </table>
-    </div>
-    
-    <p style="margin-top: 20px;"><strong>⚠️ Lưu ý quan trọng:</strong></p>
-    <ul style="padding-left: 20px; color: #555;">
-      <li>Quý khách vui lòng đến trước giờ hẹn khám 15-30 phút để hoàn tất thủ tục tiếp nhận và đo sinh hiệu ban đầu.</li>
-      <li>Khi đi mang theo Thẻ BHYT (nếu có) và CCCD để đối chiếu thông tin nhanh chóng.</li>
-      <li>Nếu có bất kỳ thay đổi nào hoặc cần hủy lịch hẹn, vui lòng thực hiện trước 24 giờ trên hệ thống của chúng tôi hoặc liên hệ Hotline tổng đài hỗ trợ.</li>
-    </ul>
-  </div>
-  
-  <div style="margin-top: 30px; border-top: 1px solid #e0e0e0; padding-top: 15px; text-align: center; font-size: 12px; color: #888;">
-    <p style="margin: 0;">Email này được gửi tự động từ hệ thống quản lý của Bệnh viện Nhân Dân.</p>
-    <p style="margin: 5px 0 0 0;">Mọi thắc mắc vui lòng liên hệ Hotline: <strong>1900 2115</strong></p>
-  </div>
-</div>`;
+const DEFAULT_CONFIRM_CONTENT = `Xin chào {name},
+
+Chúc mừng bạn đã đăng ký lịch khám bệnh trực tuyến thành công tại Bệnh viện Nhân Dân.
+
+Dưới đây là thông tin chi tiết về lịch khám của bạn:
+- Mã lịch hẹn: {appointmentCode}
+- Chuyên khoa: {dept}
+- Bác sĩ khám: {doctor}
+- Ngày khám: {date}
+- Khung giờ: {time}
+
+⚠️ Lưu ý quan trọng:
+- Quý khách vui lòng đến trước giờ hẹn khám 15-30 phút để hoàn tất thủ tục tiếp nhận và đo sinh hiệu ban đầu.
+- Khi đi mang theo Thẻ BHYT (nếu có) và CCCD để đối chiếu thông tin nhanh chóng.
+- Nếu có bất kỳ thay đổi nào hoặc cần hủy lịch hẹn, vui lòng thực hiện trước 24 giờ trên hệ thống của chúng tôi hoặc liên hệ Hotline tổng đài hỗ trợ.
+
+Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`;
 
 const DEFAULT_REMINDER_SUBJECT = "[Nhắc lịch khám] Lịch khám bệnh của bạn tại Bệnh viện Nhân Dân sắp diễn ra";
-const DEFAULT_REMINDER_CONTENT = `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ffccd5; border-radius: 12px; background-color: #fffafb;">
-  <div style="text-align: center; border-bottom: 2px solid #e11d48; padding-bottom: 15px; margin-bottom: 20px;">
-    <h2 style="color: #e11d48; margin: 0;">BỆNH VIỆN NHÂN DÂN</h2>
-    <p style="color: #666; font-size: 14px; margin: 5px 0 0 0;">Thông báo nhắc nhở lịch khám bệnh tự động</p>
-  </div>
-  
-  <div style="line-height: 1.6; color: #333;">
-    <p>Xin chào <strong>{name}</strong>,</p>
-    <p>Bệnh viện Nhân Dân xin thông báo nhắc nhở: Lịch khám bệnh của bạn sẽ diễn ra sau khoảng <strong>{hours} giờ</strong> nữa. Vui lòng sắp xếp thời gian để tới khám đúng hẹn.</p>
-    
-    <div style="background-color: #fff1f2; border-left: 4px solid #e11d48; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0;">
-      <table style="width: 100%; border-collapse: collapse;">
-        <tr>
-          <td style="padding: 5px 0; color: #555; width: 140px;"><strong>Mã lịch hẹn:</strong></td>
-          <td style="padding: 5px 0; color: #e11d48; font-size: 16px;"><strong>{appointmentCode}</strong></td>
-        </tr>
-        <tr>
-          <td style="padding: 5px 0; color: #555;"><strong>Chuyên khoa:</strong></td>
-          <td style="padding: 5px 0;">{dept}</td>
-        </tr>
-        <tr>
-          <td style="padding: 5px 0; color: #555;"><strong>Bác sĩ khám:</strong></td>
-          <td style="padding: 5px 0;">{doctor}</td>
-        </tr>
-        <tr>
-          <td style="padding: 5px 0; color: #555;"><strong>Ngày khám:</strong></td>
-          <td style="padding: 5px 0; color: #d97706; font-weight: bold;">{date}</td>
-        </tr>
-        <tr>
-          <td style="padding: 5px 0; color: #555;"><strong>Khung giờ:</strong></td>
-          <td style="padding: 5px 0; color: #1d4ed8; font-weight: bold;">{time}</td>
-        </tr>
-      </table>
-    </div>
-    
-    <p>Cảm ơn quý khách đã tin tưởng dịch vụ chăm sóc sức khỏe của Bệnh viện Nhân Dân. Chúc quý khách nhiều sức khỏe!</p>
-  </div>
-  
-  <div style="margin-top: 30px; border-top: 1px solid #ffccd5; padding-top: 15px; text-align: center; font-size: 12px; color: #888;">
-    <p style="margin: 0;">Email này được gửi tự động từ hệ thống quản lý của Bệnh viện Nhân Dân.</p>
-    <p style="margin: 5px 0 0 0;">Mọi thắc mắc vui lòng liên hệ Hotline: <strong>1900 2115</strong></p>
-  </div>
-</div>`;
+const DEFAULT_REMINDER_CONTENT = `Xin chào {name},
+
+Bệnh viện Nhân Dân xin thông báo nhắc nhở: Lịch khám bệnh của bạn tại chuyên khoa {dept} sẽ diễn ra sau khoảng {hours} giờ nữa.
+
+Thông tin chi tiết lịch hẹn:
+- Mã lịch hẹn: {appointmentCode}
+- Bác sĩ khám: {doctor}
+- Ngày khám: {date}
+- Khung giờ: {time}
+
+Vui lòng sắp xếp thời gian để tới khám đúng hẹn.
+
+Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`;
 
 // Create transporter using SMTP Gmail settings dynamically from database or fallback to .env
 const createTransporter = async () => {
@@ -143,6 +82,36 @@ const parseTemplate = (template, app, hours = 3) => {
 };
 
 /**
+ * Wrap the plain text parsed email in a beautiful HTML layout
+ */
+const wrapInBeautifulLayout = (text, isReminder = false) => {
+  const borderColor = isReminder ? "#ffccd5" : "#e0e0e0";
+  const headerColor = isReminder ? "#e11d48" : "#004e92";
+  const headerSubText = isReminder ? "Thông báo nhắc nhở lịch khám bệnh tự động" : "Uy tín - Tận tâm - Sức khỏe của bạn là sứ mệnh của chúng tôi";
+  
+  // Convert newlines to HTML breaks
+  const formattedText = text.replace(/\n/g, "<br/>");
+  
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 25px; border: 1px solid ${borderColor}; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+      <div style="text-align: center; border-bottom: 2px solid ${headerColor}; padding-bottom: 15px; margin-bottom: 20px;">
+        <h2 style="color: ${headerColor}; margin: 0; font-size: 22px; letter-spacing: 0.5px;">BỆNH VIỆN NHÂN DÂN</h2>
+        <p style="color: #666; font-size: 13px; margin: 5px 0 0 0;">${headerSubText}</p>
+      </div>
+      
+      <div style="line-height: 1.8; color: #333; font-size: 14px;">
+        ${formattedText}
+      </div>
+      
+      <div style="margin-top: 30px; border-top: 1px solid #eeeeee; padding-top: 15px; text-align: center; font-size: 12px; color: #888;">
+        <p style="margin: 0;">Email này được gửi tự động từ hệ thống quản lý của Bệnh viện Nhân Dân.</p>
+        <p style="margin: 5px 0 0 0;">Mọi thắc mắc vui lòng liên hệ Hotline: <strong>1900 2115</strong></p>
+      </div>
+    </div>
+  `;
+};
+
+/**
  * Gửi email xác nhận đặt lịch thành công
  * @param {Object} app Đối tượng lịch hẹn (Appointment)
  */
@@ -174,7 +143,8 @@ const sendBookingConfirmation = async (app) => {
   }
 
   const subject = parseTemplate(subjectTemplate, app);
-  const html = parseTemplate(contentTemplate, app);
+  const plainBody = parseTemplate(contentTemplate, app);
+  const html = wrapInBeautifulLayout(plainBody, false);
 
   const mailOptions = {
     from: `"Bệnh viện Nhân Dân" <${fromUser || "no-reply@gmail.com"}>`,
@@ -221,7 +191,8 @@ const sendAppointmentReminder = async (app, hours) => {
   }
 
   const subject = parseTemplate(subjectTemplate, app, hours);
-  const html = parseTemplate(contentTemplate, app, hours);
+  const plainBody = parseTemplate(contentTemplate, app, hours);
+  const html = wrapInBeautifulLayout(plainBody, true);
 
   const mailOptions = {
     from: `"Bệnh viện Nhân Dân" <${fromUser || "no-reply@gmail.com"}>`,
