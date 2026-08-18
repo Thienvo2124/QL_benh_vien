@@ -215,8 +215,9 @@ const sendAppointmentReminder = async (app, hours) => {
  * Gửi email kiểm tra kết nối SMTP
  * @param {String} toEmail Địa chỉ người nhận
  * @param {Object} credentials Cấu hình SMTP tùy chọn { user, pass }
+ * @param {Object} templateData Cấu hình mẫu email cần gửi thử { type, subject, content }
  */
-const sendTestEmail = async (toEmail, credentials = {}) => {
+const sendTestEmail = async (toEmail, credentials = {}, templateData = null) => {
   let user = credentials.user || process.env.EMAIL_USER;
   let pass = credentials.pass || process.env.EMAIL_PASS || process.env.EMAIL_APP_PASS;
 
@@ -241,17 +242,46 @@ const sendTestEmail = async (toEmail, credentials = {}) => {
     },
   });
 
+  let subject = `[SMTP Test] Kiểm tra kết nối hòm thư tự động thành công`;
+  let html = `
+    <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 20px auto; padding: 20px; border: 1px solid #10b981; border-radius: 10px; background-color: #f0fdf4;">
+      <h3 style="color: #10b981; margin-top: 0;">🎉 Kết nối SMTP thành công!</h3>
+      <p>Hệ thống gửi thư tự động của <strong>Bệnh viện Nhân Dân</strong> đã kết nối thành công với tài khoản Gmail của bạn.</p>
+      <p style="font-size: 13px; color: #555;">Thời gian kiểm tra: ${new Date().toLocaleString("vi-VN")}</p>
+    </div>
+  `;
+
+  if (templateData && templateData.type && templateData.type !== "connectivity") {
+    const mockApp = {
+      name: "Nguyễn Văn Chạy Thử",
+      appointmentCode: "BV-TEST12345",
+      dept: "Khoa Tim Mạch",
+      doctor: "BS. Nguyễn Văn A",
+      date: new Date(),
+      time: "08:30 - 09:30",
+      email: toEmail
+    };
+
+    if (templateData.type === "confirm") {
+      const subTpl = templateData.subject || DEFAULT_CONFIRM_SUBJECT;
+      const bodyTpl = templateData.content || DEFAULT_CONFIRM_CONTENT;
+      subject = parseTemplate(subTpl, mockApp);
+      const parsedBody = parseTemplate(bodyTpl, mockApp);
+      html = wrapInBeautifulLayout(parsedBody, false);
+    } else if (templateData.type === "reminder") {
+      const subTpl = templateData.subject || DEFAULT_REMINDER_SUBJECT;
+      const bodyTpl = templateData.content || DEFAULT_REMINDER_CONTENT;
+      subject = parseTemplate(subTpl, mockApp, 3);
+      const parsedBody = parseTemplate(bodyTpl, mockApp, 3);
+      html = wrapInBeautifulLayout(parsedBody, true);
+    }
+  }
+
   const mailOptions = {
     from: `"Bệnh viện Nhân Dân" <${user}>`,
     to: toEmail,
-    subject: `[SMTP Test] Kiểm tra kết nối hòm thư tự động thành công`,
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 20px auto; padding: 20px; border: 1px solid #10b981; border-radius: 10px; background-color: #f0fdf4;">
-        <h3 style="color: #10b981; margin-top: 0;">🎉 Kết nối SMTP thành công!</h3>
-        <p>Hệ thống gửi thư tự động của <strong>Bệnh viện Nhân Dân</strong> đã kết nối thành công với tài khoản Gmail của bạn.</p>
-        <p style="font-size: 13px; color: #555;">Thời gian kiểm tra: ${new Date().toLocaleString("vi-VN")}</p>
-      </div>
-    `,
+    subject: subject,
+    html: html,
   };
 
   return await transporter.sendMail(mailOptions);

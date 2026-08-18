@@ -81,13 +81,33 @@ router.post("/", protect, adminOrDoctorOnly, async (req, res) => {
 // POST test-email connectivity (Admin only)
 const { sendTestEmail } = require("../utils/emailService");
 router.post("/test-email", protect, adminOrDoctorOnly, async (req, res) => {
-  const { recipientEmail, email_user, email_pass } = req.body;
+  const { 
+    recipientEmail, 
+    email_user, 
+    email_pass, 
+    templateType, 
+    email_confirm_subject, 
+    email_confirm_content,
+    email_reminder_subject,
+    email_reminder_content
+  } = req.body;
+  
   if (!recipientEmail) {
     return res.status(400).json({ message: "Vui lòng cung cấp địa chỉ email nhận test." });
   }
 
   try {
-    await sendTestEmail(recipientEmail, { user: email_user, pass: email_pass });
+    const templateData = templateType ? {
+      type: templateType,
+      subject: templateType === "confirm" ? email_confirm_subject : email_reminder_subject,
+      content: templateType === "confirm" ? email_confirm_content : email_reminder_content
+    } : null;
+
+    await sendTestEmail(
+      recipientEmail, 
+      { user: email_user, pass: email_pass },
+      templateData
+    );
     return res.json({ message: "Gửi email thử nghiệm thành công! Hãy kiểm tra hòm thư của bạn." });
   } catch (error) {
     return res.status(500).json({ 

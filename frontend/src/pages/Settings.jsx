@@ -45,6 +45,7 @@ const Settings = () => {
   const [testLoading, setTestLoading] = useState(false);
   const [testSuccess, setTestSuccess] = useState('');
   const [testError, setTestError] = useState('');
+  const [testType, setTestType] = useState('connectivity');
   
   // Custom templates
   const [emailConfirmSubject, setEmailConfirmSubject] = useState('[Bệnh viện Nhân Dân] Xác nhận đăng ký lịch hẹn khám thành công - Mã: {appointmentCode}');
@@ -190,7 +191,12 @@ Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
         body: JSON.stringify({
           recipientEmail: testRecipient,
           email_user: emailUser,
-          email_pass: emailPass
+          email_pass: emailPass,
+          templateType: testType,
+          email_confirm_subject: emailConfirmSubject,
+          email_confirm_content: emailConfirmContent,
+          email_reminder_subject: emailReminderSubject,
+          email_reminder_content: emailReminderContent
         })
       });
 
@@ -672,6 +678,19 @@ Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
               </div>
 
               <div className="flex flex-wrap gap-4 items-end">
+                <div className="flex-1 min-w-[200px]">
+                  <label className="block text-xs font-bold text-gray-700 mb-2">Chọn mẫu gửi thử</label>
+                  <select
+                    value={testType}
+                    onChange={(e) => setTestType(e.target.value)}
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] transition-colors font-semibold text-gray-900 cursor-pointer"
+                  >
+                    <option value="connectivity">Kiểm tra kết nối SMTP (Thư tự động)</option>
+                    <option value="confirm">Gửi thử Thư xác nhận đặt lịch</option>
+                    <option value="reminder">Gửi thử Thư nhắc lịch khám</option>
+                  </select>
+                </div>
+
                 <div className="flex-1 min-w-[200px]">
                   <label className="block text-xs font-bold text-gray-700 mb-2">Địa chỉ Gmail nhận thư test</label>
                   <input
