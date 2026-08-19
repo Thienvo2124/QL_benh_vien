@@ -23,6 +23,7 @@ const appointmentRoutes = require("./routes/appointmentRoutes");
 const userRoutes = require("./routes/userRoutes");
 const medicineRoutes = require("./routes/medicineRoutes");
 const settingRoutes = require("./routes/settingRoutes");
+const newsRoutes = require("./routes/newsRoutes");
 
 // Middleware
 app.use(cors());
@@ -35,6 +36,7 @@ app.use("/api/appointments", appointmentRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/medicines", medicineRoutes);
 app.use("/api/settings", settingRoutes);
+app.use("/api/news", newsRoutes);
 
 // Socket.io Setup for real-time notifications/chat
 io.on("connection", (socket) => {

@@ -31,6 +31,7 @@ import Profile from './pages/Profile';
 import ChatbotTrain from './pages/ChatbotTrain';
 import CashierDashboard from './pages/CashierDashboard';
 import PharmacyDashboard from './pages/PharmacyDashboard';
+import NewsAdmin from './pages/NewsAdmin';
 
 const LandingPage = () => (
   <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-800 relative">
@@ -96,6 +97,7 @@ function App() {
               <Route path="pharmacy" element={<PharmacyDashboard />} />
               <Route path="settings" element={<Settings />} />
               <Route path="chatbot-training" element={<ChatbotTrain />} />
+              <Route path="news" element={<NewsAdmin />} />
             </Route>
           </Routes>
 
