@@ -1,5 +1,5 @@
-import { useState, useEffect, useContext } from 'react';
-import { Plus, Pencil, Trash2, Eye, EyeOff, Pin, PinOff, Newspaper, X, Save, RefreshCw, Search } from 'lucide-react';
+import { useState, useEffect, useContext, useRef } from 'react';
+import { Plus, Pencil, Trash2, Eye, EyeOff, Pin, PinOff, Newspaper, X, Save, RefreshCw, Search, Upload, ImageIcon, Copy, Check } from 'lucide-react';
 import { AuthContext } from '../contexts/AuthContext';
 import API_BASE_URL from '../config/api';
 
@@ -17,6 +17,11 @@ const NewsAdmin = () => {
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState('');
   const [msg, setMsg] = useState('');
+  const [uploadLoading, setUploadLoading] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState('');
+  const [extraImages, setExtraImages] = useState([]);
+  const fileInputRef = useRef(null);
 
   const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
 
@@ -62,6 +67,43 @@ const NewsAdmin = () => {
   const handlePin = async (item) => {
     const res = await fetch(`${API_BASE_URL}/api/news/${item._id}`, { method: 'PUT', headers, body: JSON.stringify({ ...item, isPinned: !item.isPinned }) });
     if (res.ok) fetchNews();
+  };
+
+  const uploadImage = async (file, isHeader = true) => {
+    if (!file || !file.type.startsWith('image/')) return alert('Vui long chon file anh.');
+    setUploadLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      const res = await fetch(`${API_BASE_URL}/api/upload`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (isHeader) {
+          setForm(f => ({ ...f, imageUrl: data.url }));
+        } else {
+          setExtraImages(prev => [...prev, data.url]);
+        }
+      } else {
+        alert('Upload anh that bai.');
+      }
+    } finally { setUploadLoading(false); }
+  };
+
+  const handleDrop = (e, isHeader = true) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (file) uploadImage(file, isHeader);
+  };
+
+  const copyToClipboard = (url) => {
+    navigator.clipboard.writeText(`![](${url})`);
+    setCopiedUrl(url);
+    setTimeout(() => setCopiedUrl(''), 2000);
   };
 
   const filtered = newsList.filter(n => n.title?.toLowerCase().includes(search.toLowerCase()) || n.author?.toLowerCase().includes(search.toLowerCase()) || n.category?.toLowerCase().includes(search.toLowerCase()));
@@ -176,9 +218,34 @@ const NewsAdmin = () => {
                 </div>
               </div>
               <div>
-                <label className='block text-xs font-bold text-gray-700 mb-1'>URL Anh dai dien</label>
-                <input value={form.imageUrl} onChange={e => setForm(f => ({...f, imageUrl: e.target.value}))} className='w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]' placeholder='https://...' />
-                {form.imageUrl && <img src={form.imageUrl} alt='preview' className='mt-2 h-24 rounded-xl object-cover border border-gray-100' onError={e => e.target.style.display='none'} />}
+                <label className='block text-xs font-bold text-gray-700 mb-1'>Anh dai dien (keo thu hoac bam chon)</label>
+                <input ref={fileInputRef} type='file' accept='image/*' className='hidden' onChange={e => { if (e.target.files[0]) uploadImage(e.target.files[0], true); }} />
+                <div
+                  onDrop={e => handleDrop(e, true)}
+                  onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+                  onDragLeave={() => setDragOver(false)}
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors ${dragOver ? 'border-[#004e92] bg-blue-50' : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'}`}
+                >
+                  {uploadLoading ? (
+                    <div className='text-sm text-blue-600 font-medium'>Dang tai anh len...</div>
+                  ) : form.imageUrl ? (
+                    <div className='flex items-center gap-3'>
+                      <img src={form.imageUrl} alt='preview' className='h-20 rounded-lg object-cover border border-gray-100' onError={e => e.target.style.display='none'} />
+                      <div className='text-left'>
+                        <p className='text-xs text-green-600 font-bold mb-1'>Da tai anh len</p>
+                        <p className='text-xs text-gray-400 break-all line-clamp-2'>{form.imageUrl}</p>
+                        <button type='button' onClick={e => { e.stopPropagation(); setForm(f => ({...f, imageUrl: ''})); }} className='text-xs text-red-500 hover:underline mt-1'>Xoa anh</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className='py-3'>
+                      <Upload className='w-6 h-6 text-gray-300 mx-auto mb-2' />
+                      <p className='text-sm text-gray-500'>Keo anh vao day hoac <span className='text-[#004e92] font-bold'>bam de chon file</span></p>
+                      <p className='text-xs text-gray-400 mt-1'>PNG, JPG, WEBP — toi da 5MB</p>
+                    </div>
+                  )}
+                </div>
               </div>
               <div>
                 <label className='block text-xs font-bold text-gray-700 mb-1'>Tom tat ngan (hien thi trang chu)</label>
@@ -186,8 +253,41 @@ const NewsAdmin = () => {
               </div>
               <div>
                 <label className='block text-xs font-bold text-gray-700 mb-1'>Noi dung day du</label>
-                <textarea value={form.content} onChange={e => setForm(f => ({...f, content: e.target.value}))} rows={5} className='w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92] resize-none' placeholder='Noi dung chi tiet...' />
+                <textarea value={form.content} onChange={e => setForm(f => ({...f, content: e.target.value}))} rows={6} className='w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92] resize-none font-mono' placeholder={'Gõ nội dung tại đây...\nChen anh bang cach copy ma phia duoi va dan vao noi can chen.'} />
               </div>
+
+              {/* Anh bo sung cho noi dung */}
+              <div className='bg-blue-50 border border-blue-100 rounded-xl p-4'>
+                <div className='flex items-center justify-between mb-3'>
+                  <label className='text-xs font-bold text-[#004e92] flex items-center gap-1.5'><ImageIcon className='w-3.5 h-3.5' />Anh chen vao noi dung</label>
+                  <label className='text-xs text-blue-600 font-semibold cursor-pointer hover:underline flex items-center gap-1'>
+                    <Upload className='w-3 h-3' /> Tai anh len
+                    <input type='file' accept='image/*' className='hidden' onChange={e => { if (e.target.files[0]) uploadImage(e.target.files[0], false); }} />
+                  </label>
+                </div>
+                {extraImages.length === 0 ? (
+                  <p className='text-xs text-gray-400 italic'>Tai anh len, sau do copy ma markdown de dan vao noi dung.</p>
+                ) : (
+                  <div className='space-y-2'>
+                    {extraImages.map((url, i) => (
+                      <div key={i} className='flex items-center gap-3 bg-white rounded-lg p-2 border border-blue-100'>
+                        <img src={url} alt='' className='h-12 w-16 object-cover rounded border border-gray-100 shrink-0' />
+                        <div className='flex-1 min-w-0'>
+                          <p className='text-xs font-mono text-gray-600 truncate'>{`![](${url})`}</p>
+                        </div>
+                        <button
+                          type='button'
+                          onClick={() => copyToClipboard(url)}
+                          className={`shrink-0 flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg transition-colors ${copiedUrl === url ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-[#004e92] hover:bg-blue-200'}`}
+                        >
+                          {copiedUrl === url ? <><Check className='w-3 h-3' />Da copy</> : <><Copy className='w-3 h-3' />Copy ma</>}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div className='flex gap-6'>
                 <label className='flex items-center gap-2 cursor-pointer text-sm font-medium text-gray-700'>
                   <input type='checkbox' checked={form.isPinned} onChange={e => setForm(f => ({...f, isPinned: e.target.checked}))} className='w-4 h-4 accent-orange-500' />

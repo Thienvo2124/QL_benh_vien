@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Calendar, User, Tag } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import API_BASE_URL from '../config/api';
@@ -66,7 +67,18 @@ const NewsDetail = () => {
                 <p className='text-gray-600 text-base italic border-l-4 border-[#004e92] pl-4 mb-6 leading-relaxed'>{article.summary}</p>
               )}
               {article.content ? (
-                <div className='text-gray-700 leading-relaxed whitespace-pre-line text-base'>{article.content}</div>
+                <div className='prose prose-blue max-w-none text-gray-700 leading-relaxed'>
+                  <ReactMarkdown
+                    components={{
+                      img: ({src, alt}) => (
+                        <img src={src} alt={alt || ''} className='rounded-xl shadow-md my-4 max-w-full' />
+                      ),
+                      p: ({children}) => <p className='mb-4 text-base leading-relaxed'>{children}</p>,
+                    }}
+                  >
+                    {article.content}
+                  </ReactMarkdown>
+                </div>
               ) : (
                 <p className='text-gray-400 italic'>Bai viet chua co noi dung day du.</p>
               )}
