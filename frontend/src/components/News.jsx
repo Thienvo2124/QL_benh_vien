@@ -72,9 +72,6 @@ const News = () => {
                 <h3 className="text-lg font-bold text-gray-800 leading-snug mb-2 hover:text-[#004e92] transition-colors line-clamp-3">
                   {item.title}
                 </h3>
-                {item.summary && (
-                  <p className="text-gray-500 text-sm line-clamp-2 mb-4">{item.summary}</p>
-                )}
                 <div className="mt-auto">
                   <Link to={`/news/${item._id}`} className="text-[#004e92] font-semibold text-sm uppercase tracking-wide hover:underline flex items-center gap-1">
                     Xem chi tiết

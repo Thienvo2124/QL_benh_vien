@@ -248,10 +248,6 @@ const NewsAdmin = () => {
                 </div>
               </div>
               <div>
-                <label className='block text-xs font-bold text-gray-700 mb-1'>Tom tat ngan (hien thi trang chu)</label>
-                <textarea value={form.summary} onChange={e => setForm(f => ({...f, summary: e.target.value}))} rows={2} className='w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92] resize-none' placeholder='Mot vai dong gioi thieu...' />
-              </div>
-              <div>
                 <label className='block text-xs font-bold text-gray-700 mb-1'>Noi dung day du</label>
                 <textarea value={form.content} onChange={e => setForm(f => ({...f, content: e.target.value}))} rows={6} className='w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92] resize-none font-mono' placeholder={'Gõ nội dung tại đây...\nChen anh bang cach copy ma phia duoi va dan vao noi can chen.'} />
               </div>

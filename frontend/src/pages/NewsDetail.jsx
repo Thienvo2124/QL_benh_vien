@@ -108,13 +108,6 @@ const NewsDetail = () => {
                   </span>
                 </div>
 
-                {/* Summary (Sapo) - Nham tren Anh dai dien theo dung trang mau */}
-                {article.summary && (
-                  <div className='bg-blue-50/50 border-l-4 border-[#004e92] rounded-r-xl p-4 md:p-5 mb-6 text-gray-700 text-base md:text-lg font-medium leading-relaxed italic'>
-                    {article.summary}
-                  </div>
-                )}
-
                 {/* Main Image */}
                 {article.imageUrl && (
                   <div className='mb-6 rounded-2xl overflow-hidden shadow-sm border border-gray-100 bg-gray-50 max-h-[420px] flex items-center justify-center'>
