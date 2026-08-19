@@ -1574,6 +1574,24 @@ const CashierDashboard = () => {
                 )}
               </div>
 
+              {/* VietQR Bank Transfer Code Block */}
+              {receiptData.isPending && receiptData.paymentMethod === 'Chuyển khoản' && (
+                <div className="bg-slate-50 border border-blue-100 rounded-2xl p-4 flex flex-col items-center text-center space-y-3 print:hidden">
+                  <span className="text-xs text-[#004e92] font-bold uppercase tracking-wider">Quét mã chuyển khoản VietQR</span>
+                  <img 
+                    src={`https://img.vietqr.io/image/MB-190021159999-print.png?amount=${receiptData.type === 'prescription' ? receiptData.finalCost : (receiptData.fee || 150000)}&addInfo=${encodeURIComponent(receiptData.type === 'prescription' ? `TToan don thuoc ${receiptData.id}` : `TToan phi kham ${receiptData.code}`)}&accountName=BENH%20VIEN%20NHAN%20DAN`}
+                    alt="VietQR Payment Code"
+                    className="w-44 h-44 object-contain rounded-xl border border-gray-100 shadow-sm bg-white p-1"
+                  />
+                  <div className="text-xs text-gray-600 space-y-0.5 font-semibold">
+                    <p>Ngân hàng: <strong className="text-gray-900">MB Bank (Quân Đội)</strong></p>
+                    <p>Số tài khoản: <strong className="text-gray-900">1900 2115 9999</strong></p>
+                    <p>Chủ TK: <strong className="text-gray-900">BENH VIEN NHAN DAN</strong></p>
+                    <p>Nội dung CK: <strong className="text-red-600 font-mono">{receiptData.type === 'prescription' ? `TToan don thuoc ${receiptData.id}` : `TToan phi kham ${receiptData.code}`}</strong></p>
+                  </div>
+                </div>
+              )}
+
               {/* Footer */}
               <div className="text-center pt-3 border-t border-gray-100 text-xs text-gray-400 italic">
                 Cảm ơn bạn đã lựa chọn Bệnh Viện Nhân Dân!<br />

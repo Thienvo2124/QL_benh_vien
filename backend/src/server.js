@@ -23,10 +23,16 @@ const appointmentRoutes = require("./routes/appointmentRoutes");
 const userRoutes = require("./routes/userRoutes");
 const medicineRoutes = require("./routes/medicineRoutes");
 const settingRoutes = require("./routes/settingRoutes");
+const newsRoutes = require("./routes/newsRoutes");
+const uploadRoutes = require("./routes/uploadRoutes");
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Serve uploaded images as static files
+const path = require("path");
+app.use("/uploads", require("express").static(path.join(__dirname, "../public/uploads")));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/chat", chatRoutes);
@@ -35,6 +41,8 @@ app.use("/api/appointments", appointmentRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/medicines", medicineRoutes);
 app.use("/api/settings", settingRoutes);
+app.use("/api/news", newsRoutes);
+app.use("/api/upload", uploadRoutes);
 
 // Socket.io Setup for real-time notifications/chat
 io.on("connection", (socket) => {
