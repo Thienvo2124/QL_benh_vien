@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import API_BASE_URL from '../config/api';
 
 const News = () => {
@@ -72,12 +73,12 @@ const News = () => {
                   <p className="text-gray-500 text-sm line-clamp-2 mb-4">{item.summary}</p>
                 )}
                 <div className="mt-auto">
-                  <a href="#" className="text-[#004e92] font-semibold text-sm uppercase tracking-wide hover:underline flex items-center gap-1">
+                  <Link to={`/news/${item._id}`} className="text-[#004e92] font-semibold text-sm uppercase tracking-wide hover:underline flex items-center gap-1">
                     Xem chi tiết
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                     </svg>
-                  </a>
+                  </Link>
                 </div>
               </div>
             </article>

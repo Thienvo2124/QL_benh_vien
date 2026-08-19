@@ -32,6 +32,7 @@ import ChatbotTrain from './pages/ChatbotTrain';
 import CashierDashboard from './pages/CashierDashboard';
 import PharmacyDashboard from './pages/PharmacyDashboard';
 import NewsAdmin from './pages/NewsAdmin';
+import NewsDetail from './pages/NewsDetail';
 
 const LandingPage = () => (
   <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-800 relative">
@@ -70,6 +71,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/booking" element={<Booking />} />
+            <Route path="/news/:id" element={<NewsDetail />} />
             <Route path="/my-appointments" element={<MyAppointments />} />
             <Route path="/my-records" element={<MyRecords />} />
             <Route path="/profile" element={<Profile />} />

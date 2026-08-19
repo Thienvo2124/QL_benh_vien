@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const News = require('../models/News');
 const { protect, adminOrDoctorOnly } = require('../middleware/authMiddleware');
 const router = express.Router();
@@ -16,6 +16,15 @@ router.get('/all', protect, adminOrDoctorOnly, async (req, res) => {
   try {
     const news = await News.find().sort({ isPinned: -1, createdAt: -1 });
     res.json(news);
+  } catch (err) { res.status(500).json({ message: 'Loi may chu', error: err.message }); }
+});
+
+// GET public - lay 1 bai theo ID
+router.get('/:id', async (req, res) => {
+  try {
+    const item = await News.findById(req.params.id);
+    if (!item || !item.isVisible) return res.status(404).json({ message: 'Khong tim thay bai tin.' });
+    res.json(item);
   } catch (err) { res.status(500).json({ message: 'Loi may chu', error: err.message }); }
 });
 
