@@ -9,34 +9,59 @@ import API_BASE_URL from '../config/api';
 const NewsDetail = () => {
   const { id } = useParams();
   const [article, setArticle] = useState(null);
+  const [latestNews, setLatestNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    const fetchArticle = async () => {
+    const fetchArticleAndLatest = async () => {
+      setLoading(true);
       try {
+        // Lay chi tiet bai viet
         const res = await fetch(`${API_BASE_URL}/api/news/${id}`);
         if (res.ok) {
           setArticle(await res.json());
         } else {
           setNotFound(true);
         }
-      } catch {
+
+        // Lay tin moi cho sidebar
+        const resList = await fetch(`${API_BASE_URL}/api/news?limit=6`);
+        if (resList.ok) {
+          const list = await resList.json();
+          setLatestNews(list);
+        }
+      } catch (err) {
+        console.error(err);
         setNotFound(true);
       } finally {
         setLoading(false);
       }
     };
-    fetchArticle();
+    fetchArticleAndLatest();
   }, [id]);
+
+  // Loc bo bai viet hien tai khoi sidebar
+  const sidebarNews = latestNews.filter(item => item._id !== id).slice(0, 5);
 
   return (
     <div className='min-h-screen bg-gray-50 flex flex-col font-sans'>
       <Header />
 
-      <main className='flex-grow container mx-auto max-w-4xl px-4 py-12'>
+      {/* Banner Tieu de o dau trang (giong trang mau) */}
+      {!loading && article && (
+        <div className='bg-gray-100 border-b border-gray-200 py-8 px-4'>
+          <div className='container mx-auto max-w-6xl'>
+            <h1 className='text-xl md:text-2xl font-bold text-[#004e92] uppercase leading-snug text-center max-w-4xl mx-auto'>
+              {article.title}
+            </h1>
+          </div>
+        </div>
+      )}
+
+      <main className='flex-grow container mx-auto max-w-6xl px-4 py-8'>
         {/* Breadcrumb / Quay lai */}
-        <div className='mb-8 pl-1'>
+        <div className='mb-6 pl-1'>
           <Link to='/' className='inline-flex items-center gap-2 text-gray-400 hover:text-[#004e92] text-sm font-semibold transition-colors'>
             <ArrowLeft className='w-4 h-4' /> Quay lại Trang chủ
           </Link>
@@ -55,76 +80,118 @@ const NewsDetail = () => {
             </Link>
           </div>
         ) : (
-          <article className='bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden p-6 md:p-10'>
-            {/* Category badge */}
-            <div className='mb-4'>
-              <span className='bg-blue-50 text-[#004e92] px-3 py-1 rounded-full border border-blue-100 font-bold text-xs uppercase tracking-wide'>
-                {article.category}
-              </span>
+          <div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
+            {/* COT TRAI: Chi tiet bai viet (70%) */}
+            <div className='lg:col-span-2'>
+              <article className='bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8'>
+                {/* Category badge & Title */}
+                <div className='mb-4 flex items-center justify-between'>
+                  <span className='bg-blue-50 text-[#004e92] px-3 py-1 rounded-full border border-blue-100 font-bold text-xs uppercase tracking-wide'>
+                    {article.category}
+                  </span>
+                </div>
+
+                <h2 className='text-2xl md:text-3xl font-extrabold text-gray-900 leading-tight mb-4'>
+                  {article.title}
+                </h2>
+
+                {/* Meta info */}
+                <div className='flex flex-wrap items-center gap-4 text-xs md:text-sm text-gray-500 mb-6 pb-4 border-b border-gray-100'>
+                  <span className='flex items-center gap-1.5'>
+                    <Calendar className='w-4 h-4 text-gray-400' />
+                    {article.createdAt ? new Date(article.createdAt).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''}
+                  </span>
+                  <span className='w-1 h-1 bg-gray-300 rounded-full'></span>
+                  <span className='flex items-center gap-1.5'>
+                    <User className='w-4 h-4 text-gray-400' />
+                    Đăng bởi: <strong className='text-gray-700 font-semibold'>{article.author}</strong>
+                  </span>
+                </div>
+
+                {/* Summary (Sapo) - Nham tren Anh dai dien theo dung trang mau */}
+                {article.summary && (
+                  <div className='bg-blue-50/50 border-l-4 border-[#004e92] rounded-r-xl p-4 md:p-5 mb-6 text-gray-700 text-base md:text-lg font-medium leading-relaxed italic'>
+                    {article.summary}
+                  </div>
+                )}
+
+                {/* Main Image */}
+                {article.imageUrl && (
+                  <div className='mb-6 rounded-2xl overflow-hidden shadow-sm border border-gray-100 bg-gray-50 max-h-[420px] flex items-center justify-center'>
+                    <img
+                      src={article.imageUrl}
+                      alt={article.title}
+                      className='w-full h-auto max-h-[420px] object-contain md:object-cover'
+                    />
+                  </div>
+                )}
+
+                {/* Content body */}
+                {article.content ? (
+                  <div className='prose prose-blue max-w-none text-gray-800 leading-relaxed text-base space-y-6'>
+                    <ReactMarkdown
+                      components={{
+                        img: ({ src, alt }) => (
+                          <div className='my-6 rounded-xl overflow-hidden shadow-md max-h-[400px] flex justify-center bg-gray-50 border border-gray-100'>
+                            <img src={src} alt={alt || ''} className='w-full h-auto max-h-[400px] object-contain' />
+                          </div>
+                        ),
+                        p: ({ children }) => <p className='mb-4 text-gray-700 leading-relaxed'>{children}</p>,
+                        h2: ({ children }) => <h2 className='text-xl md:text-2xl font-bold text-gray-900 mt-8 mb-4 border-b pb-2'>{children}</h2>,
+                        h3: ({ children }) => <h3 className='text-lg md:text-xl font-bold text-gray-900 mt-6 mb-3'>{children}</h3>,
+                        ul: ({ children }) => <ul className='list-disc pl-6 mb-4 space-y-1.5'>{children}</ul>,
+                        ol: ({ children }) => <ol className='list-decimal pl-6 mb-4 space-y-1.5'>{children}</ol>,
+                        li: ({ children }) => <li className='text-gray-700'>{children}</li>,
+                        blockquote: ({ children }) => <blockquote className='border-l-4 border-gray-300 pl-4 italic my-4 text-gray-600'>{children}</blockquote>
+                      }}
+                    >
+                      {article.content}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  <p className='text-gray-400 italic text-center py-6'>Bài viết chưa có nội dung chi tiết.</p>
+                )}
+              </article>
             </div>
 
-            {/* Title */}
-            <h1 className='text-2xl md:text-4xl font-extrabold text-gray-900 leading-tight mb-4'>
-              {article.title}
-            </h1>
-
-            {/* Meta info */}
-            <div className='flex flex-wrap items-center gap-4 text-xs md:text-sm text-gray-500 mb-8 pb-6 border-b border-gray-100'>
-              <span className='flex items-center gap-1.5'>
-                <Calendar className='w-4 h-4 text-gray-400' />
-                {article.createdAt ? new Date(article.createdAt).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''}
-              </span>
-              <span className='w-1 h-1 bg-gray-300 rounded-full hidden md:inline-block'></span>
-              <span className='flex items-center gap-1.5'>
-                <User className='w-4 h-4 text-gray-400' />
-                Đăng bởi: <strong className='text-gray-700 font-semibold'>{article.author}</strong>
-              </span>
+            {/* COT PHAI: Sidebar Tin moi nhat (30%) */}
+            <div className='lg:col-span-1 space-y-6'>
+              <div className='bg-white rounded-2xl shadow-sm border border-gray-100 p-6'>
+                <h3 className='text-lg font-bold text-gray-900 border-b-2 border-red-500 pb-3 mb-4 flex items-center gap-2'>
+                  Tin mới nhất
+                </h3>
+                {sidebarNews.length === 0 ? (
+                  <p className='text-xs text-gray-400 italic'>Không có bài viết khác.</p>
+                ) : (
+                  <div className='divide-y divide-gray-100'>
+                    {sidebarNews.map((item) => (
+                      <Link
+                        key={item._id}
+                        to={`/news/${item._id}`}
+                        className='group py-3.5 flex items-start gap-3 first:pt-0 last:pb-0 block hover:text-[#004e92] transition-colors'
+                      >
+                        {item.imageUrl && (
+                          <img
+                            src={item.imageUrl}
+                            alt=''
+                            className='w-20 h-14 object-cover rounded-lg border border-gray-100 shrink-0 group-hover:opacity-90'
+                          />
+                        )}
+                        <div className='min-w-0'>
+                          <h4 className='text-sm font-bold text-gray-800 line-clamp-2 leading-snug group-hover:text-[#004e92] transition-colors'>
+                            {item.title}
+                          </h4>
+                          <span className='text-[11px] text-gray-400 block mt-1'>
+                            {item.createdAt ? new Date(item.createdAt).toLocaleDateString('vi-VN') : ''}
+                          </span>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-
-            {/* Main Image */}
-            {article.imageUrl && (
-              <div className='mb-8 rounded-2xl overflow-hidden shadow-sm border border-gray-100 bg-gray-50 max-h-[480px] flex items-center justify-center'>
-                <img
-                  src={article.imageUrl}
-                  alt={article.title}
-                  className='w-full h-auto max-h-[480px] object-contain md:object-cover'
-                />
-              </div>
-            )}
-
-            {/* Summary */}
-            {article.summary && (
-              <div className='bg-blue-50/50 border-l-4 border-[#004e92] rounded-r-xl p-4 md:p-5 mb-8 text-gray-700 text-base md:text-lg font-medium leading-relaxed italic'>
-                {article.summary}
-              </div>
-            )}
-
-            {/* Content body */}
-            {article.content ? (
-              <div className='prose prose-blue max-w-none text-gray-800 leading-relaxed text-base md:text-lg space-y-6'>
-                <ReactMarkdown
-                  components={{
-                    img: ({ src, alt }) => (
-                      <div className='my-6 rounded-xl overflow-hidden shadow-md max-h-[450px] flex justify-center bg-gray-50 border border-gray-100'>
-                        <img src={src} alt={alt || ''} className='w-full h-auto max-h-[450px] object-contain' />
-                      </div>
-                    ),
-                    p: ({ children }) => <p className='mb-4 text-gray-700 leading-relaxed'>{children}</p>,
-                    h2: ({ children }) => <h2 className='text-xl md:text-2xl font-bold text-gray-900 mt-8 mb-4 border-b pb-2'>{children}</h2>,
-                    h3: ({ children }) => <h3 className='text-lg md:text-xl font-bold text-gray-900 mt-6 mb-3'>{children}</h3>,
-                    ul: ({ children }) => <ul className='list-disc pl-6 mb-4 space-y-1.5'>{children}</ul>,
-                    ol: ({ children }) => <ol className='list-decimal pl-6 mb-4 space-y-1.5'>{children}</ol>,
-                    li: ({ children }) => <li className='text-gray-700'>{children}</li>,
-                    blockquote: ({ children }) => <blockquote className='border-l-4 border-gray-300 pl-4 italic my-4 text-gray-600'>{children}</blockquote>
-                  }}
-                >
-                  {article.content}
-                </ReactMarkdown>
-              </div>
-            ) : (
-              <p className='text-gray-400 italic text-center py-6'>Bài viết chưa có nội dung chi tiết.</p>
-            )}
-          </article>
+          </div>
         )}
       </main>
 
