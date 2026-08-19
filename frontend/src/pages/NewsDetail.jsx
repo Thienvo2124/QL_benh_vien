@@ -34,10 +34,10 @@ const NewsDetail = () => {
     <div className='min-h-screen bg-gray-50 flex flex-col font-sans'>
       <Header />
 
-      <main className='flex-grow container mx-auto max-w-4xl px-4 py-8'>
+      <main className='flex-grow container mx-auto max-w-4xl px-4 py-12'>
         {/* Breadcrumb / Quay lai */}
-        <div className='mb-6'>
-          <Link to='/' className='inline-flex items-center gap-1.5 text-gray-500 hover:text-[#004e92] text-sm font-medium transition-colors'>
+        <div className='mb-8 pl-1'>
+          <Link to='/' className='inline-flex items-center gap-2 text-gray-400 hover:text-[#004e92] text-sm font-semibold transition-colors'>
             <ArrowLeft className='w-4 h-4' /> Quay lại Trang chủ
           </Link>
         </div>
