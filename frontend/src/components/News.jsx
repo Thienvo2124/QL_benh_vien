@@ -40,12 +40,6 @@ const News = () => {
           <h2 className="text-3xl font-bold text-[#004e92] uppercase relative before:content-[''] before:absolute before:-bottom-[18px] before:left-0 before:w-16 before:h-1 before:bg-red-500">
             Tin tức &amp; hoạt động
           </h2>
-          <a href="#" className="text-blue-600 font-medium hover:text-blue-800 transition-colors flex items-center gap-1">
-            Xem tất cả
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </a>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
