@@ -108,17 +108,6 @@ const NewsDetail = () => {
                   </span>
                 </div>
 
-                {/* Main Image */}
-                {article.imageUrl && (
-                  <div className='mb-6 rounded-2xl overflow-hidden shadow-sm border border-gray-100 bg-gray-50 max-h-[420px] flex items-center justify-center'>
-                    <img
-                      src={article.imageUrl}
-                      alt={article.title}
-                      className='w-full h-auto max-h-[420px] object-contain md:object-cover'
-                    />
-                  </div>
-                )}
-
                 {/* Content body */}
                 {article.content ? (
                   <div className='prose prose-blue max-w-none text-gray-800 leading-relaxed text-base space-y-6'>
