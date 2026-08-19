@@ -45,16 +45,25 @@ const News = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {newsItems.map((item) => (
             <article key={item._id} className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col">
-              <div className="h-56 overflow-hidden relative group">
-                <img
-                  src={item.imageUrl || 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=500&auto=format&fit=crop&q=60'}
-                  alt={item.title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-                <div className="absolute top-4 left-4 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow">
-                  {item.isPinned ? 'Nổi bật' : item.category || 'Tin mới'}
+              {item.imageUrl && (
+                <div className="h-56 overflow-hidden relative group">
+                  <img
+                    src={item.imageUrl}
+                    alt={item.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute top-4 left-4 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow">
+                    {item.isPinned ? 'Nổi bật' : item.category || 'Tin mới'}
+                  </div>
                 </div>
-              </div>
+              )}
+              {!item.imageUrl && (
+                <div className="px-6 pt-5">
+                  <span className="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow">
+                    {item.isPinned ? 'Nổi bật' : item.category || 'Tin mới'}
+                  </span>
+                </div>
+              )}
               <div className="p-6 flex flex-col flex-grow">
                 <div className="flex items-center text-xs text-gray-500 mb-3 gap-4">
                   <span>{item.createdAt ? new Date(item.createdAt).toLocaleDateString('vi-VN') : ''}</span>
