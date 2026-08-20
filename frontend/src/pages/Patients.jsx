@@ -112,7 +112,7 @@ const Patients = () => {
     bhyt: app.bhyt || 'Không có BHYT',
     lastVisit: new Date(app.date).toLocaleDateString('vi-VN'),
     dept: app.dept,
-    doctor: app.doctor || 'BS. CKII Nguyễn Tuấn Lâm',
+    doctor: !app.doctor || app.doctor === 'Hệ thống tự phân công' || app.doctor.includes('phân công') ? 'BS. CKII Nguyễn Tuấn Lâm' : app.doctor,
     symptoms: app.symptoms || '',
     diagnosis: app.diagnosis || '',
     treatment: app.treatment || '',
