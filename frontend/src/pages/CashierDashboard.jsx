@@ -15,18 +15,7 @@ const getCurrentTimeStr = () => {
   return `${hours}:${minutes}`;
 };
 
-const getDeptPrice = (deptName) => {
-  if (!deptName) return 150000;
-  if (deptName.includes('Cơ Bản')) return 1500000;
-  if (deptName.includes('Nâng Cao')) return 2500000;
-  if (deptName.includes('Chuyên Sâu')) return 4500000;
-  if (deptName.includes('VIP Gold')) return 8000000;
-  if (deptName.includes('VIP Platinum')) return 15000000;
-  if (deptName.includes('tầm soát ung thư tổng quát') || deptName.includes('Tầm soát ung thư tổng quát')) return 3000000;
-  if (deptName.includes('tầm soát ung thư tiêu hóa') || deptName.includes('Tầm soát ung thư tiêu hóa')) return 2200000;
-  if (deptName.includes('tầm soát đột quỵ') || deptName.includes('Tầm soát đột quỵ')) return 2800000;
-  return 150000;
-};
+
 
 const formatDateSafe = (dateVal) => {
   if (!dateVal) return 'N/A';
@@ -135,6 +124,63 @@ const CashierDashboard = () => {
     if (name.includes('VPBANK') || name.includes('VPB')) return 'VPBank';
     if (name.includes('SACOMBANK') || name.includes('STB')) return 'Sacombank';
     return bankName;
+  };
+
+  const getDeptPrice = (deptName) => {
+    if (!deptName) return 150000;
+    
+    const slugMap = {
+      'Gói khám sức khỏe tổng quát Cơ Bản': 'goi_kham_co_ban',
+      'Gói khám sức khỏe tổng quát Nâng Cao': 'goi_kham_nang_cao',
+      'Gói khám sức khỏe tổng quát Chuyên Sâu': 'goi_kham_chuyen_sau',
+      'Gói khám sức khỏe tổng quát VIP Gold': 'goi_kham_vip_gold',
+      'Gói khám sức khỏe tổng quát VIP Platinum': 'goi_kham_vip_platinum',
+      'Gói khám tầm soát ung thư tổng quát': 'goi_kham_tam_soat_ung_thu_tong_quat',
+      'Gói khám tầm soát ung thư tiêu hóa': 'goi_kham_tam_soat_ung_thu_tieu_hoa',
+      'Gói khám tầm soát đột quỵ': 'goi_kham_tam_soat_dot_quy',
+      'Chẩn đoán hình ảnh (Xquang, CT, Mri, Đo loãng xương)': 'chan_doan_hinh_anh',
+      'Nội tổng quát': 'noi_tong_quat',
+      'Tai mũi họng': 'tai_mui_hong',
+      'Mắt': 'mat',
+      'Răng hàm mặt': 'rang_ham_mat',
+      'Tim mạch': 'tim_mach',
+      'Sản phụ khoa': 'san_phu_khoa',
+      'Tuyến vú': 'tuyen_vu',
+      'Hô hấp': 'ho_hap',
+      'Dị ứng miễn dịch': 'di_ung_mien_dich',
+      'Tư vấn giấc ngủ': 'tu_van_giac_ngu'
+    };
+
+    const defaultPrices = {
+      'goi_kham_co_ban': 1500000,
+      'goi_kham_nang_cao': 2500000,
+      'goi_kham_chuyen_sau': 4500000,
+      'goi_kham_vip_gold': 8000000,
+      'goi_kham_vip_platinum': 15000000,
+      'goi_kham_tam_soat_ung_thu_tong_quat': 3000000,
+      'goi_kham_tam_soat_ung_thu_tieu_hoa': 2200000,
+      'goi_kham_tam_soat_dot_quy': 2800000,
+      'chan_doan_hinh_anh': 150000,
+      'noi_tong_quat': 150000,
+      'tai_mui_hong': 150000,
+      'mat': 150000,
+      'rang_ham_mat': 150000,
+      'tim_mach': 150000,
+      'san_phu_khoa': 150000,
+      'tuyen_vu': 150000,
+      'ho_hap': 150000,
+      'di_ung_mien_dich': 150000,
+      'tu_van_giac_ngu': 150000
+    };
+
+    const key = slugMap[deptName];
+    if (!key) return 150000;
+
+    const settingKey = `deptfee_${key}`;
+    if (sysSettings && sysSettings[settingKey] !== undefined) {
+      return Number(sysSettings[settingKey]);
+    }
+    return defaultPrices[key] || 150000;
   };
 
   const fetchSettings = useCallback(async () => {

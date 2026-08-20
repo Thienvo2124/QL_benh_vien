@@ -54,7 +54,26 @@ Vui lòng sắp xếp thời gian để tới khám đúng hẹn.
 Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`,
       payment_bank: "MB Bank (Quân Đội)",
       payment_account_number: "1900 2115 9999",
-      payment_account_name: "BENH VIEN NHAN DAN"
+      payment_account_name: "BENH VIEN NHAN DAN",
+      deptfee_goi_kham_co_ban: 1500000,
+      deptfee_goi_kham_nang_cao: 2500000,
+      deptfee_goi_kham_chuyen_sau: 4500000,
+      deptfee_goi_kham_vip_gold: 8000000,
+      deptfee_goi_kham_vip_platinum: 15000000,
+      deptfee_goi_kham_tam_soat_ung_thu_tong_quat: 3000000,
+      deptfee_goi_kham_tam_soat_ung_thu_tieu_hoa: 2200000,
+      deptfee_goi_kham_tam_soat_dot_quy: 2800000,
+      deptfee_chan_doan_hinh_anh: 150000,
+      deptfee_noi_tong_quat: 150000,
+      deptfee_tai_mui_hong: 150000,
+      deptfee_mat: 150000,
+      deptfee_rang_ham_mat: 150000,
+      deptfee_tim_mach: 150000,
+      deptfee_san_phu_khoa: 150000,
+      deptfee_tuyen_vu: 150000,
+      deptfee_ho_hap: 150000,
+      deptfee_di_ung_mien_dich: 150000,
+      deptfee_tu_van_giac_ngu: 150000
     };
 
     const finalSettings = { ...defaults, ...settingsObj };
