@@ -952,7 +952,7 @@ const CashierDashboard = () => {
               : 'border-transparent text-gray-400 hover:text-gray-600'
           }`}
         >
-          <CheckCircle className="w-4 h-4" /> 3. Hồ sơ bệnh án ({issuedAppointments.length})
+          <CheckCircle className="w-4 h-4" /> 3. Số thứ tự khám ({issuedAppointments.length})
         </button>
         <button
           onClick={() => setActiveTab('info')}
