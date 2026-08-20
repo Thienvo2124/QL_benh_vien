@@ -44,7 +44,7 @@ app.use("/api/medicines", medicineRoutes);
 app.use("/api/settings", settingRoutes);
 app.use("/api/news", newsRoutes);
 app.use("/api/upload", uploadRoutes);
-app.use("/api/sepay", sepayRoutes);
+app.use("/api/webhooks", sepayRoutes);
 
 // Socket.io Setup for real-time notifications/chat
 io.on("connection", (socket) => {

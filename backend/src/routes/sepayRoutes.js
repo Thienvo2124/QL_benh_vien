@@ -11,9 +11,9 @@ const startOfDay = (date) => {
   return d;
 };
 
-// POST /api/sepay/webhook
+// POST /api/webhooks/sepay
 // Nhận thông báo giao dịch chuyển khoản tự động từ SePay
-router.post("/webhook", async (req, res) => {
+router.post("/sepay", async (req, res) => {
   try {
     const { transactionContent, amountIn, gateway, referenceNumber } = req.body;
     console.log("=== SEPAY WEBHOOK RECEIVED ===");
