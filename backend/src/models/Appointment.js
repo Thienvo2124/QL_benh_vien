@@ -143,6 +143,11 @@ const appointmentSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    bookingSource: {
+      type: String,
+      enum: ["online", "offline"],
+      default: "online",
+    },
     isDeleted: {
       type: Boolean,
       default: false,

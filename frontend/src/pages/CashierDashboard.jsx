@@ -63,6 +63,7 @@ const CashierDashboard = () => {
 
   // Sort state
   const [sortBy, setSortBy] = useState('newest'); // newest | oldest
+  const [receptionSourceFilter, setReceptionSourceFilter] = useState('all'); // all | offline | online
 
   // Edit Modal State
   const [showEditModal, setShowEditModal] = useState(false);
@@ -685,7 +686,8 @@ const CashierDashboard = () => {
           initialFee: getDeptPrice(registerForm.dept),
           bhyt: registerForm.bhytCode,
           address: registerForm.address,
-          cccd: registerForm.cccd
+          cccd: registerForm.cccd,
+          bookingSource: 'offline'
         })
       });
 
@@ -766,8 +768,16 @@ const CashierDashboard = () => {
       name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       phone.includes(searchQuery) ||
       (code && code.toLowerCase().includes(searchQuery.toLowerCase()));
-    return isUnpaid && matchesSearch;
+    const matchesSource = receptionSourceFilter === 'all' ||
+      (receptionSourceFilter === 'offline' && app.bookingSource === 'offline') ||
+      (receptionSourceFilter === 'online' && app.bookingSource !== 'offline');
+    return isUnpaid && matchesSearch && matchesSource;
   });
+
+  // Tổng số chờ đóng phí theo từng nguồn (dùng để hiển thị badge)
+  const allUnpaidBase = appointmentsArr.filter(app => app && app.paymentStatus === 'unpaid' && app.status !== 'rejected');
+  const offlineUnpaidCount = allUnpaidBase.filter(app => app.bookingSource === 'offline').length;
+  const onlineUnpaidCount = allUnpaidBase.filter(app => app.bookingSource !== 'offline').length;
 
   // Lọc danh sách lịch hẹn đã đóng phí khám và cấp số khám
   const issuedAppointments = appointmentsArr.filter(app => {
@@ -1016,6 +1026,28 @@ const CashierDashboard = () => {
                 <Plus size={16} /> Thêm tiếp nhận
               </button>
             </div>
+          </div>
+
+          {/* SOURCE FILTER SUB-TABS */}
+          <div className="bg-white px-6 py-3 rounded-3xl shadow-sm border border-gray-100 flex flex-wrap items-center gap-3">
+            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Loại đăng ký:</span>
+            {[
+              { id: 'all', label: '🔀 Tất cả', count: allUnpaidBase.length },
+              { id: 'offline', label: '🏥 Trực tiếp tại quầy', count: offlineUnpaidCount },
+              { id: 'online', label: '🌐 Đặt lịch Online', count: onlineUnpaidCount },
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setReceptionSourceFilter(tab.id)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+                  receptionSourceFilter === tab.id
+                    ? 'bg-[#004e92] text-white border-[#004e92] shadow-md'
+                    : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                }`}
+              >
+                {tab.label} ({tab.count})
+              </button>
+            ))}
           </div>
 
           {/* QUEUE TABLE */}

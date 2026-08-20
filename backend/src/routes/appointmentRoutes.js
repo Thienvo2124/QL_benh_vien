@@ -134,6 +134,7 @@ router.post("/", async (req, res) => {
       bhyt: payload.bhyt || "",
       address: payload.address || "",
       cccd: payload.cccd || "",
+      bookingSource: req.body.bookingSource === 'offline' ? 'offline' : 'online',
     });
 
     logActivity(`Đặt lịch khám mới (Mã: ${appointment.appointmentCode})`, `Bệnh nhân: ${appointment.name} (${appointment.phone})`, req.ip || "127.0.0.1", "Thành công");
