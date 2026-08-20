@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect } from 'react';
-import { User, Building, Shield, FileText, Save, Key, Phone, Mail, MapPin, Clock, CheckCircle, Bell, Activity } from 'lucide-react';
+import { User, Building, Shield, FileText, Save, Key, Phone, Mail, MapPin, Clock, CheckCircle, Bell, Activity, DollarSign } from 'lucide-react';
 import { AuthContext } from '../contexts/AuthContext';
 import API_BASE_URL from '../config/api';
 
@@ -14,7 +14,13 @@ const sampleLogs = [
 
 const Settings = () => {
   const { user } = useContext(AuthContext);
-  const [activeTab, setActiveTab] = useState('profile'); // profile, system, security, logs
+  const [activeTab, setActiveTab] = useState('profile'); // profile, system, security, logs, payment
+  
+  // Tab 5: Payment account state
+  const [paymentBank, setPaymentBank] = useState('MB Bank (Quân Đội)');
+  const [paymentAccountNumber, setPaymentAccountNumber] = useState('1900 2115 9999');
+  const [paymentAccountName, setPaymentAccountName] = useState('BENH VIEN NHAN DAN');
+  const [paymentRecords, setPaymentRecords] = useState([]);
   
   // Tab 1: Profile state
   const [fullName, setFullName] = useState(user?.fullName || (user?.role === 'admin' ? 'Quản trị viên Hệ thống' : 'Bác sĩ Chuyên khoa'));
@@ -100,6 +106,9 @@ Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
         if (data.email_confirm_content) setEmailConfirmContent(data.email_confirm_content);
         if (data.email_reminder_subject) setEmailReminderSubject(data.email_reminder_subject);
         if (data.email_reminder_content) setEmailReminderContent(data.email_reminder_content);
+        if (data.payment_bank) setPaymentBank(data.payment_bank);
+        if (data.payment_account_number) setPaymentAccountNumber(data.payment_account_number);
+        if (data.payment_account_name) setPaymentAccountName(data.payment_account_name);
       }
     } catch (err) {
       console.error('Lỗi khi tải cấu hình hệ thống:', err);
@@ -243,11 +252,62 @@ Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
     }
   };
 
+  const fetchPaymentRecords = async () => {
+    try {
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/appointments`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const records = data.filter(app => app.paymentStatus === 'paid' || app.prescriptionStatus === 'paid');
+        setPaymentRecords(records);
+      }
+    } catch (err) {
+      console.error('Lỗi khi tải lịch sử thanh toán:', err);
+    }
+  };
+
+  const handleSavePayment = async (e) => {
+    e.preventDefault();
+    try {
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/settings`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          payment_bank: paymentBank,
+          payment_account_number: paymentAccountNumber,
+          payment_account_name: paymentAccountName
+        })
+      });
+
+      if (response.ok) {
+        setSuccessMsg('Đã lưu thông tin tài khoản thanh toán thành công!');
+        setTimeout(() => setSuccessMsg(''), 5000);
+      } else {
+        const errData = await response.json();
+        alert(`Lỗi: ${errData.message || 'Không thể lưu cài đặt'}`);
+      }
+    } catch (err) {
+      console.error('Lỗi lưu cài đặt thanh toán:', err);
+      alert('Lỗi kết nối máy chủ.');
+    }
+  };
+
   useEffect(() => {
     if (activeTab === 'logs') {
       fetchLogs();
-    } else if (activeTab === 'system' || activeTab === 'email') {
+    } else if (activeTab === 'system' || activeTab === 'email' || activeTab === 'payment') {
       fetchSystemSettings();
+    }
+    if (activeTab === 'payment') {
+      fetchPaymentRecords();
     }
   }, [activeTab]);
 
@@ -322,6 +382,16 @@ Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
           }`}
         >
           <FileText className="w-4 h-4" /> Nhật ký Hoạt động
+        </button>
+        <button
+          onClick={() => { setActiveTab('payment'); setSuccessMsg(''); }}
+          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all ${
+            activeTab === 'payment'
+              ? 'bg-[#004e92] text-white shadow-lg transform -translate-y-0.5'
+              : 'text-gray-600 hover:bg-gray-300/50'
+          }`}
+        >
+          <DollarSign className="w-4 h-4" /> Tài khoản thanh toán
         </button>
       </div>
 
@@ -891,6 +961,167 @@ Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
           </div>
         )}
 
+        {/* TAB 5: PAYMENT */}
+        {activeTab === 'payment' && (
+          <div className="space-y-8 animate-fadeIn">
+            {/* Form cấu hình tài khoản thanh toán */}
+            <form onSubmit={handleSavePayment} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-6">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 border-b pb-3 flex items-center gap-2">
+                  <DollarSign className="w-5 h-5 text-[#004e92]" /> Cấu hình Tài khoản nhận thanh toán qua SePay / Chuyển khoản
+                </h3>
+                <p className="text-xs text-gray-400 mt-1">Thông tin này sẽ được dùng để tạo mã QR Code động hiển thị cho bệnh nhân tại Quầy thu ngân.</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Ngân hàng */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Ngân hàng thụ hưởng *</label>
+                  <select
+                    required
+                    value={paymentBank}
+                    onChange={(e) => setPaymentBank(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]"
+                  >
+                    <option value="Vietcombank">Vietcombank (Ngoại thương Việt Nam)</option>
+                    <option value="MB Bank (Quân Đội)">MB Bank (Quân Đội)</option>
+                    <option value="Techcombank">Techcombank (Kỹ thương)</option>
+                    <option value="ACB">ACB (Á Châu)</option>
+                    <option value="BIDV">BIDV (Đầu tư & Phát triển)</option>
+                    <option value="VietinBank">VietinBank (Công thương)</option>
+                    <option value="Agribank">Agribank (Nông nghiệp)</option>
+                    <option value="TPBank">TPBank (Tiên Phong)</option>
+                    <option value="VPBank">VPBank (Việt Nam Thịnh Vượng)</option>
+                    <option value="Sacombank">Sacombank (Sài Gòn Thương Tín)</option>
+                  </select>
+                </div>
+
+                {/* Số tài khoản */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Số tài khoản *</label>
+                  <input
+                    type="text"
+                    required
+                    value={paymentAccountNumber}
+                    onChange={(e) => setPaymentAccountNumber(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92] font-mono font-bold"
+                  />
+                </div>
+
+                {/* Tên tài khoản */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Tên chủ tài khoản (Không dấu) *</label>
+                  <input
+                    type="text"
+                    required
+                    value={paymentAccountName}
+                    onChange={(e) => setPaymentAccountName(e.target.value.toUpperCase())}
+                    placeholder="Ví dụ: VO THUAN THIEN"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92] font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-4 border-t">
+                <button
+                  type="submit"
+                  className="bg-[#004e92] hover:bg-blue-800 text-white font-bold py-3 px-8 rounded-2xl transition-colors shadow-lg flex items-center gap-2 text-sm"
+                >
+                  <Save className="w-4 h-4" /> Lưu thông tin thanh toán
+                </button>
+              </div>
+            </form>
+
+            {/* Bảng liệt kê dữ liệu thanh toán */}
+            <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-6">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 border-b pb-3 flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-emerald-600" /> Nhật ký Giao dịch Thanh toán thành công (Thực nhận)
+                </h3>
+                <p className="text-xs text-gray-400 mt-1">Danh sách tất cả các khoản thanh toán phí khám lâm sàng ban đầu và đơn thuốc đã thu ngân thành công.</p>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-100">
+                      <th className="p-4 font-medium text-center w-16">STT</th>
+                      <th className="p-4 font-medium w-48">Thời gian giao dịch</th>
+                      <th className="p-4 font-medium">Bệnh nhân & Liên hệ</th>
+                      <th className="p-4 font-medium">Nội dung thanh toán</th>
+                      <th className="p-4 font-medium text-right w-44">Số tiền thực nhận</th>
+                      <th className="p-4 font-medium text-center w-40">Hình thức</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-sm divide-y divide-gray-100">
+                    {paymentRecords.length > 0 ? (
+                      paymentRecords.map((rec, index) => {
+                        const hasExamPaid = rec.paymentStatus === 'paid';
+                        const hasPrescriptionPaid = rec.prescriptionStatus === 'paid';
+                        
+                        // Tính toán tổng tiền thực thu của ca khám này
+                        let detailText = [];
+                        let totalReceived = 0;
+                        if (hasExamPaid) {
+                          detailText.push(`Phí khám lâm sàng (${rec.dept})`);
+                          totalReceived += rec.initialFee || 150000;
+                        }
+                        if (hasPrescriptionPaid && rec.prescription && rec.prescription.length > 0) {
+                          detailText.push("Đơn thuốc điều trị");
+                          // Tính tiền đơn thuốc gốc & giảm giá
+                          const originalCost = rec.prescription.reduce((sum, item) => sum + (item.price * item.qty), 0);
+                          const discount = rec.bhyt ? Math.floor(originalCost * 0.8) : 0;
+                          const finalCost = originalCost - discount;
+                          totalReceived += finalCost;
+                        }
+
+                        return (
+                          <tr key={rec._id} className="hover:bg-green-50/10 transition-colors">
+                            <td className="p-4 font-bold text-gray-700 text-center">{index + 1}</td>
+                            <td className="p-4 text-xs font-semibold text-gray-500">
+                              {new Date(rec.updatedAt || rec.createdAt).toLocaleString('vi-VN')}
+                            </td>
+                            <td className="p-4">
+                              <div className="font-bold text-gray-900">{rec.name}</div>
+                              <div className="text-[10px] font-bold text-gray-500 font-mono tracking-wider">{rec.phone}</div>
+                            </td>
+                            <td className="p-4">
+                              <div className="text-gray-700 font-medium text-xs space-y-1">
+                                {detailText.map((t, idx) => (
+                                  <div key={idx} className="flex items-center gap-1">
+                                    <span className="text-emerald-500 font-black">✓</span> {t}
+                                  </div>
+                                ))}
+                              </div>
+                            </td>
+                            <td className="p-4 text-right font-mono font-bold text-emerald-600 text-base">
+                              +{totalReceived.toLocaleString('vi-VN')} đ
+                            </td>
+                            <td className="p-4 text-center">
+                              <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+                                {rec.paymentMethod || rec.prescriptionPaymentMethod || 'Chuyển khoản'}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td colSpan="6" className="p-8 text-center text-gray-400 italic">
+                          Chưa ghi nhận giao dịch thanh toán thành công nào.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="pt-4 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500">
+                <span>Tổng số giao dịch: <strong className="text-gray-800">{paymentRecords.length} giao dịch thành công</strong></span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
