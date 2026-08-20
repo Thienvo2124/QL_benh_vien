@@ -9,7 +9,8 @@ import {
   Calendar, 
   ArrowUpRight, 
   CreditCard, 
-  Coins 
+  Coins,
+  Filter
 } from 'lucide-react';
 import API_BASE_URL from '../config/api';
 
@@ -18,6 +19,10 @@ const RevenueStats = () => {
   const [error, setError] = useState('');
   const [statsData, setStatsData] = useState(null);
   const [timeframe, setTimeframe] = useState('monthly'); // 'monthly' | 'daily'
+  
+  // Filter States
+  const [selectedYear, setSelectedYear] = useState('2026');
+  const [selectedMonth, setSelectedMonth] = useState('Tất cả');
 
   const fetchStats = async () => {
     setLoading(true);
@@ -72,19 +77,156 @@ const RevenueStats = () => {
     );
   }
 
-  const { summary, dailyData, monthlyData, deptData, paymentMethodStats, recentTransactions } = statsData;
+  const { allTransactions } = statsData;
 
-  // Helpers for chart calculations
-  const chartData = timeframe === 'monthly' ? monthlyData : dailyData;
-  const maxRevenue = chartData.reduce((max, item) => Math.max(max, item.revenue || 0), 0) || 1;
-  const maxDeptRevenue = deptData.reduce((max, item) => Math.max(max, item.revenue || 0), 0) || 1;
+  // 1. Get list of available years from transactions
+  const availableYears = ['Tất cả'];
+  if (allTransactions) {
+    allTransactions.forEach(tx => {
+      const d = new Date(tx.date);
+      if (!isNaN(d.getTime())) {
+        const y = d.getFullYear().toString();
+        if (!availableYears.includes(y)) {
+          availableYears.push(y);
+        }
+      }
+    });
+  }
+  // Sort years descending (Tất cả, then 2026, 2025...)
+  availableYears.sort((a, b) => {
+    if (a === 'Tất cả') return -1;
+    if (b === 'Tất cả') return 1;
+    return parseInt(b) - parseInt(a);
+  });
 
-  // Payment methods breakdown
-  const cashRev = paymentMethodStats["Tiền mặt"] || 0;
-  const transferRev = paymentMethodStats["Chuyển khoản"] || 0;
-  const totalPayMethodRev = cashRev + transferRev || 1;
-  const cashPercent = ((cashRev / totalPayMethodRev) * 100).toFixed(1);
-  const transferPercent = ((transferRev / totalPayMethodRev) * 100).toFixed(1);
+  // 2. Perform local filtering
+  const filteredTx = (allTransactions || []).filter(tx => {
+    const d = new Date(tx.date);
+    if (isNaN(d.getTime())) return false;
+    
+    const txYear = d.getFullYear().toString();
+    const txMonth = (d.getMonth() + 1).toString();
+    
+    const yearMatches = selectedYear === 'Tất cả' || txYear === selectedYear;
+    const monthMatches = selectedMonth === 'Tất cả' || txMonth === selectedMonth;
+    
+    return yearMatches && monthMatches;
+  });
+
+  // 3. Compute KPI summary metrics based on filtered transactions
+  let localTotalExamRev = 0;
+  let localTotalRxRev = 0;
+  let localCashRev = 0;
+  let localTransferRev = 0;
+  const localDeptMap = {};
+
+  filteredTx.forEach(tx => {
+    localTotalExamRev += tx.examFee || 0;
+    localTotalRxRev += tx.prescriptionFee || 0;
+
+    if (tx.examFee > 0) {
+      if (tx.examPaymentMethod === 'Chuyển khoản') localTransferRev += tx.examFee;
+      else localCashRev += tx.examFee;
+    }
+    if (tx.prescriptionFee > 0) {
+      if (tx.prescriptionPaymentMethod === 'Chuyển khoản') localTransferRev += tx.prescriptionFee;
+      else localCashRev += tx.prescriptionFee;
+    }
+
+    if (tx.dept) {
+      localDeptMap[tx.dept] = (localDeptMap[tx.dept] || 0) + tx.totalFee;
+    }
+  });
+
+  const localTotalRev = localTotalExamRev + localTotalRxRev;
+  const localCount = filteredTx.length;
+
+  const localDeptData = Object.keys(localDeptMap).map(dept => ({
+    dept,
+    revenue: localDeptMap[dept]
+  })).sort((a, b) => b.revenue - a.revenue);
+
+  // 4. Generate Chart Data
+  let localChartData = [];
+  if (timeframe === 'monthly') {
+    if (selectedYear === 'Tất cả') {
+      // Group by year-month dynamically
+      const monthlyGroups = {};
+      filteredTx.forEach(tx => {
+        const d = new Date(tx.date);
+        const monthStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        monthlyGroups[monthStr] = (monthlyGroups[monthStr] || 0) + tx.totalFee;
+      });
+      localChartData = Object.keys(monthlyGroups).sort().map(m => ({
+        label: m,
+        revenue: monthlyGroups[m]
+      }));
+    } else {
+      // Show all 12 months for the selected year (keep columns visible even if 0 revenue)
+      const yearInt = parseInt(selectedYear);
+      localChartData = Array.from({ length: 12 }, (_, i) => {
+        const m = i + 1;
+        const rev = filteredTx.reduce((sum, tx) => {
+          const d = new Date(tx.date);
+          if (d.getFullYear() === yearInt && d.getMonth() === i) {
+            return sum + tx.totalFee;
+          }
+          return sum;
+        }, 0);
+        return {
+          label: `Tháng ${m}`,
+          revenue: rev
+        };
+      });
+    }
+  } else {
+    // Daily timeframe
+    if (selectedMonth === 'Tất cả') {
+      // Show daily records of last 30 days dynamically
+      const dailyGroups = {};
+      filteredTx.forEach(tx => {
+        const d = new Date(tx.date);
+        const dayStr = d.toLocaleDateString('sv-SE'); // YYYY-MM-DD
+        dailyGroups[dayStr] = (dailyGroups[dayStr] || 0) + tx.totalFee;
+      });
+      localChartData = Object.keys(dailyGroups).sort().slice(-30).map(d => ({
+        label: d.slice(5), // MM-DD
+        revenue: dailyGroups[d]
+      }));
+    } else {
+      // Show all days of the selected month
+      const yearVal = selectedYear === 'Tất cả' ? new Date().getFullYear() : parseInt(selectedYear);
+      const monthVal = parseInt(selectedMonth);
+      const daysInMonth = new Date(yearVal, monthVal, 0).getDate();
+
+      localChartData = Array.from({ length: daysInMonth }, (_, i) => {
+        const d = i + 1;
+        const rev = filteredTx.reduce((sum, tx) => {
+          const txDate = new Date(tx.date);
+          if (
+            txDate.getFullYear() === yearVal &&
+            txDate.getMonth() + 1 === monthVal &&
+            txDate.getDate() === d
+          ) {
+            return sum + tx.totalFee;
+          }
+          return sum;
+        }, 0);
+        return {
+          label: `${d}/${monthVal}`,
+          revenue: rev
+        };
+      });
+    }
+  }
+
+  const maxRevenue = localChartData.reduce((max, item) => Math.max(max, item.revenue || 0), 0) || 1;
+  const maxDeptRevenue = localDeptData.reduce((max, item) => Math.max(max, item.revenue || 0), 0) || 1;
+
+  // Payment method breakdowns
+  const totalPayMethodRev = localCashRev + localTransferRev || 1;
+  const cashPercent = ((localCashRev / totalPayMethodRev) * 100).toFixed(1);
+  const transferPercent = ((localTransferRev / totalPayMethodRev) * 100).toFixed(1);
 
   const formatDateSafe = (dateStr) => {
     if (!dateStr) return 'N/A';
@@ -100,8 +242,8 @@ const RevenueStats = () => {
   return (
     <div className="space-y-8 animate-fadeIn font-sans pb-10">
       
-      {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 pb-5">
+      {/* HEADER & FILTERS */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-gray-100 pb-6 flex-wrap">
         <div>
           <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
             <TrendingUp className="w-8 h-8 text-[#004e92]" /> Báo cáo & Thống kê Doanh thu
@@ -110,12 +252,50 @@ const RevenueStats = () => {
             Theo dõi tổng quan tài chính, doanh thu phòng khám, doanh thu thuốc và phương thức thanh toán.
           </p>
         </div>
-        <button 
-          onClick={fetchStats}
-          className="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold px-4 py-2.5 rounded-2xl text-xs border border-gray-200 transition-colors cursor-pointer self-start md:self-center"
-        >
-          <RefreshCw className="w-4 h-4" /> Tải lại dữ liệu
-        </button>
+        
+        {/* Filter Controls Row */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 bg-white px-3 py-2.5 rounded-2xl border border-gray-200 text-xs font-bold text-gray-600 shadow-sm">
+            <Filter size={14} className="text-gray-400" />
+            <span>Bộ lọc:</span>
+            
+            {/* Year Selector */}
+            <select
+              value={selectedYear}
+              onChange={(e) => {
+                setSelectedYear(e.target.value);
+                if (e.target.value === 'Tất cả') {
+                  setSelectedMonth('Tất cả');
+                }
+              }}
+              className="bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1 text-xs font-bold focus:outline-none focus:border-[#004e92] cursor-pointer"
+            >
+              {availableYears.map(y => (
+                <option key={y} value={y}>{y === 'Tất cả' ? 'Tất cả các năm' : `Năm ${y}`}</option>
+              ))}
+            </select>
+
+            {/* Month Selector */}
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              disabled={selectedYear === 'Tất cả'}
+              className="bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1 text-xs font-bold focus:outline-none focus:border-[#004e92] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <option value="Tất cả">Tất cả các tháng</option>
+              {Array.from({ length: 12 }, (_, i) => (
+                <option key={i+1} value={(i+1).toString()}>Tháng {i+1}</option>
+              ))}
+            </select>
+          </div>
+
+          <button 
+            onClick={fetchStats}
+            className="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold px-4 py-2.5 rounded-2xl text-xs border border-gray-200 transition-colors cursor-pointer"
+          >
+            <RefreshCw className="w-3.5 h-3.5" /> Tải lại
+          </button>
+        </div>
       </div>
 
       {/* STATS CARDS */}
@@ -124,9 +304,9 @@ const RevenueStats = () => {
         <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">Tổng doanh thu</span>
-            <span className="text-2xl font-black text-gray-900 block">{(summary.totalRevenue || 0).toLocaleString('vi-VN')} đ</span>
+            <span className="text-2xl font-black text-gray-900 block">{localTotalRev.toLocaleString('vi-VN')} đ</span>
             <span className="text-xs text-emerald-600 font-bold flex items-center gap-0.5 mt-1">
-              <ArrowUpRight size={14} /> Giao dịch hoàn tất
+              <ArrowUpRight size={14} /> Giao dịch lọc
             </span>
           </div>
           <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-[#004e92]">
@@ -138,9 +318,9 @@ const RevenueStats = () => {
         <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">Doanh thu khám</span>
-            <span className="text-2xl font-black text-gray-900 block">{(summary.totalExamRevenue || 0).toLocaleString('vi-VN')} đ</span>
+            <span className="text-2xl font-black text-gray-900 block">{localTotalExamRev.toLocaleString('vi-VN')} đ</span>
             <span className="text-xs text-gray-500 font-semibold block mt-1">
-              Chiếm {((summary.totalExamRevenue / (summary.totalRevenue || 1)) * 100).toFixed(1)}% cơ cấu
+              Chiếm {((localTotalExamRev / (localTotalRev || 1)) * 100).toFixed(1)}% cơ cấu
             </span>
           </div>
           <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
@@ -152,9 +332,9 @@ const RevenueStats = () => {
         <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">Doanh thu thuốc</span>
-            <span className="text-2xl font-black text-gray-900 block">{(summary.totalPrescriptionRevenue || 0).toLocaleString('vi-VN')} đ</span>
+            <span className="text-2xl font-black text-gray-900 block">{localTotalRxRev.toLocaleString('vi-VN')} đ</span>
             <span className="text-xs text-gray-500 font-semibold block mt-1">
-              Chiếm {((summary.totalPrescriptionRevenue / (summary.totalRevenue || 1)) * 100).toFixed(1)}% cơ cấu
+              Chiếm {((localTotalRxRev / (localTotalRev || 1)) * 100).toFixed(1)}% cơ cấu
             </span>
           </div>
           <div className="w-12 h-12 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-600">
@@ -166,9 +346,9 @@ const RevenueStats = () => {
         <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">Số lượt thanh toán</span>
-            <span className="text-2xl font-black text-gray-900 block">{summary.count} hóa đơn</span>
+            <span className="text-2xl font-black text-gray-900 block">{localCount} hóa đơn</span>
             <span className="text-xs text-gray-500 font-semibold block mt-1">
-              Trung bình: {Math.round(summary.totalRevenue / (summary.count || 1)).toLocaleString('vi-VN')} đ/hđ
+              Trung bình: {Math.round(localTotalRev / (localCount || 1)).toLocaleString('vi-VN')} đ/hđ
             </span>
           </div>
           <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600">
@@ -186,6 +366,7 @@ const RevenueStats = () => {
             <h3 className="font-bold text-gray-800 text-lg flex items-center gap-2">
               <Calendar className="w-5 h-5 text-[#004e92]" /> Lịch sử doanh thu
             </h3>
+            
             <div className="flex bg-gray-100 p-1 rounded-xl">
               <button 
                 onClick={() => setTimeframe('monthly')}
@@ -195,38 +376,44 @@ const RevenueStats = () => {
               </button>
               <button 
                 onClick={() => setTimeframe('daily')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${timeframe === 'daily' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                disabled={selectedYear === 'Tất cả'}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${timeframe === 'daily' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
               >
-                30 ngày gần đây
+                Chi tiết ngày
               </button>
             </div>
           </div>
 
           {/* Bar chart container */}
-          <div className="h-64 flex items-end justify-between gap-4 pt-6 border-b border-gray-100 pb-1 font-mono">
-            {chartData.length > 0 ? (
-              chartData.map((item, idx) => {
-                const label = timeframe === 'monthly' ? item.month : item.date.slice(5); // Show MM-DD for daily
+          <div className="h-64 flex items-end justify-between gap-2 md:gap-4 pt-6 border-b border-gray-100 pb-1 font-mono overflow-x-auto">
+            {localChartData.length > 0 ? (
+              localChartData.map((item, idx) => {
                 const heightPercent = ((item.revenue || 0) / maxRevenue) * 100;
+                // Abbreviate labels if they are too long or monthly
+                const isMonthLabel = item.label.startsWith('Tháng ');
+                const displayLabel = isMonthLabel ? item.label.replace('Tháng ', 'T') : item.label;
                 
                 return (
-                  <div key={idx} className="flex-1 flex flex-col items-center group relative h-full justify-end">
+                  <div key={idx} className="flex-1 flex flex-col items-center group relative h-full justify-end min-w-[20px]">
                     {/* Tooltip on hover */}
                     <div className="absolute bottom-full mb-2 bg-gray-900 text-white text-[10px] font-bold py-1.5 px-2.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-lg z-20">
-                      {(item.revenue || 0).toLocaleString('vi-VN')} đ
+                      {item.label}: {(item.revenue || 0).toLocaleString('vi-VN')} đ
                     </div>
                     {/* Bar */}
                     <div 
-                      style={{ height: `${Math.max(heightPercent, 3)}%` }} 
-                      className={`w-12 max-w-full rounded-t-lg transition-all duration-300 group-hover:bg-[#004e92] ${
-                        timeframe === 'monthly' 
-                          ? 'bg-blue-100 text-[#004e92]' 
-                          : 'bg-emerald-100 text-emerald-700'
+                      style={{ height: `${Math.max(heightPercent, item.revenue > 0 ? 3 : 0)}%` }} 
+                      className={`w-12 max-w-full rounded-t transition-all duration-300 group-hover:bg-[#004e92] ${
+                        item.revenue > 0
+                          ? (timeframe === 'monthly' ? 'bg-blue-100 text-[#004e92]' : 'bg-emerald-100 text-emerald-700')
+                          : 'bg-transparent border-t border-dashed border-gray-200'
                       }`}
                     />
                     {/* Label at bottom */}
-                    <span className="text-[10px] text-gray-400 font-semibold mt-2 select-none text-center truncate w-full">
-                      {label}
+                    <span 
+                      className="text-[9px] md:text-[10px] text-gray-400 font-bold mt-2 select-none text-center truncate w-full"
+                      title={item.label}
+                    >
+                      {displayLabel}
                     </span>
                   </div>
                 );
@@ -281,7 +468,7 @@ const RevenueStats = () => {
                     <span className="text-[10px] text-gray-400 block font-semibold">Tự động nhận diện</span>
                   </div>
                 </div>
-                <span className="font-mono font-bold text-gray-900 text-sm">{transferRev.toLocaleString('vi-VN')} đ</span>
+                <span className="font-mono font-bold text-gray-900 text-sm">{localTransferRev.toLocaleString('vi-VN')} đ</span>
               </div>
 
               <div className="flex items-center justify-between">
@@ -294,7 +481,7 @@ const RevenueStats = () => {
                     <span className="text-[10px] text-gray-400 block font-semibold">Thu ngân xác nhận</span>
                   </div>
                 </div>
-                <span className="font-mono font-bold text-gray-900 text-sm">{cashRev.toLocaleString('vi-VN')} đ</span>
+                <span className="font-mono font-bold text-gray-900 text-sm">{localCashRev.toLocaleString('vi-VN')} đ</span>
               </div>
             </div>
           </div>
@@ -307,8 +494,8 @@ const RevenueStats = () => {
           Doanh thu theo Chuyên khoa
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {deptData.length > 0 ? (
-            deptData.map((item, idx) => {
+          {localDeptData.length > 0 ? (
+            localDeptData.map((item, idx) => {
               const percentage = ((item.revenue || 0) / maxDeptRevenue) * 100;
               
               return (
@@ -328,7 +515,7 @@ const RevenueStats = () => {
             })
           ) : (
             <div className="col-span-2 text-center text-gray-400 italic text-sm py-4">
-              Chưa ghi nhận doanh thu phát sinh của chuyên khoa nào.
+              Không có dữ liệu doanh thu chuyên khoa trong khoảng thời gian lọc.
             </div>
           )}
         </div>
@@ -353,9 +540,8 @@ const RevenueStats = () => {
               </tr>
             </thead>
             <tbody className="text-sm divide-y divide-gray-100 font-semibold text-gray-700">
-              {recentTransactions && recentTransactions.length > 0 ? (
-                recentTransactions.map((tx) => {
-                  // Determine combined payment method display
+              {filteredTx.length > 0 ? (
+                filteredTx.slice(0, 15).map((tx) => {
                   const methods = [];
                   if (tx.examFee > 0) {
                     methods.push(`Khám: ${tx.examPaymentMethod || 'Tiền mặt'}`);
@@ -369,7 +555,7 @@ const RevenueStats = () => {
                       <td className="p-5 font-mono text-gray-900 font-bold">{tx.appointmentCode}</td>
                       <td className="p-5">
                         <div className="font-bold text-gray-900">{tx.name}</div>
-                        <div className="text-xs text-gray-400 mt-0.5">SĐT: {tx.phone} {tx.cccd && `| CCCD: ${tx.cccd}`}</div>
+                        <div className="text-xs text-gray-400 mt-0.5">SĐT: {tx.phone} {tx.cccd && `| CCCD: ${tx.cccd}`} | Ngày: {formatDateSafe(tx.date)}</div>
                       </td>
                       <td className="p-5 font-medium text-gray-500">{tx.dept}</td>
                       <td className="p-5 text-right font-mono text-gray-600">
@@ -396,7 +582,7 @@ const RevenueStats = () => {
               ) : (
                 <tr>
                   <td colSpan="7" className="p-8 text-center text-gray-400 italic">
-                    Chưa có giao dịch thanh toán thành công nào được ghi nhận.
+                    Không tìm thấy giao dịch thanh toán nào phù hợp với bộ lọc.
                   </td>
                 </tr>
               )}
