@@ -29,6 +29,13 @@ router.post("/sepay", async (req, res) => {
     const actualAmount = transferAmount || amountIn;
     const actualRef = referenceCode || referenceNumber;
 
+    logActivity(
+      `Nhận webhook SePay`,
+      `Nội dung: ${actualContent} | Tiền: ${actualAmount}`,
+      req.ip || "127.0.0.1",
+      `Body: ${JSON.stringify(req.body)}`
+    );
+
     console.log("=== SEPAY WEBHOOK RECEIVED ===");
     console.log("Nội dung CK:", actualContent);
     console.log("Số tiền:", actualAmount);
