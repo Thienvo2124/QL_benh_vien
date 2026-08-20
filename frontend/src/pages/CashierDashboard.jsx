@@ -142,7 +142,13 @@ const CashierDashboard = () => {
       const response = await fetch(`${API_BASE_URL}/api/settings`);
       if (response.ok) {
         const data = await response.json();
-        setSysSettings(data);
+        setSysSettings(prev => ({
+          ...prev,
+          ...data,
+          payment_bank: data.payment_bank || prev.payment_bank,
+          payment_account_number: data.payment_account_number || prev.payment_account_number,
+          payment_account_name: data.payment_account_name || prev.payment_account_name
+        }));
       }
     } catch (error) {
       console.error("Lỗi khi tải cấu hình hệ thống:", error);
