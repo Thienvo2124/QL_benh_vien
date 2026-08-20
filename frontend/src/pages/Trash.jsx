@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Trash2, Search, RotateCcw, Phone, Calendar, Pill, FileText, Activity } from 'lucide-react';
-
-const API_BASE_URL = 'http://localhost:5000';
+import API_BASE_URL from '../config/api';
 
 const Trash = () => {
   const [deletedRecords, setDeletedRecords] = useState([]);
