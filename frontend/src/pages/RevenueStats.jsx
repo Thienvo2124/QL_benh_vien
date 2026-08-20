@@ -122,18 +122,12 @@ const RevenueStats = () => {
   let localTotalRxRev = 0;
   let localCashRev = 0;
   let localTransferRev = 0;
-  let localCompletedCount = 0;
   const localDeptMap = {};
 
   filteredTx.forEach(tx => {
     localTotalExamRev += tx.examFee || 0;
     localTotalRxRev += tx.prescriptionFee || 0;
 
-    // Track completed patients
-    // Since recentTransactions from rawTransactions includes actual appointment fields or we can deduce completion
-    // Wait, let's see. If the transaction has either paid status, it's counted. Let's find completed ones.
-    // In backend, we mapped `totalFee`. Let's assume completed if prescriptionFee > 0 or examFee > 0.
-    // Actually, we can count the total list length as total patients.
     if (tx.examFee > 0) {
       if (tx.examPaymentMethod === 'Chuyển khoản') localTransferRev += tx.examFee;
       else localCashRev += tx.examFee;
@@ -148,19 +142,7 @@ const RevenueStats = () => {
     }
   });
 
-  // Count completed based on rawTransactions status matching
-  // (Let's filter allTransactions where appointment status is 'completed' or has prescriptionStatus 'dispensed')
-  const completedTx = (allTransactions || []).filter(app => {
-    const d = new Date(app.date);
-    const txYear = d.getFullYear().toString();
-    const txMonth = (d.getMonth() + 1).toString();
-    const yearMatches = selectedYear === 'Tất cả' || txYear === selectedYear;
-    const monthMatches = selectedMonth === 'Tất cả' || txMonth === selectedMonth;
-    // Check if the original appointment status is completed (we will pass a check or deduce it)
-    return yearMatches && monthMatches && (app.examFee > 0 && app.prescriptionFee > 0);
-  });
-  localCompletedCount = completedTx.length;
-
+  const localCompletedCount = filteredTx.filter(tx => tx.status === 'completed').length;
   const localTotalRev = localTotalExamRev + localTotalRxRev;
   const localCount = filteredTx.length;
 
@@ -169,13 +151,14 @@ const RevenueStats = () => {
     revenue: localDeptMap[dept]
   })).sort((a, b) => b.revenue - a.revenue);
 
-  // 4. Generate Chart Data (Supporting dynamic switch between Doanh thu and Số bệnh nhân)
+  // 4. Generate Chart Data (Supporting dynamic switch between Doanh thu and Số bệnh nhân đã khám)
   let localChartData = [];
   if (timeframe === 'monthly') {
     if (selectedYear === 'Tất cả') {
       // Group by year-month dynamically
       const monthlyGroups = {};
       filteredTx.forEach(tx => {
+        if (chartType === 'patients' && tx.status !== 'completed') return;
         const d = new Date(tx.date);
         const monthStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
         const val = chartType === 'revenue' ? tx.totalFee : 1;
@@ -193,6 +176,7 @@ const RevenueStats = () => {
         const val = filteredTx.reduce((sum, tx) => {
           const d = new Date(tx.date);
           if (d.getFullYear() === yearInt && d.getMonth() === i) {
+            if (chartType === 'patients' && tx.status !== 'completed') return sum;
             return sum + (chartType === 'revenue' ? tx.totalFee : 1);
           }
           return sum;
@@ -209,6 +193,7 @@ const RevenueStats = () => {
       // Show daily records of last 30 days dynamically
       const dailyGroups = {};
       filteredTx.forEach(tx => {
+        if (chartType === 'patients' && tx.status !== 'completed') return;
         const d = new Date(tx.date);
         const dayStr = d.toLocaleDateString('sv-SE'); // YYYY-MM-DD
         const val = chartType === 'revenue' ? tx.totalFee : 1;
@@ -233,6 +218,7 @@ const RevenueStats = () => {
             txDate.getMonth() + 1 === monthVal &&
             txDate.getDate() === d
           ) {
+            if (chartType === 'patients' && tx.status !== 'completed') return sum;
             return sum + (chartType === 'revenue' ? tx.totalFee : 1);
           }
           return sum;
@@ -342,10 +328,10 @@ const RevenueStats = () => {
         {/* TOTAL PATIENTS */}
         <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between">
           <div className="space-y-1">
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">Lượng bệnh nhân</span>
-            <span className="text-2xl font-black text-gray-900 block">{localCount} lượt khám</span>
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">Bệnh nhân đã khám</span>
+            <span className="text-2xl font-black text-gray-900 block">{localCompletedCount} lượt khám</span>
             <span className="text-xs text-indigo-600 font-bold block mt-1">
-              Khám lâm sàng & cấp thuốc
+              Đăng ký: {localCount} ca khám
             </span>
           </div>
           <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">

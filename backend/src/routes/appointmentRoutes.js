@@ -393,7 +393,8 @@ router.get("/revenue-stats", protect, async (req, res) => {
         totalFee: examFee + rxFee,
         examPaymentMethod: app.paymentMethod,
         prescriptionPaymentMethod: app.prescriptionPaymentMethod,
-        cccd: app.cccd || ""
+        cccd: app.cccd || "",
+        status: app.status
       };
     });
 
