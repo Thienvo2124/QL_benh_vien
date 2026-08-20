@@ -410,10 +410,10 @@ Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
       </div>
 
       {/* Tabs Navigation */}
-      <div className="bg-gray-200/60 p-1.5 rounded-2xl flex flex-wrap gap-2 w-max max-w-full shadow-inner border border-gray-300/40">
+      <div className="bg-gray-200/60 p-1.5 rounded-2xl flex gap-2 w-full overflow-x-auto shadow-inner border border-gray-300/40 whitespace-nowrap scrollbar-thin">
         <button
           onClick={() => { setActiveTab('profile'); setSuccessMsg(''); }}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all ${
+          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all shrink-0 ${
             activeTab === 'profile'
               ? 'bg-[#004e92] text-white shadow-lg transform -translate-y-0.5'
               : 'text-gray-600 hover:bg-gray-300/50'
@@ -423,7 +423,7 @@ Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
         </button>
         <button
           onClick={() => { setActiveTab('system'); setSuccessMsg(''); }}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all ${
+          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all shrink-0 ${
             activeTab === 'system'
               ? 'bg-[#004e92] text-white shadow-lg transform -translate-y-0.5'
               : 'text-gray-600 hover:bg-gray-300/50'
@@ -433,7 +433,7 @@ Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
         </button>
         <button
           onClick={() => { setActiveTab('email'); setSuccessMsg(''); }}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all ${
+          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all shrink-0 ${
             activeTab === 'email'
               ? 'bg-[#004e92] text-white shadow-lg transform -translate-y-0.5'
               : 'text-gray-600 hover:bg-gray-300/50'
@@ -443,7 +443,7 @@ Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
         </button>
         <button
           onClick={() => { setActiveTab('security'); setSuccessMsg(''); }}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all ${
+          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all shrink-0 ${
             activeTab === 'security'
               ? 'bg-[#004e92] text-white shadow-lg transform -translate-y-0.5'
               : 'text-gray-600 hover:bg-gray-300/50'
@@ -453,7 +453,7 @@ Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
         </button>
         <button
           onClick={() => { setActiveTab('logs'); setSuccessMsg(''); }}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all ${
+          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all shrink-0 ${
             activeTab === 'logs'
               ? 'bg-[#004e92] text-white shadow-lg transform -translate-y-0.5'
               : 'text-gray-600 hover:bg-gray-300/50'
@@ -463,7 +463,7 @@ Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
         </button>
         <button
           onClick={() => { setActiveTab('payment'); setSuccessMsg(''); }}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all ${
+          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all shrink-0 ${
             activeTab === 'payment'
               ? 'bg-[#004e92] text-white shadow-lg transform -translate-y-0.5'
               : 'text-gray-600 hover:bg-gray-300/50'
@@ -473,7 +473,7 @@ Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
         </button>
         <button
           onClick={() => { setActiveTab('fees'); setSuccessMsg(''); }}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all ${
+          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all shrink-0 ${
             activeTab === 'fees'
               ? 'bg-[#004e92] text-white shadow-lg transform -translate-y-0.5'
               : 'text-gray-600 hover:bg-gray-300/50'
