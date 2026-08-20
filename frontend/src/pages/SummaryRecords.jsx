@@ -3,7 +3,7 @@ import { FolderOpen, Search, User, FileText, DollarSign, Pill, Eye, ChevronRight
 import API_BASE_URL from '../config/api';
 
 const SummaryRecords = () => {
-  const [activeTab, setActiveTab] = useState('staff'); // staff | patient | billing | medicine
+  const [activeTab, setActiveTab] = useState('patient'); // patient | billing | medicine | prescription
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [staffRoleFilter, setStaffRoleFilter] = useState('all'); // all | admin | doctor | nurse | cashier
@@ -185,7 +185,6 @@ const SummaryRecords = () => {
       {/* Tabs Menu */}
       <div className="bg-gray-200/60 p-1.5 rounded-2xl flex flex-wrap gap-2 w-full shadow-inner border border-gray-300/40">
         {[
-          { id: 'staff', label: 'Quản lý người dùng', icon: User, count: staffArr.length },
           { id: 'patient', label: 'Hồ sơ Bệnh nhân', icon: FileText, count: uniquePatients.length },
           { id: 'prescription', label: 'Danh sách Đơn thuốc', icon: Clipboard, count: prescriptionsArr.length },
           { id: 'billing', label: 'Lịch sử Giao dịch', icon: DollarSign, count: appointmentsArr.length },
@@ -219,7 +218,6 @@ const SummaryRecords = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={
-                activeTab === 'staff' ? "Tìm kiếm tài khoản theo tên, email, sđt, vị trí..." :
                 activeTab === 'patient' ? "Tìm kiếm bệnh nhân theo tên, sđt, địa chỉ..." :
                 activeTab === 'prescription' ? "Tìm kiếm đơn thuốc theo tên bệnh nhân, mã HSBN, thuốc..." :
                 activeTab === 'billing' ? "Tìm kiếm giao dịch theo tên bệnh nhân, mã số, phòng khám..." :
@@ -242,32 +240,6 @@ const SummaryRecords = () => {
             </select>
           </div>
         </div>
-
-        {/* Sub-tabs for Staff Role Filter */}
-        {activeTab === 'staff' && (
-          <div className="flex flex-wrap gap-2 border-t pt-4 border-gray-100">
-            {[
-              { id: 'all', label: 'Tất cả', count: staffArr.length },
-              { id: 'admin', label: 'Quản trị viên', count: staffArr.filter(u => u.role === 'admin').length },
-              { id: 'doctor', label: 'Bác sĩ', count: staffArr.filter(u => u.role === 'doctor').length },
-              { id: 'nurse', label: 'Dược sĩ / Y tá', count: staffArr.filter(u => u.role === 'nurse').length },
-              { id: 'cashier', label: 'Thu ngân', count: staffArr.filter(u => u.role === 'cashier').length }
-            ].map(sub => (
-              <button
-                key={sub.id}
-                type="button"
-                onClick={() => setStaffRoleFilter(sub.id)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
-                  staffRoleFilter === sub.id
-                    ? 'bg-blue-50 text-[#004e92] border-blue-200 shadow-sm'
-                    : 'bg-white hover:bg-gray-50 text-gray-500 border-gray-200'
-                }`}
-              >
-                {sub.label} ({sub.count})
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* TAB CONTENT */}
@@ -276,53 +248,6 @@ const SummaryRecords = () => {
           <div className="p-12 text-center text-gray-400 italic">Đang tải dữ liệu hồ sơ...</div>
         ) : (
           <div className="overflow-x-auto">
-            {/* 1. STAFF TAB */}
-            {activeTab === 'staff' && (
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-gray-50 text-[11px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
-                    <th className="p-5 text-center">STT</th>
-                    <th className="p-5">Họ và tên / Email</th>
-                    <th className="p-5">Số điện thoại</th>
-                    <th className="p-5">Vai trò hệ thống</th>
-                    <th className="p-5">Chức danh / Phòng ban</th>
-                  </tr>
-                </thead>
-                <tbody className="text-sm divide-y divide-gray-100 font-semibold text-gray-700">
-                  {sortedStaff.length > 0 ? (
-                    sortedStaff.map((u, i) => (
-                      <tr key={u._id} className="hover:bg-blue-50/10 transition-colors">
-                        <td className="p-5 text-center text-gray-400 font-bold">{i + 1}</td>
-                        <td className="p-5">
-                          <div className="font-bold text-gray-900">{u.fullName || 'Chưa cập nhật'}</div>
-                          <div className="text-xs text-gray-400 font-mono mt-0.5">{u.email}</div>
-                        </td>
-                        <td className="p-5 text-gray-600 font-mono">{u.phone || 'N/A'}</td>
-                        <td className="p-5">
-                          <span className={`text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border ${
-                            u.role === 'admin' ? 'bg-red-50 text-red-700 border-red-100' :
-                            u.role === 'doctor' ? 'bg-blue-50 text-[#004e92] border-blue-100' :
-                            u.role === 'nurse' ? 'bg-teal-50 text-teal-700 border-teal-100' :
-                            u.role === 'cashier' ? 'bg-amber-50 text-amber-700 border-amber-100' :
-                            'bg-gray-50 text-gray-600 border-gray-100'
-                          }`}>
-                            {u.role}
-                          </span>
-                        </td>
-                        <td className="p-5">
-                          <div className="text-gray-900">{u.position || 'Nhân sự bệnh viện'}</div>
-                          <div className="text-[10px] text-gray-400 mt-0.5 font-bold uppercase">{u.dept || 'Phòng ban chung'}</div>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="5" className="p-8 text-center text-gray-400 italic">Không tìm thấy tài khoản nhân sự nào.</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            )}
 
             {/* 2. PATIENTS TAB */}
             {activeTab === 'patient' && (
