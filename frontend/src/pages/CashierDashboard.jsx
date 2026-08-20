@@ -103,7 +103,8 @@ const CashierDashboard = () => {
     autoPay: false,
     hasBHYT: false,
     bhytCode: '',
-    address: ''
+    address: '',
+    cccd: ''
   });
 
   const [sysSettings, setSysSettings] = useState({
@@ -683,7 +684,8 @@ const CashierDashboard = () => {
           reason: registerForm.reason,
           initialFee: getDeptPrice(registerForm.dept),
           bhyt: registerForm.bhytCode,
-          address: registerForm.address
+          address: registerForm.address,
+          cccd: registerForm.cccd
         })
       });
 
@@ -706,7 +708,8 @@ const CashierDashboard = () => {
           autoPay: false,
           hasBHYT: false,
           bhytCode: '',
-          address: ''
+          address: '',
+          cccd: ''
         });
         setDobDay('');
         setDobMonth('');
@@ -1200,6 +1203,9 @@ const CashierDashboard = () => {
                           <div className="text-xs text-gray-500 font-medium flex items-center gap-3 mt-1.5">
                             <span>📱 {app.phone}</span>
                             <span>💳 BHYT: <strong className="font-mono text-gray-700">{app.bhyt || 'Không có'}</strong></span>
+                            {app.cccd && (
+                              <span>🪪 CCCD: <strong className="font-mono text-gray-700">{app.cccd}</strong></span>
+                            )}
                           </div>
                         </td>
                         <td className="p-5">
@@ -1354,6 +1360,17 @@ const CashierDashboard = () => {
                   <option value="Nữ">Nữ</option>
                   <option value="Khác">Khác</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">Số CCCD / CMND</label>
+                <input
+                  type="text"
+                  placeholder="Nhập số CCCD/CMND..."
+                  value={registerForm.cccd}
+                  onChange={(e) => setRegisterForm({ ...registerForm, cccd: e.target.value })}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92] font-semibold"
+                />
               </div>
 
               <div className="md:col-span-2">
@@ -1736,6 +1753,7 @@ const CashierDashboard = () => {
                             </div>
                             <div className="text-xs text-gray-400 mt-0.5">
                               NS: {formatDateSafe(app.dob)} | GT: {app.gender || 'Nam'} | BHYT: <span className="font-semibold text-gray-700">{app.bhyt || 'Không'}</span>
+                              {app.cccd && ` | CCCD: ${app.cccd}`}
                             </div>
                           </td>
                           <td className="p-5">

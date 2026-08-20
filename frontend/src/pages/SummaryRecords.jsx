@@ -103,6 +103,7 @@ const SummaryRecords = () => {
           gender: app.gender,
           address: app.address,
           bhyt: app.bhyt,
+          cccd: app.cccd,
           lastVisit: app.date || app.createdAt,
           visitsCount: (patientsMap[app.phone]?.visitsCount || 0) + 1,
           latestDept: app.dept,
@@ -121,7 +122,8 @@ const SummaryRecords = () => {
     return p.name?.toLowerCase().includes(term) ||
            p.phone?.includes(term) ||
            p.address?.toLowerCase().includes(term) ||
-           p.bhyt?.toLowerCase().includes(term);
+           p.bhyt?.toLowerCase().includes(term) ||
+           p.cccd?.toLowerCase().includes(term);
   });
 
   return (
@@ -283,7 +285,10 @@ const SummaryRecords = () => {
                         <td className="p-5 text-center text-gray-400 font-bold">{i + 1}</td>
                         <td className="p-5">
                           <div className="font-bold text-gray-900">{p.name}</div>
-                          <div className="text-xs text-gray-500 mt-0.5">Đ/c: {p.address || 'Chưa cập nhật'}</div>
+                          <div className="text-xs text-gray-500 mt-0.5">SĐT: {p.phone} | Đ/c: {p.address || 'Chưa cập nhật'}</div>
+                          {p.cccd && (
+                            <div className="text-xs text-gray-500 mt-0.5">🪪 CCCD: <span className="font-bold text-gray-700">{p.cccd}</span></div>
+                          )}
                         </td>
                         <td className="p-5">
                           <div>{p.dob ? new Date(p.dob).toLocaleDateString('vi-VN') : 'N/A'}</div>

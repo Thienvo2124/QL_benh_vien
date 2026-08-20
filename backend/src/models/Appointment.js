@@ -88,6 +88,11 @@ const appointmentSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    cccd: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     address: {
       type: String,
       default: "",
