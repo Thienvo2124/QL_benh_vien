@@ -100,10 +100,12 @@ const AdminLayout = () => {
             </Link>
           )}
 
-          <Link to="/dashboard/settings" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/settings' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
-            <Settings className="w-5 h-5 mr-3" />
-            Cài đặt
-          </Link>
+          {user?.role === 'admin' && (
+            <Link to="/dashboard/settings" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/settings' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
+              <Settings className="w-5 h-5 mr-3" />
+              Cài đặt
+            </Link>
+          )}
 
           {user?.role === 'admin' && (
             <Link to="/dashboard/chatbot-training" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/chatbot-training' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>

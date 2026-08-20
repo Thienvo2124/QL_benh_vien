@@ -118,6 +118,7 @@ router.post("/", async (req, res) => {
       });
     }
 
+    console.log('[DEBUG] bookingSource nhận được từ request:', req.body.bookingSource);
     const appointment = await Appointment.create({
       name: payload.name,
       phone: payload.phone,

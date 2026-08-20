@@ -82,4 +82,37 @@ router.post("/login", async (req, res) => {
   }
 });
 
+router.post("/change-password", async (req, res) => {
+  try {
+    const { phone, oldPassword, newPassword } = req.body;
+
+    if (!phone || !oldPassword || !newPassword) {
+      return res.status(400).json({ message: "Vui lòng nhập đầy đủ thông tin." });
+    }
+
+    const user = await User.findOne({ phone });
+    if (!user) {
+      return res.status(400).json({ message: "Số điện thoại không đúng hoặc tài khoản không tồn tại." });
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      logActivity("Đổi mật khẩu thất bại (Sai mật khẩu cũ)", `Tài khoản: ${phone}`, req.ip || "127.0.0.1", "Thất bại");
+      return res.status(400).json({ message: "Mật khẩu cũ không chính xác." });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    user.password = hashedPassword;
+    await user.save();
+
+    logActivity("Đổi mật khẩu thành công", `Tài khoản: ${phone}`, req.ip || "127.0.0.1", "Thành công");
+
+    res.json({ message: "Đổi mật khẩu thành công!" });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+});
+
 module.exports = router;
