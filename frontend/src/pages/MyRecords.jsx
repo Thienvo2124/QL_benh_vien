@@ -45,7 +45,7 @@ const MyRecords = () => {
             address: app.address || '',
             date: new Date(app.date).toLocaleDateString('vi-VN'),
             dept: app.dept,
-            doctor: !app.doctor || app.doctor === 'Hệ thống tự phân công' || app.doctor.includes('phân công') ? 'BS. CKII Nguyễn Tuấn Lâm' : app.doctor,
+            doctor: !app.doctor || app.doctor === 'Hệ thống tự phân công' || app.doctor.includes('phân công') ? '' : app.doctor,
             symptoms: app.symptoms || '',
             diagnosis: app.diagnosis || '',
             treatment: app.treatment || '',
