@@ -11,7 +11,6 @@ const pathRoles = {
   '/dashboard/cashier': ['admin', 'cashier'],
   '/dashboard/patients': ['admin', 'doctor', 'nurse'],
   '/dashboard/chatbot-training': ['admin'],
-  '/dashboard/appointments': ['admin', 'nurse', 'cashier'],
   '/dashboard/trash': ['admin', 'cashier', 'nurse', 'doctor'],
 };
 
@@ -45,13 +44,6 @@ const AdminLayout = () => {
             <Link to="/dashboard/users" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/users' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
               <Users className="w-5 h-5 mr-3" />
               Người dùng
-            </Link>
-          )}
-
-          {['admin', 'nurse', 'cashier'].includes(user?.role) && (
-            <Link to="/dashboard/appointments" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/appointments' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
-              <Calendar className="w-5 h-5 mr-3" />
-              Lịch hẹn
             </Link>
           )}
 
@@ -238,14 +230,6 @@ const AdminLayout = () => {
                         Hồ sơ cá nhân
                       </Link>
                       <Link
-                        to="/dashboard/appointments"
-                        onClick={() => setIsProfileMenuOpen(false)}
-                        className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
-                      >
-                        <Calendar className="w-4 h-4 text-yellow-600" />
-                        Quản lý Lịch hẹn khám
-                      </Link>
-                      <Link
                         to="/dashboard/medicines"
                         onClick={() => setIsProfileMenuOpen(false)}
                         className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
@@ -265,14 +249,6 @@ const AdminLayout = () => {
                       >
                         <UserCheck className="w-4 h-4 text-[#004e92]" />
                         Hồ sơ cá nhân
-                      </Link>
-                      <Link
-                        to="/dashboard/appointments"
-                        onClick={() => setIsProfileMenuOpen(false)}
-                        className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
-                      >
-                        <Calendar className="w-4 h-4 text-yellow-600" />
-                        Quản lý Lịch hẹn khám
                       </Link>
                     </>
                   )}

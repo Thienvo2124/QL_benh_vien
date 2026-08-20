@@ -8,7 +8,7 @@ const Trash = () => {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [notification, setNotification] = useState('');
-  const [activeTab, setActiveTab] = useState('appointments'); // appointments | cashier | medical_records | pharmacy | medicines
+  const [activeTab, setActiveTab] = useState('cashier'); // cashier | medical_records | pharmacy | medicines
   const [cashierSubTab, setCashierSubTab] = useState('reception'); // reception | issued | info | prescription
 
   // Tải danh sách lịch hẹn trong thùng rác
@@ -114,35 +114,31 @@ const Trash = () => {
   };
 
   // PHÂN CHIA PHÂN VÙNG DỮ LIỆU ĐÃ XÓA
-  // 1. Lịch hẹn (Đăng ký chưa khám & Chưa đóng tiền)
-  const trashAppointments = deletedAppointments.filter(app => app.status !== 'completed' && app.paymentStatus === 'unpaid');
-
-  // 2. Quầy thu ngân (Chứa các dữ liệu bị xóa tương ứng 4 phần):
-  // 2.1 Duyệt Phí & Cấp Số: Chưa thanh toán tiền khám và chưa khám xong
+  // 1. Quầy thu ngân (Chứa các dữ liệu bị xóa tương ứng 4 phần):
+  // 1.1 Duyệt Phí & Cấp Số: Chưa thanh toán tiền khám và chưa khám xong
   const cashierUnpaid = deletedAppointments.filter(app => app.paymentStatus === 'unpaid' && app.status !== 'completed');
 
-  // 2.2 Số Đã Cấp: Đã đóng tiền khám và chưa khám xong
+  // 1.2 Số Đã Cấp: Đã đóng tiền khám và chưa khám xong
   const cashierIssued = deletedAppointments.filter(app => app.paymentStatus === 'paid' && app.status !== 'completed');
 
-  // 2.3 Thông Tin Khám Bệnh: Đã hoàn thành khám (status === 'completed')
+  // 1.3 Thông Tin Khám Bệnh: Đã hoàn thành khám (status === 'completed')
   const cashierInfo = deletedAppointments.filter(app => app.status === 'completed');
 
-  // 2.4 Thu Tiền Đơn Thuốc: Đơn thuốc đang chờ thu tiền (prescriptionStatus !== 'none')
+  // 1.4 Thu Tiền Đơn Thuốc: Đơn thuốc đang chờ thu tiền (prescriptionStatus !== 'none')
   const cashierPrescription = deletedAppointments.filter(app => app.prescriptionStatus && app.prescriptionStatus !== 'none');
 
-  // 3. Hồ sơ bệnh án (Bác sĩ đã hoàn thành khám bệnh - tương tự mục 2.3)
+  // 2. Hồ sơ bệnh án (Bác sĩ đã hoàn thành khám bệnh - tương tự mục 1.3)
   const trashMedicalRecords = deletedAppointments.filter(app => app.status === 'completed');
 
-  // 4. Quầy cấp thuốc (Đã hoàn thành đóng tiền thuốc, chờ cấp thuốc)
+  // 3. Quầy cấp thuốc (Đã hoàn thành đóng tiền thuốc, chờ cấp thuốc)
   const trashPharmacy = deletedAppointments.filter(app => app.prescriptionStatus === 'paid' || app.prescriptionStatus === 'dispensed');
 
-  // 5. Kho thuốc (Lấy từ deletedMedicines)
+  // 4. Kho thuốc (Lấy từ deletedMedicines)
   const trashMedicines = deletedMedicines;
 
   // Lấy danh sách hiển thị và tìm kiếm cho tab active
   const getActiveTabRecords = () => {
     switch (activeTab) {
-      case 'appointments': return trashAppointments;
       case 'cashier': 
         if (cashierSubTab === 'reception') return cashierUnpaid;
         if (cashierSubTab === 'issued') return cashierIssued;
@@ -203,16 +199,6 @@ const Trash = () => {
 
       {/* TABS CHUYỂN PHÂN VÙNG DỮ LIỆU ĐÃ XÓA */}
       <div className="flex flex-wrap border-b border-gray-200 gap-2">
-        <button
-          onClick={() => { setActiveTab('appointments'); setSearchQuery(''); }}
-          className={`pb-4 px-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
-            activeTab === 'appointments'
-              ? 'border-[#004e92] text-[#004e92]'
-              : 'border-transparent text-gray-400 hover:text-gray-600'
-          }`}
-        >
-          <Calendar className="w-4 h-4" /> Lịch hẹn ({trashAppointments.length})
-        </button>
 
         <button
           onClick={() => { setActiveTab('cashier'); setSearchQuery(''); }}
