@@ -59,6 +59,7 @@ const CashierDashboard = () => {
   const [infoDeptFilter, setInfoDeptFilter] = useState('Tất cả');
   const [infoTypeFilter, setInfoTypeFilter] = useState('Tất cả');
   const [infoPaidFilter, setInfoPaidFilter] = useState('Tất cả');
+  const [infoExamFilter, setInfoExamFilter] = useState('Tất cả'); // Tất cả | Đã khám | Chưa khám
 
   // Sort state
   const [sortBy, setSortBy] = useState('newest'); // newest | oldest
@@ -812,6 +813,7 @@ const CashierDashboard = () => {
     const dept = app.dept || '';
     const paymentStatus = app.paymentStatus || 'unpaid';
     const isWalkIn = app.reason === 'Đến khám trực tiếp tại quầy' || !app.reason;
+    const examStatus = app.status || '';
     
     const matchesSearch = infoSearchQuery === '' || 
       name.toLowerCase().includes(infoSearchQuery.toLowerCase()) ||
@@ -829,7 +831,11 @@ const CashierDashboard = () => {
       (infoPaidFilter === 'Đã thanh toán' && paymentStatus === 'paid') ||
       (infoPaidFilter === 'Chưa thanh toán' && paymentStatus === 'unpaid');
 
-    return matchesSearch && matchesDept && matchesType && matchesPaid;
+    const matchesExam = infoExamFilter === 'Tất cả' ||
+      (infoExamFilter === 'Đã khám' && examStatus === 'completed') ||
+      (infoExamFilter === 'Chưa khám' && examStatus !== 'completed');
+
+    return matchesSearch && matchesDept && matchesType && matchesPaid && matchesExam;
   });
 
   // Hàm sắp xếp dữ liệu động theo Mới nhất / Cũ nhất
@@ -1659,6 +1665,19 @@ const CashierDashboard = () => {
                   <option value="Tất cả">Tất cả</option>
                   <option value="Đã thanh toán">Đã thanh toán</option>
                   <option value="Chưa thanh toán">Chưa thanh toán</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Khám:</span>
+                <select
+                  value={infoExamFilter}
+                  onChange={(e) => setInfoExamFilter(e.target.value)}
+                  className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-[#004e92] cursor-pointer"
+                >
+                  <option value="Tất cả">Tất cả</option>
+                  <option value="Đã khám">✅ Đã khám</option>
+                  <option value="Chưa khám">⏳ Chưa khám</option>
                 </select>
               </div>
 
