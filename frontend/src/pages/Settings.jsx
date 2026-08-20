@@ -410,7 +410,7 @@ Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
       </div>
 
       {/* Tabs Navigation */}
-      <div className="bg-gray-200/60 p-1.5 rounded-2xl flex gap-2 w-full overflow-x-auto shadow-inner border border-gray-300/40 whitespace-nowrap scrollbar-thin">
+      <div className="bg-gray-200/60 p-1.5 rounded-2xl flex flex-wrap gap-2 w-full shadow-inner border border-gray-300/40">
         <button
           onClick={() => { setActiveTab('profile'); setSuccessMsg(''); }}
           className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all shrink-0 ${
