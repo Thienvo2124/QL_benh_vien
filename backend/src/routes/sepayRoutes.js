@@ -15,19 +15,32 @@ const startOfDay = (date) => {
 // Nhận thông báo giao dịch chuyển khoản tự động từ SePay
 router.post("/sepay", async (req, res) => {
   try {
-    const { transactionContent, amountIn, gateway, referenceNumber } = req.body;
+    const { 
+      content, 
+      transactionContent, 
+      transferAmount, 
+      amountIn, 
+      gateway, 
+      referenceCode, 
+      referenceNumber 
+    } = req.body;
+
+    const actualContent = content || transactionContent;
+    const actualAmount = transferAmount || amountIn;
+    const actualRef = referenceCode || referenceNumber;
+
     console.log("=== SEPAY WEBHOOK RECEIVED ===");
-    console.log("Nội dung CK:", transactionContent);
-    console.log("Số tiền:", amountIn);
+    console.log("Nội dung CK:", actualContent);
+    console.log("Số tiền:", actualAmount);
     console.log("Ngân hàng:", gateway);
-    console.log("Mã tham chiếu:", referenceNumber);
+    console.log("Mã tham chiếu:", actualRef);
     console.log("===============================");
 
-    if (!transactionContent) {
+    if (!actualContent) {
       return res.status(200).json({ status: "ignored", message: "Nội dung chuyển khoản trống" });
     }
 
-    const contentUpper = transactionContent.toUpperCase();
+    const contentUpper = actualContent.toUpperCase();
 
     // 1. KIỂM TRA PHÍ KHÁM LÂM SÀNG BAN ĐẦU (Quét mã HSBN)
     // Ví dụ cú pháp: "TToan phi kham HSBN2082026-4" hoặc "HSBN2082026-4"
