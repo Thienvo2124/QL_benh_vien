@@ -138,6 +138,11 @@ const appointmentSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
   },
   { timestamps: true },
 );

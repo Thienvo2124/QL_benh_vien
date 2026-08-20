@@ -160,7 +160,7 @@ router.get("/", protect, adminOrDoctorOnly, async (req, res) => {
     const { status, date } = req.query;
     const dept = normalizeText(req.query.dept);
     const doctor = normalizeText(req.query.doctor);
-    const filter = {};
+    const filter = { isDeleted: { $ne: true } };
 
     if (status) {
       if (!VALID_STATUSES.includes(status)) {
@@ -202,11 +202,51 @@ router.get("/", protect, adminOrDoctorOnly, async (req, res) => {
 router.get("/my", protect, async (req, res) => {
   try {
     console.log("API appointments/my - phone:", req.user.phone);
-    const appointments = await Appointment.find({ phone: req.user.phone })
+    const appointments = await Appointment.find({ phone: req.user.phone, isDeleted: { $ne: true } })
       .sort({ date: 1, time: 1, createdAt: -1 })
       .select("-__v");
     console.log("API appointments/my - count:", appointments.length);
     return res.json(appointments);
+  } catch (error) {
+    return res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+});
+
+// GET /api/appointments/trash
+// Lấy danh sách lịch hẹn trong thùng rác
+router.get("/trash", protect, adminOrDoctorOnly, async (req, res) => {
+  try {
+    const appointments = await Appointment.find({ isDeleted: true })
+      .sort({ updatedAt: -1 })
+      .select("-__v");
+    return res.json(appointments);
+  } catch (error) {
+    return res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+});
+
+// PATCH /api/appointments/:id/restore
+// Khôi phục lịch hẹn từ thùng rác
+router.patch("/:id/restore", protect, adminOrDoctorOnly, async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "ID lịch hẹn không hợp lệ." });
+    }
+
+    const appointment = await Appointment.findById(req.params.id);
+    if (!appointment) {
+      return res.status(404).json({ message: "Không tìm thấy lịch hẹn." });
+    }
+
+    appointment.isDeleted = false;
+    await appointment.save();
+
+    logActivity(`Khôi phục hồ sơ lịch hẹn/bệnh án (Mã: ${appointment.appointmentCode})`, `Tài khoản: ${req.user.fullName || req.user.phone}`, req.ip || "127.0.0.1", "Thành công");
+
+    return res.json({
+      message: "Khôi phục lịch hẹn thành công.",
+      appointment,
+    });
   } catch (error) {
     return res.status(500).json({ message: "Lỗi server", error: error.message });
   }
@@ -345,15 +385,18 @@ router.delete("/:id", protect, adminOrDoctorOnly, async (req, res) => {
       return res.status(400).json({ message: "ID lịch hẹn không hợp lệ." });
     }
 
-    const appointment = await Appointment.findByIdAndDelete(req.params.id);
+    const appointment = await Appointment.findById(req.params.id);
     if (!appointment) {
       return res.status(404).json({ message: "Không tìm thấy lịch hẹn để xóa." });
     }
 
-    logActivity(`Xóa hồ sơ lịch hẹn/bệnh án (Mã: ${appointment.appointmentCode})`, `Tài khoản: ${req.user.fullName || req.user.phone}`, req.ip || "127.0.0.1", "Thành công");
+    appointment.isDeleted = true;
+    await appointment.save();
+
+    logActivity(`Đưa hồ sơ lịch hẹn/bệnh án vào thùng rác (Mã: ${appointment.appointmentCode})`, `Tài khoản: ${req.user.fullName || req.user.phone}`, req.ip || "127.0.0.1", "Thành công");
 
     return res.json({
-      message: "Xóa lịch hẹn thành công.",
+      message: "Đưa lịch hẹn vào thùng rác thành công.",
       appointment,
     });
   } catch (error) {
