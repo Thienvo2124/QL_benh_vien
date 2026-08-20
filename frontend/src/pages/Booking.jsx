@@ -23,6 +23,7 @@ const initialForm = {
   reason: '',
   bhyt: '',
   address: '',
+  cccd: '',
 };
 
 const Booking = () => {
@@ -68,6 +69,7 @@ const Booking = () => {
         gender: user.gender || '',
         bhyt: user.bhytCode || '',
         address: user.address || '',
+        cccd: user.cccd || '',
       }));
       if (user.bhytCode) {
         setHasBHYT(true);
@@ -82,6 +84,7 @@ const Booking = () => {
         gender: '',
         bhyt: '',
         address: '',
+        cccd: '',
       }));
       setHasBHYT(false);
     }
@@ -415,6 +418,20 @@ const Booking = () => {
                         />
                       </div>
                     )}
+                  </div>
+
+                  {/* CCCD / CMND */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5">Số CCCD / CMND</label>
+                      <input
+                        type="text"
+                        placeholder="Nhập số CCCD/CMND (nếu có)"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#004e92] transition-colors"
+                        value={form.cccd || ''}
+                        onChange={(e) => set('cccd', e.target.value)}
+                      />
+                    </div>
                   </div>
 
 

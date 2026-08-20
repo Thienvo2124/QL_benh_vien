@@ -77,6 +77,7 @@ router.post("/", async (req, res) => {
       reason: normalizeText(req.body.reason),
       bhyt: req.body.bhyt ? normalizeText(req.body.bhyt) : "",
       address: req.body.address ? normalizeText(req.body.address) : "",
+      cccd: req.body.cccd ? normalizeText(req.body.cccd) : "",
     };
 
     const missingFields = validateRequiredFields(payload);
@@ -132,6 +133,7 @@ router.post("/", async (req, res) => {
       initialFee: req.body.initialFee ? Number(req.body.initialFee) : 150000,
       bhyt: payload.bhyt || "",
       address: payload.address || "",
+      cccd: payload.cccd || "",
     });
 
     logActivity(`Đặt lịch khám mới (Mã: ${appointment.appointmentCode})`, `Bệnh nhân: ${appointment.name} (${appointment.phone})`, req.ip || "127.0.0.1", "Thành công");
@@ -413,7 +415,7 @@ router.put("/:id/medical-record", protect, adminOrDoctorOnly, async (req, res) =
     }
 
     const { 
-      name, gender, phone, email, weight, address, bhyt, dept, doctor, dob,
+      name, gender, phone, email, weight, address, bhyt, cccd, dept, doctor, dob,
       symptoms, diagnosis, treatment, advice, medicines, date, time, initialFee
     } = req.body;
 
@@ -430,6 +432,7 @@ router.put("/:id/medical-record", protect, adminOrDoctorOnly, async (req, res) =
     if (weight !== undefined) appointment.weight = weight;
     if (address !== undefined) appointment.address = address;
     if (bhyt !== undefined) appointment.bhyt = bhyt;
+    if (cccd !== undefined) appointment.cccd = cccd;
     if (dept !== undefined) appointment.dept = dept;
     if (doctor !== undefined) appointment.doctor = doctor;
     if (dob !== undefined) appointment.dob = dob;
