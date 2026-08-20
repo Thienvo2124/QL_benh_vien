@@ -1,6 +1,6 @@
 import { useContext, useState } from 'react';
 import { Link, Navigate, Outlet, useLocation } from 'react-router-dom';
-import { Activity, Calendar, Home, LogOut, Settings, Users, Pill, Globe, User, Shield, ChevronDown, Building, FileText, UserCheck, Bot, DollarSign, Clipboard, Newspaper, Trash2, FolderOpen } from 'lucide-react';
+import { Activity, Calendar, Home, LogOut, Settings, Users, Pill, Globe, User, Shield, ChevronDown, Building, FileText, UserCheck, Bot, DollarSign, Clipboard, Newspaper, Trash2, FolderOpen, TrendingUp } from 'lucide-react';
 import { AuthContext } from '../contexts/AuthContext';
 
 const pathRoles = {
@@ -13,6 +13,7 @@ const pathRoles = {
   '/dashboard/chatbot-training': ['admin'],
   '/dashboard/trash': ['admin', 'cashier', 'nurse', 'doctor'],
   '/dashboard/summary-records': ['admin'],
+  '/dashboard/revenue-stats': ['admin'],
 };
 
 const AdminLayout = () => {
@@ -75,6 +76,13 @@ const AdminLayout = () => {
             <Link to="/dashboard/summary-records" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/summary-records' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
               <FolderOpen className="w-5 h-5 mr-3" />
               Tổng hợp hồ sơ
+            </Link>
+          )}
+
+          {user?.role === 'admin' && (
+            <Link to="/dashboard/revenue-stats" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/revenue-stats' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
+              <TrendingUp className="w-5 h-5 mr-3" />
+              Báo cáo doanh thu
             </Link>
           )}
 
