@@ -254,6 +254,147 @@ router.patch("/:id/restore", protect, adminOrDoctorOnly, async (req, res) => {
   }
 });
 
+// GET /api/appointments/revenue-stats
+// Admin panel revenue statistics
+router.get("/revenue-stats", protect, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: "Chỉ quản trị viên mới có quyền truy cập số liệu doanh thu." });
+    }
+
+    const appointments = await Appointment.find({
+      isDeleted: { $ne: true },
+      $or: [
+        { paymentStatus: "paid" },
+        { prescriptionStatus: { $in: ["paid", "dispensed"] } }
+      ]
+    });
+
+    let totalExamRevenue = 0;
+    let totalPrescriptionRevenue = 0;
+    
+    // Groupings
+    const dailyRevenue = {};
+    const monthlyRevenue = {};
+    const deptRevenue = {};
+    const paymentMethodStats = {
+      "Tiền mặt": 0,
+      "Chuyển khoản": 0
+    };
+
+    appointments.forEach(app => {
+      const dateObj = new Date(app.date || app.createdAt);
+      if (Number.isNaN(dateObj.getTime())) return;
+      
+      const dayStr = dateObj.toLocaleDateString("sv-SE"); // YYYY-MM-DD
+      const monthStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, "0")}`; // YYYY-MM
+
+      let examRev = 0;
+      let rxRev = 0;
+
+      // 1. Exam Fee
+      if (app.paymentStatus === "paid") {
+        examRev = app.initialFee || 150000;
+        totalExamRevenue += examRev;
+        
+        const method = app.paymentMethod === "Chuyển khoản" ? "Chuyển khoản" : "Tiền mặt";
+        paymentMethodStats[method] = (paymentMethodStats[method] || 0) + examRev;
+      }
+
+      // 2. Prescription Fee
+      if (["paid", "dispensed"].includes(app.prescriptionStatus)) {
+        const cost = app.prescription ? app.prescription.reduce((sum, item) => sum + (item.price * item.qty), 0) : 0;
+        const disc = app.bhyt ? cost * 0.8 : 0;
+        rxRev = cost - disc;
+        totalPrescriptionRevenue += rxRev;
+
+        const method = app.prescriptionPaymentMethod === "Chuyển khoản" ? "Chuyển khoản" : "Tiền mặt";
+        paymentMethodStats[method] = (paymentMethodStats[method] || 0) + rxRev;
+      }
+
+      const totalRev = examRev + rxRev;
+      if (totalRev > 0) {
+        // Daily group
+        dailyRevenue[dayStr] = (dailyRevenue[dayStr] || 0) + totalRev;
+        // Monthly group
+        monthlyRevenue[monthStr] = (monthlyRevenue[monthStr] || 0) + totalRev;
+        // Dept group
+        const deptName = app.dept || "Chưa phân khoa";
+        deptRevenue[deptName] = (deptRevenue[deptName] || 0) + totalRev;
+      }
+    });
+
+    // Format daily data for charts (last 30 days)
+    const sortedDays = Object.keys(dailyRevenue).sort().slice(-30);
+    const dailyData = sortedDays.map(day => ({
+      date: day,
+      revenue: dailyRevenue[day]
+    }));
+
+    // Format monthly data for charts (last 12 months)
+    const sortedMonths = Object.keys(monthlyRevenue).sort().slice(-12);
+    const monthlyData = sortedMonths.map(month => ({
+      month: month,
+      revenue: monthlyRevenue[month]
+    }));
+
+    // Format dept data
+    const deptData = Object.keys(deptRevenue).map(dept => ({
+      dept: dept,
+      revenue: deptRevenue[dept]
+    })).sort((a, b) => b.revenue - a.revenue);
+
+    // Format recent transaction list (last 15 records)
+    const sortedAppsForList = [...appointments].sort((a, b) => {
+      const timeA = new Date(a.updatedAt || a.date || 0).getTime();
+      const timeB = new Date(b.updatedAt || b.date || 0).getTime();
+      return timeB - timeA;
+    }).slice(0, 15);
+
+    const recentTransactions = sortedAppsForList.map(app => {
+      let examFee = 0;
+      let rxFee = 0;
+      if (app.paymentStatus === 'paid') examFee = app.initialFee || 150000;
+      if (['paid', 'dispensed'].includes(app.prescriptionStatus)) {
+        const cost = app.prescription ? app.prescription.reduce((sum, item) => sum + (item.price * item.qty), 0) : 0;
+        const disc = app.bhyt ? cost * 0.8 : 0;
+        rxFee = cost - disc;
+      }
+      return {
+        _id: app._id,
+        appointmentCode: app.appointmentCode,
+        name: app.name,
+        phone: app.phone,
+        dept: app.dept,
+        date: app.date || app.createdAt,
+        examFee,
+        prescriptionFee: rxFee,
+        totalFee: examFee + rxFee,
+        examPaymentMethod: app.paymentMethod,
+        prescriptionPaymentMethod: app.prescriptionPaymentMethod,
+        cccd: app.cccd || ""
+      };
+    });
+
+    return res.json({
+      success: true,
+      summary: {
+        totalExamRevenue,
+        totalPrescriptionRevenue,
+        totalRevenue: totalExamRevenue + totalPrescriptionRevenue,
+        count: appointments.length
+      },
+      dailyData,
+      monthlyData,
+      deptData,
+      paymentMethodStats,
+      recentTransactions
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+});
+
 router.get("/:id", protect, adminOrDoctorOnly, async (req, res) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {

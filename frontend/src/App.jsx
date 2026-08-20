@@ -35,6 +35,7 @@ import NewsAdmin from './pages/NewsAdmin';
 import NewsDetail from './pages/NewsDetail';
 import Trash from './pages/Trash';
 import SummaryRecords from './pages/SummaryRecords';
+import RevenueStats from './pages/RevenueStats';
 
 const LandingPage = () => (
   <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-800 relative">
@@ -101,6 +102,7 @@ function App() {
               <Route path="pharmacy" element={<PharmacyDashboard />} />
               <Route path="settings" element={<Settings />} />
               <Route path="summary-records" element={<SummaryRecords />} />
+              <Route path="revenue-stats" element={<RevenueStats />} />
               <Route path="trash" element={<Trash />} />
               <Route path="chatbot-training" element={<ChatbotTrain />} />
               <Route path="news" element={<NewsAdmin />} />
