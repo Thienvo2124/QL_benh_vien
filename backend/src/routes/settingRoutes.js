@@ -51,7 +51,10 @@ Thông tin chi tiết lịch hẹn:
 
 Vui lòng sắp xếp thời gian để tới khám đúng hẹn.
 
-Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`
+Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`,
+      payment_bank: "MB Bank (Quân Đội)",
+      payment_account_number: "1900 2115 9999",
+      payment_account_name: "BENH VIEN NHAN DAN"
     };
 
     const finalSettings = { ...defaults, ...settingsObj };

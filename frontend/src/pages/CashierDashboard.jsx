@@ -116,6 +116,39 @@ const CashierDashboard = () => {
     address: ''
   });
 
+  const [sysSettings, setSysSettings] = useState({
+    payment_bank: "MB Bank (Quân Đội)",
+    payment_account_number: "1900 2115 9999",
+    payment_account_name: "BENH VIEN NHAN DAN"
+  });
+
+  const getBankSlug = (bankName) => {
+    const name = (bankName || '').toUpperCase();
+    if (name.includes('VIETCOMBANK') || name.includes('VCB')) return 'Vietcombank';
+    if (name.includes('MB') || name.includes('MILITARY')) return 'MBBank';
+    if (name.includes('TECHCOMBANK') || name.includes('TCB')) return 'Techcombank';
+    if (name.includes('ACB')) return 'ACB';
+    if (name.includes('BIDV')) return 'BIDV';
+    if (name.includes('VIETINBANK') || name.includes('CTG')) return 'VietinBank';
+    if (name.includes('AGRIBANK') || name.includes('VARB')) return 'Agribank';
+    if (name.includes('TPBANK') || name.includes('TPB')) return 'TPBank';
+    if (name.includes('VPBANK') || name.includes('VPB')) return 'VPBank';
+    if (name.includes('SACOMBANK') || name.includes('STB')) return 'Sacombank';
+    return bankName;
+  };
+
+  const fetchSettings = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/settings`);
+      if (response.ok) {
+        const data = await response.json();
+        setSysSettings(data);
+      }
+    } catch (error) {
+      console.error("Lỗi khi tải cấu hình hệ thống:", error);
+    }
+  }, []);
+
   // Fetch appointments for reception view
   const fetchAppointments = useCallback(async () => {
     setLoading(true);
@@ -139,7 +172,8 @@ const CashierDashboard = () => {
 
   useEffect(() => {
     fetchAppointments();
-  }, [fetchAppointments]);
+    fetchSettings();
+  }, [fetchAppointments, fetchSettings]);
 
   // Tự động kiểm tra đối soát giao dịch chuyển khoản qua SePay (polling mỗi 2 giây)
   useEffect(() => {
@@ -1863,14 +1897,14 @@ const CashierDashboard = () => {
                     ⏰ Đang chờ quét mã chuyển khoản tự động
                   </span>
                   <img 
-                    src={`https://qr.sepay.vn/img?acc=190021159999&bank=MBBank&amount=${receiptData.type === 'prescription' ? receiptData.finalCost : (receiptData.fee || 150000)}&des=${encodeURIComponent(receiptData.type === 'prescription' ? `TToan don thuoc ${receiptData.id}` : `TToan phi kham ${receiptData.code}`)}&template=compact`}
+                    src={`https://qr.sepay.vn/img?acc=${(sysSettings.payment_account_number || '').replace(/\s+/g, '')}&bank=${getBankSlug(sysSettings.payment_bank)}&amount=${receiptData.type === 'prescription' ? receiptData.finalCost : (receiptData.fee || 150000)}&des=${encodeURIComponent(receiptData.type === 'prescription' ? `TToan don thuoc ${receiptData.id}` : `TToan phi kham ${receiptData.code}`)}&template=compact`}
                     alt="SePay QR Code"
                     className="w-44 h-44 object-contain rounded-xl border border-gray-100 shadow-sm bg-white p-1"
                   />
                   <div className="text-xs text-gray-600 space-y-0.5 font-semibold">
-                    <p>Ngân hàng: <strong className="text-gray-900">MB Bank (Quân Đội)</strong></p>
-                    <p>Số tài khoản: <strong className="text-gray-900">1900 2115 9999</strong></p>
-                    <p>Chủ TK: <strong className="text-gray-900">BENH VIEN NHAN DAN</strong></p>
+                    <p>Ngân hàng: <strong className="text-gray-900">{sysSettings.payment_bank}</strong></p>
+                    <p>Số tài khoản: <strong className="text-gray-900">{sysSettings.payment_account_number}</strong></p>
+                    <p>Chủ TK: <strong className="text-gray-900">{sysSettings.payment_account_name}</strong></p>
                     <p>Nội dung CK: <strong className="text-red-600 font-mono">{receiptData.type === 'prescription' ? `TToan don thuoc ${receiptData.id}` : `TToan phi kham ${receiptData.code}`}</strong></p>
                   </div>
                 </div>
