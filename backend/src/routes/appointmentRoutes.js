@@ -376,6 +376,31 @@ router.get("/revenue-stats", protect, async (req, res) => {
       };
     });
 
+    const allTransactions = appointments.map(app => {
+      let examFee = 0;
+      let rxFee = 0;
+      if (app.paymentStatus === 'paid') examFee = app.initialFee || 150000;
+      if (['paid', 'dispensed'].includes(app.prescriptionStatus)) {
+        const cost = app.prescription ? app.prescription.reduce((sum, item) => sum + (item.price * item.qty), 0) : 0;
+        const disc = app.bhyt ? cost * 0.8 : 0;
+        rxFee = cost - disc;
+      }
+      return {
+        _id: app._id,
+        appointmentCode: app.appointmentCode,
+        name: app.name,
+        phone: app.phone,
+        dept: app.dept,
+        date: app.date || app.createdAt,
+        examFee,
+        prescriptionFee: rxFee,
+        totalFee: examFee + rxFee,
+        examPaymentMethod: app.paymentMethod,
+        prescriptionPaymentMethod: app.prescriptionPaymentMethod,
+        cccd: app.cccd || ""
+      };
+    });
+
     return res.json({
       success: true,
       summary: {
@@ -388,7 +413,8 @@ router.get("/revenue-stats", protect, async (req, res) => {
       monthlyData,
       deptData,
       paymentMethodStats,
-      recentTransactions
+      recentTransactions,
+      allTransactions
     });
   } catch (error) {
     return res.status(500).json({ message: "Lỗi server", error: error.message });
