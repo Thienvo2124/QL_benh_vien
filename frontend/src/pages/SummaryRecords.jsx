@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { FolderOpen, Search, User, FileText, DollarSign, Pill, Eye, ChevronRight, X, UserCheck, Clock, CheckCircle } from 'lucide-react';
+import { FolderOpen, Search, User, FileText, DollarSign, Pill, Eye, ChevronRight, X, UserCheck, Clock, CheckCircle, Clipboard } from 'lucide-react';
 import API_BASE_URL from '../config/api';
 
 const SummaryRecords = () => {
@@ -90,6 +90,17 @@ const SummaryRecords = () => {
            m.category?.toLowerCase().includes(term);
   });
 
+  const prescriptionsArr = appointmentsArr.filter(app => app.prescriptionStatus && app.prescriptionStatus !== 'none');
+  
+  const filteredPrescriptions = prescriptionsArr.filter(app => {
+    const term = searchQuery.toLowerCase();
+    return app.name?.toLowerCase().includes(term) ||
+           app.phone?.includes(term) ||
+           app.appointmentCode?.toLowerCase().includes(term) ||
+           app.doctor?.toLowerCase().includes(term) ||
+           (app.prescription && app.prescription.some(item => item.name?.toLowerCase().includes(term)));
+  });
+
   // Unique patients derived from appointments
   const getUniquePatients = () => {
     const patientsMap = {};
@@ -145,6 +156,7 @@ const SummaryRecords = () => {
         {[
           { id: 'staff', label: 'Quản lý người dùng', icon: User, count: staffArr.length },
           { id: 'patient', label: 'Hồ sơ Bệnh nhân', icon: FileText, count: uniquePatients.length },
+          { id: 'prescription', label: 'Danh sách Đơn thuốc', icon: Clipboard, count: prescriptionsArr.length },
           { id: 'billing', label: 'Lịch sử Giao dịch', icon: DollarSign, count: appointmentsArr.length },
           { id: 'medicine', label: 'Danh mục Thuốc', icon: Pill, count: medicinesArr.length }
         ].map(t => {
@@ -177,6 +189,7 @@ const SummaryRecords = () => {
             placeholder={
               activeTab === 'staff' ? "Tìm kiếm tài khoản theo tên, email, sđt, vị trí..." :
               activeTab === 'patient' ? "Tìm kiếm bệnh nhân theo tên, sđt, địa chỉ..." :
+              activeTab === 'prescription' ? "Tìm kiếm đơn thuốc theo tên bệnh nhân, mã HSBN, thuốc..." :
               activeTab === 'billing' ? "Tìm kiếm giao dịch theo tên bệnh nhân, mã số, phòng khám..." :
               "Tìm kiếm thuốc theo tên, mã số, phân loại..."
             }
@@ -381,6 +394,76 @@ const SummaryRecords = () => {
                   ) : (
                     <tr>
                       <td colSpan="6" className="p-8 text-center text-gray-400 italic">Không tìm thấy lịch sử giao dịch nào.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            )}
+
+            {/* 5. PRESCRIPTION TAB */}
+            {activeTab === 'prescription' && (
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 text-[11px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
+                    <th className="p-5 text-center">STT</th>
+                    <th className="p-5">Mã HSBN</th>
+                    <th className="p-5">Bệnh nhân</th>
+                    <th className="p-5">Bác sĩ kê đơn / Chuyên khoa</th>
+                    <th className="p-5">Đơn thuốc</th>
+                    <th className="p-5 text-right">Tổng tiền thuốc</th>
+                    <th className="p-5 text-center">Trạng thái</th>
+                  </tr>
+                </thead>
+                <tbody className="text-sm divide-y divide-gray-100 font-semibold text-gray-700">
+                  {filteredPrescriptions.length > 0 ? (
+                    filteredPrescriptions.map((app, i) => {
+                      const cost = app.prescription ? app.prescription.reduce((s, item) => s + (item.price * item.qty), 0) : 0;
+                      const disc = app.bhyt ? cost * 0.8 : 0;
+                      const finalCost = cost - disc;
+
+                      return (
+                        <tr key={app._id} className="hover:bg-blue-50/10 transition-colors">
+                          <td className="p-5 text-center text-gray-400 font-bold">{i + 1}</td>
+                          <td className="p-5 font-mono text-gray-900 font-bold">{app.appointmentCode}</td>
+                          <td className="p-5">
+                            <div className="font-bold text-gray-900">{app.name}</div>
+                            <div className="text-xs text-gray-400 mt-0.5">SĐT: {app.phone}</div>
+                          </td>
+                          <td className="p-5">
+                            <div className="font-bold text-gray-900">{app.doctor || 'Hệ thống'}</div>
+                            <div className="text-xs text-gray-400 mt-0.5">{app.dept}</div>
+                          </td>
+                          <td className="p-5 max-w-[280px]">
+                            <div className="text-xs text-gray-600 space-y-1 block max-h-[100px] overflow-y-auto">
+                              {app.prescription.map((item, idx) => (
+                                <div key={idx} className="truncate">
+                                  💊 {item.name} (x{item.qty} {item.unit || 'Viên'})
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="p-5 text-right font-mono font-bold text-[#004e92]">
+                            {finalCost.toLocaleString('vi-VN')} đ
+                            {app.bhyt && <span className="text-[10px] text-emerald-600 block font-sans">Đã giảm BHYT 80%</span>}
+                          </td>
+                          <td className="p-5 text-center text-xs">
+                            <span className={`px-2.5 py-1 rounded-lg font-bold border ${
+                              app.prescriptionStatus === 'dispensed'
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                                : app.prescriptionStatus === 'paid'
+                                ? 'bg-blue-50 text-blue-700 border-blue-100'
+                                : 'bg-amber-50 text-amber-700 border-amber-100'
+                            }`}>
+                              {app.prescriptionStatus === 'dispensed' ? 'Đã cấp phát' : 
+                               app.prescriptionStatus === 'paid' ? 'Đã thanh toán' : 'Chờ thanh toán'}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan="7" className="p-8 text-center text-gray-400 italic">Không tìm thấy đơn thuốc nào phù hợp.</td>
                     </tr>
                   )}
                 </tbody>
