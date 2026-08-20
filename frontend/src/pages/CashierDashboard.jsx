@@ -114,8 +114,9 @@ const CashierDashboard = () => {
 
   const getBankSlug = (bankName) => {
     const name = (bankName || '').toUpperCase();
+    if (name.includes('SACOMBANK') || name.includes('STB')) return 'Sacombank';
     if (name.includes('VIETCOMBANK') || name.includes('VCB')) return 'Vietcombank';
-    if (name.includes('MB') || name.includes('MILITARY')) return 'MBBank';
+    if (name === 'MB' || name === 'MBBANK' || name.includes('MB BANK') || name.includes('MILITARY')) return 'MBBank';
     if (name.includes('TECHCOMBANK') || name.includes('TCB')) return 'Techcombank';
     if (name.includes('ACB')) return 'ACB';
     if (name.includes('BIDV')) return 'BIDV';
@@ -123,7 +124,6 @@ const CashierDashboard = () => {
     if (name.includes('AGRIBANK') || name.includes('VARB')) return 'Agribank';
     if (name.includes('TPBANK') || name.includes('TPB')) return 'TPBank';
     if (name.includes('VPBANK') || name.includes('VPB')) return 'VPBank';
-    if (name.includes('SACOMBANK') || name.includes('STB')) return 'Sacombank';
     return bankName;
   };
 
