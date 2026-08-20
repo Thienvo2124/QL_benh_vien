@@ -371,7 +371,7 @@ router.put("/:id/medical-record", protect, adminOrDoctorOnly, async (req, res) =
 
     const { 
       name, gender, phone, email, weight, address, bhyt, dept, doctor, dob,
-      symptoms, diagnosis, treatment, advice, medicines 
+      symptoms, diagnosis, treatment, advice, medicines, date, time, initialFee
     } = req.body;
 
     const appointment = await Appointment.findById(req.params.id);
@@ -390,6 +390,9 @@ router.put("/:id/medical-record", protect, adminOrDoctorOnly, async (req, res) =
     if (dept !== undefined) appointment.dept = dept;
     if (doctor !== undefined) appointment.doctor = doctor;
     if (dob !== undefined) appointment.dob = dob;
+    if (date !== undefined) appointment.date = date;
+    if (time !== undefined) appointment.time = time;
+    if (initialFee !== undefined) appointment.initialFee = Number(initialFee);
 
     // Cập nhật thông tin lâm sàng và thuốc
     appointment.symptoms = symptoms || "";

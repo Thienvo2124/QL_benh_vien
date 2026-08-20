@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { 
   DollarSign, Search, User, Calendar, Phone, Activity, Pill, 
   Printer, CheckCircle, AlertCircle, RefreshCw, CreditCard, 
-  ArrowRight, Users, PlusCircle, Check, X, Tag, FileText, Trash2
+  ArrowRight, Users, PlusCircle, Check, X, Tag, FileText, Trash2, Pencil, Plus
 } from 'lucide-react';
 import departments from '../data/departments';
 
@@ -70,6 +70,28 @@ const CashierDashboard = () => {
   const [infoDeptFilter, setInfoDeptFilter] = useState('Tất cả');
   const [infoTypeFilter, setInfoTypeFilter] = useState('Tất cả');
   const [infoPaidFilter, setInfoPaidFilter] = useState('Tất cả');
+
+  // Sort state
+  const [sortBy, setSortBy] = useState('newest'); // newest | oldest
+
+  // Edit Modal State
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingApp, setEditingApp] = useState(null);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    phone: '',
+    dob: '',
+    gender: 'Nam',
+    weight: '',
+    address: '',
+    bhyt: '',
+    dept: '',
+    doctor: '',
+    initialFee: 150000,
+    date: '',
+    time: '',
+    medicines: []
+  });
   
   // DOB Select States
   const [dobDay, setDobDay] = useState('');
@@ -221,6 +243,129 @@ const CashierDashboard = () => {
       }
     } catch (error) {
       console.error("Lỗi khi xóa số khám:", error);
+      alert("Lỗi kết nối máy chủ.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Mở modal chỉnh sửa ca khám / đơn thuốc
+  const handleOpenEditModal = (app) => {
+    const targetApp = appointments.find(a => a._id === app._id || a._id === app.id) || app;
+    setEditingApp(targetApp);
+    setEditForm({
+      name: targetApp.name || '',
+      phone: targetApp.phone || '',
+      dob: targetApp.dob ? new Date(targetApp.dob).toLocaleDateString('sv-SE') : '',
+      gender: targetApp.gender || 'Nam',
+      weight: targetApp.weight || '',
+      address: targetApp.address || '',
+      bhyt: targetApp.bhyt || '',
+      dept: targetApp.dept || '',
+      doctor: targetApp.doctor || '',
+      initialFee: targetApp.initialFee || 150000,
+      date: targetApp.date ? new Date(targetApp.date).toLocaleDateString('sv-SE') : '',
+      time: targetApp.time || '',
+      medicines: targetApp.prescription || []
+    });
+    setShowEditModal(true);
+  };
+
+  // Các hàm xử lý chỉnh sửa đơn thuốc của ca khám
+  const handleEditMedicineChange = (index, field, value) => {
+    const updated = [...editForm.medicines];
+    updated[index] = { ...updated[index], [field]: value };
+    setEditForm({ ...editForm, medicines: updated });
+  };
+
+  const handleAddEditMedicine = () => {
+    setEditForm({
+      ...editForm,
+      medicines: [...editForm.medicines, { name: '', qty: 1, unit: 'Viên', price: 0 }]
+    });
+  };
+
+  const handleRemoveEditMedicine = (index) => {
+    setEditForm({
+      ...editForm,
+      medicines: editForm.medicines.filter((_, i) => i !== index)
+    });
+  };
+
+  // Lưu thông tin chỉnh sửa qua API
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
+    if (!editingApp) return;
+
+    try {
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/appointments/${editingApp._id}/medical-record`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: editForm.name,
+          phone: editForm.phone,
+          dob: editForm.dob ? new Date(editForm.dob).toISOString() : undefined,
+          gender: editForm.gender,
+          weight: editForm.weight,
+          address: editForm.address,
+          bhyt: editForm.bhyt,
+          dept: editForm.dept,
+          doctor: editForm.doctor,
+          initialFee: Number(editForm.initialFee),
+          date: editForm.date ? new Date(editForm.date).toISOString() : undefined,
+          time: editForm.time,
+          medicines: editForm.medicines
+        })
+      });
+
+      if (response.ok) {
+        setNotification('✅ Cập nhật thông tin thành công!');
+        fetchAppointments();
+        setShowEditModal(false);
+        setTimeout(() => setNotification(''), 3000);
+      } else {
+        const data = await response.json();
+        alert(data.message || 'Lỗi khi cập nhật thông tin.');
+      }
+    } catch (error) {
+      console.error('Lỗi khi cập nhật:', error);
+      alert('Không thể kết nối đến máy chủ.');
+    }
+  };
+
+  // Xóa đơn thuốc của ca khám (cập nhật medicines thành rỗng)
+  const handleDeletePrescription = async (appointmentId, patientName) => {
+    if (!window.confirm(`Bạn có chắc chắn muốn XÓA đơn thuốc của bệnh nhân ${patientName}? Đơn thuốc này sẽ bị hủy bỏ hoàn toàn.`)) {
+      return;
+    }
+    setLoading(true);
+    try {
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/appointments/${appointmentId}/medical-record`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          medicines: []
+        })
+      });
+
+      if (response.ok) {
+        setNotification(`✅ Đã xóa đơn thuốc của bệnh nhân ${patientName}!`);
+        fetchAppointments();
+        setTimeout(() => setNotification(''), 3000);
+      } else {
+        const data = await response.json();
+        alert(data.message || "Không thể xóa đơn thuốc.");
+      }
+    } catch (error) {
+      console.error("Lỗi khi xóa đơn thuốc:", error);
       alert("Lỗi kết nối máy chủ.");
     } finally {
       setLoading(false);
@@ -423,7 +568,8 @@ const CashierDashboard = () => {
     bhyt: app.bhyt || 'Không có BHYT',
     status: app.prescriptionStatus,
     paymentMethod: app.prescriptionPaymentMethod || '',
-    items: app.prescription || []
+    items: app.prescription || [],
+    createdAt: app.createdAt || app.date
   }));
 
   // Đơn thuốc thực tế lấy hoàn toàn từ database
@@ -510,6 +656,24 @@ const CashierDashboard = () => {
 
     return matchesSearch && matchesDept && matchesType && matchesPaid;
   });
+
+  // Hàm sắp xếp dữ liệu động theo Mới nhất / Cũ nhất
+  const sortRecords = (arr) => {
+    return [...arr].sort((a, b) => {
+      const timeA = new Date(a.createdAt || a.date || 0).getTime();
+      const timeB = new Date(b.createdAt || b.date || 0).getTime();
+      if (sortBy === 'newest') {
+        return timeB - timeA;
+      } else {
+        return timeA - timeB;
+      }
+    });
+  };
+
+  const sortedUnpaidAppointments = sortRecords(unpaidAppointments);
+  const sortedIssuedAppointments = sortRecords(issuedAppointments);
+  const sortedUnpaidPrescriptions = sortRecords(unpaidPrescriptions);
+  const sortedAllAppointmentsFiltered = sortRecords(allAppointmentsFiltered);
 
   // Thống kê doanh thu nhanh (chỉ tính các hóa đơn đã thu trong session hiện tại)
   const paidExams = appointmentsArr.filter(app => app && app.paymentStatus === 'paid');
@@ -652,6 +816,22 @@ const CashierDashboard = () => {
                 className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] focus:bg-white transition-colors font-medium"
               />
             </div>
+            <div className="flex items-center gap-3">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-[#004e92] cursor-pointer"
+              >
+                <option value="newest">📅 Mới nhất</option>
+                <option value="oldest">📅 Cũ nhất</option>
+              </select>
+              <button
+                onClick={() => { setActiveTab('register'); window.scrollTo({top: 0, behavior: 'smooth'}); }}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-5 rounded-xl transition-colors shadow-sm flex items-center gap-2 text-sm"
+              >
+                <Plus size={16} /> Thêm tiếp nhận
+              </button>
+            </div>
           </div>
 
           {/* QUEUE TABLE */}
@@ -669,8 +849,8 @@ const CashierDashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="text-sm divide-y divide-gray-100 font-medium">
-                  {unpaidAppointments.length > 0 ? (
-                    unpaidAppointments.map((app, index) => (
+                  {sortedUnpaidAppointments.length > 0 ? (
+                    sortedUnpaidAppointments.map((app, index) => (
                       <tr key={app._id} className="hover:bg-blue-50/20 transition-colors">
                         <td className="p-5 text-center text-gray-400 font-bold">{index + 1}</td>
                         <td className="p-5">
@@ -691,7 +871,7 @@ const CashierDashboard = () => {
                           {(app.initialFee || 150000).toLocaleString('vi-VN')} đ
                         </td>
                         <td className="p-5 text-center">
-                          <div className="flex gap-2 justify-center">
+                          <div className="flex gap-2 justify-center items-center">
                             <button
                               onClick={() => handleInitiatePayExamFee(app, 'Tiền mặt')}
                               className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-3.5 rounded-xl transition-all text-xs flex items-center gap-1 shadow-sm"
@@ -703,6 +883,20 @@ const CashierDashboard = () => {
                               className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3.5 rounded-xl transition-all text-xs flex items-center gap-1 shadow-sm"
                             >
                               💳 Chuyển khoản
+                            </button>
+                            <button
+                              onClick={() => handleOpenEditModal(app)}
+                              className="p-2 bg-amber-50 hover:bg-amber-500 text-amber-600 hover:text-white rounded-xl transition-all shadow-sm border border-amber-200 hover:border-transparent flex items-center justify-center"
+                              title="Chỉnh sửa ca khám"
+                            >
+                              <Pencil size={14} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteAppointment(app._id, app.name, app.queueNumber)}
+                              className="p-2 bg-red-50 hover:bg-red-600 text-red-600 hover:text-white rounded-xl transition-all shadow-sm border border-red-200 hover:border-transparent flex items-center justify-center"
+                              title="Xóa ca khám"
+                            >
+                              <Trash2 size={14} />
                             </button>
                           </div>
                         </td>
@@ -767,6 +961,22 @@ const CashierDashboard = () => {
                   <option value="completed">Đã khám xong</option>
                 </select>
               </div>
+
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-[#004e92] cursor-pointer"
+              >
+                <option value="newest">📅 Mới nhất</option>
+                <option value="oldest">📅 Cũ nhất</option>
+              </select>
+
+              <button
+                onClick={() => { setActiveTab('register'); window.scrollTo({top: 0, behavior: 'smooth'}); }}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-xl transition-colors shadow-sm flex items-center gap-1.5 text-xs h-10"
+              >
+                <Plus size={14} /> Thêm tiếp nhận
+              </button>
             </div>
           </div>
 
@@ -786,8 +996,8 @@ const CashierDashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="text-sm divide-y divide-gray-100">
-                  {issuedAppointments.length > 0 ? (
-                    issuedAppointments.map((app) => (
+                  {sortedIssuedAppointments.length > 0 ? (
+                    sortedIssuedAppointments.map((app) => (
                       <tr key={app._id} className="hover:bg-blue-50/20 transition-colors">
                         <td className="p-5 text-center">
                           <div className="flex flex-col items-center gap-1.5 justify-center">
@@ -839,6 +1049,13 @@ const CashierDashboard = () => {
                               title="In lại biên lai đóng phí"
                             >
                               <Printer className="w-3.5 h-3.5" /> Biên lai
+                            </button>
+                            <button
+                              onClick={() => handleOpenEditModal(app)}
+                              className="p-2.5 bg-amber-50 hover:bg-amber-500 text-amber-600 hover:text-white rounded-xl transition-all shadow-sm border border-amber-200 hover:border-transparent flex items-center justify-center"
+                              title="Chỉnh sửa ca khám"
+                            >
+                              <Pencil size={14} />
                             </button>
                             <button
                               onClick={() => handleDeleteAppointment(app._id, app.name, app.queueNumber)}
@@ -1067,7 +1284,7 @@ const CashierDashboard = () => {
       {activeTab === 'prescription' && (
         <div className="space-y-4 print:hidden">
           {/* SEARCH BAR */}
-          <div className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 flex items-center justify-between gap-4">
+          <div className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 flex flex-wrap items-center justify-between gap-4">
             <div className="relative flex-1 min-w-[280px] max-w-md">
               <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
@@ -1077,6 +1294,22 @@ const CashierDashboard = () => {
                 onChange={(e) => setRxSearchQuery(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] focus:bg-white transition-colors font-medium"
               />
+            </div>
+            <div className="flex items-center gap-3">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-[#004e92] cursor-pointer"
+              >
+                <option value="newest">📅 Mới nhất</option>
+                <option value="oldest">📅 Cũ nhất</option>
+              </select>
+              <button
+                onClick={() => { setActiveTab('register'); window.scrollTo({top: 0, behavior: 'smooth'}); }}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-5 rounded-xl transition-colors shadow-sm flex items-center gap-2 text-sm"
+              >
+                <Plus size={16} /> Thêm tiếp nhận
+              </button>
             </div>
           </div>
 
@@ -1094,8 +1327,8 @@ const CashierDashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="text-sm divide-y divide-gray-100 font-medium">
-                  {unpaidPrescriptions.length > 0 ? (
-                    unpaidPrescriptions.map((bill) => {
+                  {sortedUnpaidPrescriptions.length > 0 ? (
+                    sortedUnpaidPrescriptions.map((bill) => {
                       const totalCost = bill.items.reduce((sum, item) => sum + (item.price * item.qty), 0);
                       const hasBHYT = !!bill.bhyt;
                       const discount = hasBHYT ? totalCost * 0.8 : 0;
@@ -1145,19 +1378,37 @@ const CashierDashboard = () => {
                             </div>
                           </td>
                           <td className="p-5">
-                            <div className="flex flex-col gap-2 justify-center items-center">
-                              <button
-                                onClick={() => handleInitiatePayPrescription(bill, 'Tiền mặt')}
-                                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl transition-all text-xs flex items-center justify-center gap-1"
-                              >
-                                💵 Tiền mặt
-                              </button>
-                              <button
-                                onClick={() => handleInitiatePayPrescription(bill, 'Chuyển khoản')}
-                                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-xl transition-all text-xs flex items-center justify-center gap-1"
-                              >
-                                💳 Chuyển khoản
-                              </button>
+                            <div className="flex flex-col gap-2 justify-center items-stretch w-full max-w-[200px] mx-auto">
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => handleInitiatePayPrescription(bill, 'Tiền mặt')}
+                                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl transition-all text-xs flex items-center justify-center gap-1 shadow-sm"
+                                >
+                                  💵 Tiền mặt
+                                </button>
+                                <button
+                                  onClick={() => handleInitiatePayPrescription(bill, 'Chuyển khoản')}
+                                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-xl transition-all text-xs flex items-center justify-center gap-1 shadow-sm"
+                                >
+                                  💳 Bank
+                                </button>
+                              </div>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => handleOpenEditModal(bill)}
+                                  className="flex-1 bg-amber-50 hover:bg-amber-500 text-amber-600 hover:text-white font-bold py-2 rounded-xl transition-all text-xs flex items-center justify-center gap-1 border border-amber-200 hover:border-transparent shadow-sm"
+                                  title="Chỉnh sửa đơn thuốc"
+                                >
+                                  <Pencil size={12} /> Sửa
+                                </button>
+                                <button
+                                  onClick={() => handleDeletePrescription(bill.id, bill.patientName)}
+                                  className="flex-1 bg-red-50 hover:bg-red-600 text-red-600 hover:text-white font-bold py-2 rounded-xl transition-all text-xs flex items-center justify-center gap-1 border border-red-200 hover:border-transparent shadow-sm"
+                                  title="Xóa đơn thuốc"
+                                >
+                                  <Trash2 size={12} /> Xóa
+                                </button>
+                              </div>
                             </div>
                           </td>
                         </tr>
@@ -1235,9 +1486,25 @@ const CashierDashboard = () => {
                   <option value="Chưa thanh toán">Chưa thanh toán</option>
                 </select>
               </div>
+
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-[#004e92] cursor-pointer"
+              >
+                <option value="newest">📅 Mới nhất</option>
+                <option value="oldest">📅 Cũ nhất</option>
+              </select>
+
+              <button
+                onClick={() => { setActiveTab('register'); window.scrollTo({top: 0, behavior: 'smooth'}); }}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-xl transition-colors shadow-sm flex items-center gap-1.5 text-xs h-10"
+              >
+                <Plus size={14} /> Thêm tiếp nhận
+              </button>
             </div>
 
-            <div className="text-sm text-gray-500 font-semibold">
+            <div className="text-sm text-gray-500 font-semibold w-full md:w-auto text-right">
               Kết quả lọc: <strong className="text-gray-900">{allAppointmentsFiltered.length} / {appointmentsArr.length} bệnh nhân</strong>
             </div>
           </div>
@@ -1255,12 +1522,12 @@ const CashierDashboard = () => {
                     <th className="p-5 font-medium">Thời gian</th>
                     <th className="p-5 font-medium">Lệ phí</th>
                     <th className="p-5 font-medium text-center">Thanh toán</th>
-                    <th className="p-5 font-medium text-center w-40">Thao tác</th>
+                    <th className="p-5 font-medium text-center w-48">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody className="text-sm divide-y divide-gray-100">
-                  {allAppointmentsFiltered.length > 0 ? (
-                    allAppointmentsFiltered.map((app, index) => {
+                  {sortedAllAppointmentsFiltered.length > 0 ? (
+                    sortedAllAppointmentsFiltered.map((app, index) => {
                       const isPaid = app.paymentStatus === 'paid';
                       const isWalkIn = app.reason === 'Đến khám trực tiếp tại quầy' || !app.reason;
                       
@@ -1303,7 +1570,7 @@ const CashierDashboard = () => {
                             </span>
                           </td>
                           <td className="p-5 text-center">
-                            <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+                            <div className="flex items-center justify-center gap-2">
                               <button
                                 onClick={() => {
                                   setReceiptData({
@@ -1325,7 +1592,15 @@ const CashierDashboard = () => {
                                 }}
                                 className="px-3 py-1.5 bg-gray-50 hover:bg-blue-50 text-gray-600 hover:text-blue-700 rounded-xl transition-all text-xs border border-gray-200 hover:border-blue-200 font-bold flex items-center justify-center gap-1"
                               >
-                                <Printer className="w-3.5 h-3.5" /> In lại phiếu
+                                <Printer className="w-3.5 h-3.5" /> Biên lai
+                              </button>
+
+                              <button
+                                onClick={() => handleOpenEditModal(app)}
+                                className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded-xl transition-all text-xs border border-amber-100 hover:border-amber-200 font-bold flex items-center justify-center gap-1"
+                                title="Chỉnh sửa tiếp nhận lịch khám"
+                              >
+                                <Pencil className="w-3.5 h-3.5" /> Sửa
                               </button>
                               
                               <button
@@ -1563,6 +1838,274 @@ const CashierDashboard = () => {
                 </>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: CHỈNH SỬA THÔNG TIN TIẾP NHẬN & ĐƠN THUỐC */}
+      {showEditModal && editingApp && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto animate-fadeIn">
+          <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl p-6 relative border border-gray-100 max-h-[90vh] overflow-y-auto space-y-6">
+            <button 
+              onClick={() => setShowEditModal(false)}
+              className="absolute top-4 right-4 bg-gray-100 hover:bg-red-50 text-gray-500 hover:text-red-600 p-2 rounded-full transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div>
+              <h3 className="text-xl font-bold text-gray-900 border-b pb-3 flex items-center gap-2">
+                <Pencil className="w-5 h-5 text-amber-500" />
+                Chỉnh sửa Hồ sơ & Đơn thuốc: <span className="text-[#004e92]">{editForm.name}</span>
+              </h3>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Họ tên */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Họ và tên bệnh nhân *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editForm.name}
+                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]"
+                  />
+                </div>
+
+                {/* Số điện thoại */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Số điện thoại *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editForm.phone}
+                    onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]"
+                  />
+                </div>
+
+                {/* Ngày sinh / dob */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Ngày sinh / Năm sinh *</label>
+                  <input
+                    type="date"
+                    required
+                    value={editForm.dob}
+                    onChange={(e) => setEditForm({ ...editForm, dob: e.target.value })}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]"
+                  />
+                </div>
+
+                {/* Giới tính */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Giới tính</label>
+                  <select
+                    value={editForm.gender}
+                    onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]"
+                  >
+                    <option value="Nam">Nam</option>
+                    <option value="Nữ">Nữ</option>
+                    <option value="Khác">Khác</option>
+                  </select>
+                </div>
+
+                {/* Cân nặng */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Cân nặng</label>
+                  <input
+                    type="text"
+                    value={editForm.weight}
+                    onChange={(e) => setEditForm({ ...editForm, weight: e.target.value })}
+                    placeholder="Ví dụ: 65 kg"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]"
+                  />
+                </div>
+
+                {/* Mã thẻ BHYT */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Mã số thẻ BHYT (nếu có)</label>
+                  <input
+                    type="text"
+                    value={editForm.bhyt}
+                    onChange={(e) => setEditForm({ ...editForm, bhyt: e.target.value })}
+                    placeholder="Không có BHYT"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]"
+                  />
+                </div>
+
+                {/* Khoa điều phối */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Chuyên khoa khám *</label>
+                  <select
+                    required
+                    value={editForm.dept}
+                    onChange={(e) => setEditForm({ ...editForm, dept: e.target.value })}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]"
+                  >
+                    {departments.map((dept) => (
+                      <option key={dept.slug} value={dept.name}>{dept.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Bác sĩ khám */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Bác sĩ phụ trách</label>
+                  <input
+                    type="text"
+                    value={editForm.doctor}
+                    onChange={(e) => setEditForm({ ...editForm, doctor: e.target.value })}
+                    placeholder="Để trống hoặc điền tên bác sĩ"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]"
+                  />
+                </div>
+
+                {/* Phí khám ban đầu */}
+                <div>
+                  <label className="block text-xs font-bold text-[#004e92] mb-1.5">Lệ phí khám ban đầu (đ)</label>
+                  <input
+                    type="number"
+                    required
+                    value={editForm.initialFee}
+                    onChange={(e) => setEditForm({ ...editForm, initialFee: Number(e.target.value) })}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92] font-mono font-bold text-[#004e92]"
+                  />
+                </div>
+
+                {/* Ngày khám */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Ngày tiếp nhận khám</label>
+                  <input
+                    type="date"
+                    required
+                    value={editForm.date}
+                    onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]"
+                  />
+                </div>
+
+                {/* Giờ khám */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Giờ tiếp nhận</label>
+                  <input
+                    type="time"
+                    required
+                    value={editForm.time}
+                    onChange={(e) => setEditForm({ ...editForm, time: e.target.value })}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]"
+                  />
+                </div>
+
+                {/* Địa chỉ */}
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Địa chỉ thường trú</label>
+                  <input
+                    type="text"
+                    value={editForm.address}
+                    onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92]"
+                  />
+                </div>
+              </div>
+
+              {/* Chi tiết đơn thuốc (chỉ hiển thị nếu ca khám đã hoàn thành hoặc có đơn thuốc) */}
+              {(editingApp.prescriptionStatus && editingApp.prescriptionStatus !== 'none') || editForm.medicines.length > 0 ? (
+                <div className="border-t pt-4 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wide">Chi Tiết Đơn Thuốc Đang Kê</h4>
+                    <button
+                      type="button"
+                      onClick={handleAddEditMedicine}
+                      className="bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold px-3 py-1.5 rounded-xl transition-all text-xs flex items-center gap-1 border border-blue-200"
+                    >
+                      <Plus size={14} /> Thêm dòng thuốc
+                    </button>
+                  </div>
+
+                  <div className="space-y-3 max-h-60 overflow-y-auto bg-gray-50 p-3.5 rounded-2xl border border-gray-200/50">
+                    {editForm.medicines.length > 0 ? (
+                      editForm.medicines.map((med, index) => (
+                        <div key={index} className="flex flex-wrap sm:flex-nowrap gap-2 items-center border-b pb-2 sm:border-none sm:pb-0">
+                          {/* Tên thuốc */}
+                          <input
+                            type="text"
+                            required
+                            placeholder="Tên thuốc..."
+                            value={med.name}
+                            onChange={(e) => handleEditMedicineChange(index, 'name', e.target.value)}
+                            className="flex-1 min-w-[150px] px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-[#004e92] font-semibold"
+                          />
+
+                          {/* Số lượng */}
+                          <input
+                            type="number"
+                            required
+                            min="1"
+                            placeholder="SL"
+                            value={med.qty}
+                            onChange={(e) => handleEditMedicineChange(index, 'qty', Number(e.target.value))}
+                            className="w-16 px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-[#004e92] text-center font-bold"
+                          />
+
+                          {/* Đơn vị */}
+                          <input
+                            type="text"
+                            required
+                            placeholder="Đơn vị"
+                            value={med.unit || 'Viên'}
+                            onChange={(e) => handleEditMedicineChange(index, 'unit', e.target.value)}
+                            className="w-20 px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-[#004e92] text-center"
+                          />
+
+                          {/* Đơn giá */}
+                          <input
+                            type="number"
+                            required
+                            placeholder="Giá"
+                            value={med.price}
+                            onChange={(e) => handleEditMedicineChange(index, 'price', Number(e.target.value))}
+                            className="w-24 px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-[#004e92] text-right font-mono font-bold"
+                          />
+                          <span className="text-[10px] text-gray-400">đ</span>
+
+                          {/* Nút xóa dòng */}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveEditMedicine(index)}
+                            className="p-2 bg-red-50 hover:bg-red-600 text-red-600 hover:text-white rounded-xl transition-all border border-red-200 hover:border-transparent"
+                            title="Xóa dòng thuốc này"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center text-xs text-gray-400 py-4">Đơn thuốc hiện chưa có danh mục thuốc nào.</div>
+                    )}
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Action buttons */}
+              <div className="flex gap-3 border-t pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 rounded-2xl transition-colors text-sm"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-2xl transition-colors shadow-lg text-sm"
+                >
+                  ✓ Lưu thay đổi
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
