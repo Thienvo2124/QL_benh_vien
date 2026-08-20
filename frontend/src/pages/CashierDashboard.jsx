@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import departments from '../data/departments';
 
-const API_BASE_URL = 'http://localhost:5000';
+import API_BASE_URL from '../config/api';
 
 const getCurrentTimeStr = () => {
   const now = new Date();
