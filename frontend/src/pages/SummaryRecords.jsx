@@ -58,7 +58,7 @@ const SummaryRecords = () => {
   }, [fetchData]);
 
   // Clean data lists
-  const staffArr = Array.isArray(staffList) ? staffList : [];
+  const staffArr = (Array.isArray(staffList) ? staffList : []).filter(u => u.role !== 'patient');
   const appointmentsArr = Array.isArray(appointmentsList) ? appointmentsList : [];
   const medicinesArr = Array.isArray(medicinesList) ? medicinesList : [];
 
