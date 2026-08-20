@@ -14,13 +14,36 @@ const sampleLogs = [
 
 const Settings = () => {
   const { user } = useContext(AuthContext);
-  const [activeTab, setActiveTab] = useState('profile'); // profile, system, security, logs, payment
+  const [activeTab, setActiveTab] = useState('profile'); // profile, system, security, logs, payment, fees
   
   // Tab 5: Payment account state
   const [paymentBank, setPaymentBank] = useState('MB Bank (Quân Đội)');
   const [paymentAccountNumber, setPaymentAccountNumber] = useState('1900 2115 9999');
   const [paymentAccountName, setPaymentAccountName] = useState('BENH VIEN NHAN DAN');
   const [paymentRecords, setPaymentRecords] = useState([]);
+
+  // Tab 6: Department clinical fees state
+  const [deptFees, setDeptFees] = useState({
+    goi_kham_co_ban: 1500000,
+    goi_kham_nang_cao: 2500000,
+    goi_kham_chuyen_sau: 4500000,
+    goi_kham_vip_gold: 8000000,
+    goi_kham_vip_platinum: 15000000,
+    goi_kham_tam_soat_ung_thu_tong_quat: 3000000,
+    goi_kham_tam_soat_ung_thu_tieu_hoa: 2200000,
+    goi_kham_tam_soat_dot_quy: 2800000,
+    chan_doan_hinh_anh: 150000,
+    noi_tong_quat: 150000,
+    tai_mui_hong: 150000,
+    mat: 150000,
+    rang_ham_mat: 150000,
+    tim_mach: 150000,
+    san_phu_khoa: 150000,
+    tuyen_vu: 150000,
+    ho_hap: 150000,
+    di_ung_mien_dich: 150000,
+    tu_van_giac_ngu: 150000
+  });
   
   // Tab 1: Profile state
   const [fullName, setFullName] = useState(user?.fullName || (user?.role === 'admin' ? 'Quản trị viên Hệ thống' : 'Bác sĩ Chuyên khoa'));
@@ -109,6 +132,29 @@ Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
         if (data.payment_bank) setPaymentBank(data.payment_bank);
         if (data.payment_account_number) setPaymentAccountNumber(data.payment_account_number);
         if (data.payment_account_name) setPaymentAccountName(data.payment_account_name);
+        
+        // Cập nhật phí khám chuyên khoa
+        setDeptFees({
+          goi_kham_co_ban: Number(data.deptfee_goi_kham_co_ban) || 1500000,
+          goi_kham_nang_cao: Number(data.deptfee_goi_kham_nang_cao) || 2500000,
+          goi_kham_chuyen_sau: Number(data.deptfee_goi_kham_chuyen_sau) || 4500000,
+          goi_kham_vip_gold: Number(data.deptfee_goi_kham_vip_gold) || 8000000,
+          goi_kham_vip_platinum: Number(data.deptfee_goi_kham_vip_platinum) || 15000000,
+          goi_kham_tam_soat_ung_thu_tong_quat: Number(data.deptfee_goi_kham_tam_soat_ung_thu_tong_quat) || 3000000,
+          goi_kham_tam_soat_ung_thu_tieu_hoa: Number(data.deptfee_goi_kham_tam_soat_ung_thu_tieu_hoa) || 2200000,
+          goi_kham_tam_soat_dot_quy: Number(data.deptfee_goi_kham_tam_soat_dot_quy) || 2800000,
+          chan_doan_hinh_anh: Number(data.deptfee_chan_doan_hinh_anh) || 150000,
+          noi_tong_quat: Number(data.deptfee_noi_tong_quat) || 150000,
+          tai_mui_hong: Number(data.deptfee_tai_mui_hong) || 150000,
+          mat: Number(data.deptfee_mat) || 150000,
+          rang_ham_mat: Number(data.deptfee_rang_ham_mat) || 150000,
+          tim_mach: Number(data.deptfee_tim_mach) || 150000,
+          san_phu_khoa: Number(data.deptfee_san_phu_khoa) || 150000,
+          tuyen_vu: Number(data.deptfee_tuyen_vu) || 150000,
+          ho_hap: Number(data.deptfee_ho_hap) || 150000,
+          di_ung_mien_dich: Number(data.deptfee_di_ung_mien_dich) || 150000,
+          tu_van_giac_ngu: Number(data.deptfee_tu_van_giac_ngu) || 150000
+        });
       }
     } catch (err) {
       console.error('Lỗi khi tải cấu hình hệ thống:', err);
@@ -300,10 +346,42 @@ Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
     }
   };
 
+  const handleSaveDeptFees = async (e) => {
+    e.preventDefault();
+    try {
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      
+      const payload = {};
+      Object.entries(deptFees).forEach(([key, value]) => {
+        payload[`deptfee_${key}`] = value;
+      });
+
+      const response = await fetch(`${API_BASE_URL}/api/settings`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        setSuccessMsg('Đã cập nhật lệ phí khám của các chuyên khoa thành công!');
+        setTimeout(() => setSuccessMsg(''), 5000);
+      } else {
+        const errData = await response.json();
+        alert(`Lỗi: ${errData.message || 'Không thể lưu cài đặt'}`);
+      }
+    } catch (err) {
+      console.error('Lỗi lưu cài đặt lệ phí khám:', err);
+      alert('Lỗi kết nối máy chủ.');
+    }
+  };
+
   useEffect(() => {
     if (activeTab === 'logs') {
       fetchLogs();
-    } else if (activeTab === 'system' || activeTab === 'email' || activeTab === 'payment') {
+    } else if (activeTab === 'system' || activeTab === 'email' || activeTab === 'payment' || activeTab === 'fees') {
       fetchSystemSettings();
     }
     if (activeTab === 'payment') {
@@ -392,6 +470,16 @@ Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
           }`}
         >
           <DollarSign className="w-4 h-4" /> Tài khoản thanh toán
+        </button>
+        <button
+          onClick={() => { setActiveTab('fees'); setSuccessMsg(''); }}
+          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all ${
+            activeTab === 'fees'
+              ? 'bg-[#004e92] text-white shadow-lg transform -translate-y-0.5'
+              : 'text-gray-600 hover:bg-gray-300/50'
+          }`}
+        >
+          <Activity className="w-4 h-4" /> Điều chỉnh lệ phí khám
         </button>
       </div>
 
@@ -1120,6 +1208,102 @@ Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
                 <span>Tổng số giao dịch: <strong className="text-gray-800">{paymentRecords.length} giao dịch thành công</strong></span>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* TAB 6: FEES */}
+        {activeTab === 'fees' && (
+          <div className="space-y-8 animate-fadeIn">
+            <form onSubmit={handleSaveDeptFees} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-6">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 border-b pb-3 flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-[#004e92]" /> Điều chỉnh lệ phí khám của các chuyên khoa & gói dịch vụ
+                </h3>
+                <p className="text-xs text-gray-400 mt-1">
+                  Nhập số tiền tương ứng cho mỗi gói khám lâm sàng hoặc khoa khám bệnh. Giá tiền này sẽ tự động áp dụng khi lập phiếu tiếp nhận và in hóa đơn tại Quầy thu ngân.
+                </p>
+              </div>
+
+              {/* Nhóm 1: Gói khám sức khỏe tổng quát */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-bold text-gray-800 bg-blue-50 px-4 py-2 rounded-xl flex items-center gap-2">
+                  <span>📋</span> Gói khám sức khỏe tổng quát & Tầm soát bệnh lý
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {[
+                    { key: 'goi_kham_co_ban', label: 'Gói khám sức khỏe tổng quát Cơ Bản' },
+                    { key: 'goi_kham_nang_cao', label: 'Gói khám sức khỏe tổng quát Nâng Cao' },
+                    { key: 'goi_kham_chuyen_sau', label: 'Gói khám sức khỏe tổng quát Chuyên Sâu' },
+                    { key: 'goi_kham_vip_gold', label: 'Gói khám sức khỏe tổng quát VIP Gold' },
+                    { key: 'goi_kham_vip_platinum', label: 'Gói khám sức khỏe tổng quát VIP Platinum' },
+                    { key: 'goi_kham_tam_soat_ung_thu_tong_quat', label: 'Gói khám tầm soát ung thư tổng quát' },
+                    { key: 'goi_kham_tam_soat_ung_thu_tieu_hoa', label: 'Gói khám tầm soát ung thư tiêu hóa' },
+                    { key: 'goi_kham_tam_soat_dot_quy', label: 'Gói khám tầm soát đột quỵ' }
+                  ].map((field) => (
+                    <div key={field.key} className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-50 pb-3">
+                      <span className="text-xs font-bold text-gray-700 md:w-3/5">{field.label}</span>
+                      <div className="relative md:w-2/5">
+                        <input
+                          type="number"
+                          required
+                          min="0"
+                          value={deptFees[field.key] || ''}
+                          onChange={(e) => setDeptFees(prev => ({ ...prev, [field.key]: Number(e.target.value) }))}
+                          className="w-full pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92] font-bold text-right font-mono text-[#004e92]"
+                        />
+                        <span className="absolute right-3 top-3 text-xs text-gray-400 font-bold">đ</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Nhóm 2: Khoa chuyên môn khám lâm sàng */}
+              <div className="space-y-4 pt-4">
+                <h4 className="text-sm font-bold text-gray-800 bg-emerald-50 px-4 py-2 rounded-xl flex items-center gap-2">
+                  <span>🩺</span> Các khoa khám bệnh lâm sàng chuyên khoa
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {[
+                    { key: 'chan_doan_hinh_anh', label: 'Chẩn đoán hình ảnh (Xquang, CT, Mri, Đo loãng xương)' },
+                    { key: 'noi_tong_quat', label: 'Nội tổng quát' },
+                    { key: 'tai_mui_hong', label: 'Tai mũi họng' },
+                    { key: 'mat', label: 'Mắt' },
+                    { key: 'rang_ham_mat', label: 'Răng hàm mặt' },
+                    { key: 'tim_mach', label: 'Tim mạch' },
+                    { key: 'san_phu_khoa', label: 'Sản phụ khoa' },
+                    { key: 'tuyen_vu', label: 'Tuyến vú' },
+                    { key: 'ho_hap', label: 'Hô hấp' },
+                    { key: 'di_ung_mien_dich', label: 'Dị ứng miễn dịch' },
+                    { key: 'tu_van_giac_ngu', label: 'Tư vấn giấc ngủ' }
+                  ].map((field) => (
+                    <div key={field.key} className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-50 pb-3">
+                      <span className="text-xs font-bold text-gray-700 md:w-3/5">{field.label}</span>
+                      <div className="relative md:w-2/5">
+                        <input
+                          type="number"
+                          required
+                          min="0"
+                          value={deptFees[field.key] || ''}
+                          onChange={(e) => setDeptFees(prev => ({ ...prev, [field.key]: Number(e.target.value) }))}
+                          className="w-full pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#004e92] font-bold text-right font-mono text-emerald-700"
+                        />
+                        <span className="absolute right-3 top-3 text-xs text-gray-400 font-bold">đ</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-6 border-t">
+                <button
+                  type="submit"
+                  className="bg-[#004e92] hover:bg-blue-800 text-white font-bold py-3.5 px-10 rounded-2xl transition-colors shadow-lg flex items-center gap-2 text-sm"
+                >
+                  <Save className="w-4 h-4" /> Lưu lệ phí khám chuyên khoa
+                </button>
+              </div>
+            </form>
           </div>
         )}
       </div>
