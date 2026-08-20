@@ -8,49 +8,6 @@ import departments from '../data/departments';
 
 const API_BASE_URL = 'http://localhost:5000';
 
-// Mock danh sách hóa đơn thuốc dựa trên dữ liệu bệnh án
-const initialPrescriptionBills = [
-  {
-    id: 'HDT-00432904',
-    patientName: 'Nguyễn Văn A',
-    patientCode: '0029187302',
-    phone: '0901234567',
-    bhyt: 'DN4797931234567',
-    status: 'unpaid', // unpaid | paid
-    items: [
-      { name: 'Cetirizine 10mg (Cetimed 10mg)', qty: 20, unit: 'Viên', price: 4500 },
-      { name: 'Hightamine 5.0mg (Vitamin)', qty: 40, unit: 'Viên', price: 2000 },
-      { name: 'Kẽm gluconat 10ml (Conipa)', qty: 20, unit: 'Ống', price: 8000 },
-      { name: 'Locgoda 0.1% 15g (Mometason)', qty: 2, unit: 'Tuýp', price: 45000 }
-    ]
-  },
-  {
-    id: 'HDT-00432888',
-    patientName: 'Trần Thị B',
-    patientCode: '0029187999',
-    phone: '0988777123',
-    bhyt: 'HT3797939876543',
-    status: 'unpaid',
-    items: [
-      { name: 'Amlodipine 5mg (Amlor 5mg)', qty: 30, unit: 'Viên', price: 12000 },
-      { name: 'Magnesium B6 (Magnerot 500mg)', qty: 60, unit: 'Viên', price: 3000 }
-    ]
-  },
-  {
-    id: 'HDT-00432777',
-    patientName: 'Lê Hoàng C',
-    patientCode: '0029187777',
-    phone: '0912345678',
-    bhyt: '',
-    status: 'paid',
-    paymentMethod: 'Chuyển khoản',
-    items: [
-      { name: 'Ibuprofen 400mg', qty: 15, unit: 'Viên', price: 3500 },
-      { name: 'Amoxicillin 500mg (Curam 500mg)', qty: 20, unit: 'Viên', price: 12000 }
-    ]
-  }
-];
-
 const getCurrentTimeStr = () => {
   const now = new Date();
   const hours = String(now.getHours()).padStart(2, '0');
@@ -99,7 +56,6 @@ const CashierDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('Tiền mặt');
-  const [prescriptionBills, setPrescriptionBills] = useState(initialPrescriptionBills);
   const [rxSearchQuery, setRxSearchQuery] = useState('');
   const [infoSearchQuery, setInfoSearchQuery] = useState('');
   const [notification, setNotification] = useState('');
@@ -296,7 +252,7 @@ const CashierDashboard = () => {
   // Khởi tạo quy trình thu phí đơn thuốc (mở modal chờ xác nhận)
   const handleInitiatePayPrescription = (bill, method) => {
     const totalCost = bill.items.reduce((sum, item) => sum + (item.price * item.qty), 0);
-    const hasBHYT = !!bill.bhyt;
+    const hasBHYT = bill.bhyt && bill.bhyt !== 'Không có BHYT' && bill.bhyt !== '';
     const discount = hasBHYT ? totalCost * 0.8 : 0;
     const finalCost = totalCost - discount;
 
@@ -319,41 +275,6 @@ const CashierDashboard = () => {
 
   // Xác nhận đóng phí đơn thuốc thực tế (gọi API)
   const handlePayPrescriptionConfirm = async (billId, method) => {
-    if (typeof billId === 'string' && billId.startsWith('HDT-')) {
-      // Cập nhật mock state
-      const updatedBills = prescriptionBills.map(bill => {
-        if (bill.id === billId) {
-          setNotification(`✅ Thu phí đơn thuốc thành công cho: ${bill.patientName}!`);
-          const totalCost = bill.items.reduce((sum, item) => sum + (item.price * item.qty), 0);
-          const hasBHYT = !!bill.bhyt;
-          const discount = hasBHYT ? totalCost * 0.8 : 0;
-          const finalCost = totalCost - discount;
-
-          setReceiptData({
-            type: 'prescription',
-            isPending: false,
-            id: bill.id,
-            patientName: bill.patientName,
-            patientCode: bill.patientCode,
-            phone: bill.phone,
-            bhyt: bill.bhyt,
-            items: bill.items,
-            totalCost,
-            discount,
-            finalCost,
-            paymentMethod: method
-          });
-          setShowReceiptModal(true);
-          setTimeout(() => setNotification(''), 5000);
-          return { ...bill, status: 'paid', paymentMethod: method };
-        }
-        return bill;
-      });
-      setPrescriptionBills(updatedBills);
-      return;
-    }
-
-    // Database record
     try {
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       const response = await fetch(`${API_BASE_URL}/api/appointments/${billId}/pay-prescription`, {
@@ -372,7 +293,7 @@ const CashierDashboard = () => {
         
         const bill = data.appointment;
         const totalCost = bill.prescription.reduce((sum, item) => sum + (item.price * item.qty), 0);
-        const hasBHYT = !!bill.bhyt && bill.bhyt !== 'Không có BHYT';
+        const hasBHYT = !!bill.bhyt && bill.bhyt !== 'Không có BHYT' && bill.bhyt !== '';
         const discount = hasBHYT ? totalCost * 0.8 : 0;
         const finalCost = totalCost - discount;
 
@@ -505,11 +426,8 @@ const CashierDashboard = () => {
     items: app.prescription || []
   }));
 
-  // Gộp đơn thuốc database và mock data, tránh trùng tên
-  const rxBillsArr = [
-    ...dbPrescriptionBills,
-    ...((Array.isArray(prescriptionBills) ? prescriptionBills : []).filter(mock => !dbPrescriptionBills.some(db => db.patientName === mock.patientName)))
-  ];
+  // Đơn thuốc thực tế lấy hoàn toàn từ database
+  const rxBillsArr = dbPrescriptionBills;
 
   // Lọc danh sách lịch hẹn cần thu tiền khám
   const unpaidAppointments = appointmentsArr.filter(app => {
