@@ -574,4 +574,49 @@ router.patch("/:id/dispense", protect, adminOrDoctorOnly, async (req, res) => {
   }
 });
 
+// PATCH /api/appointments/:id/undispense
+// Dược sĩ hoàn trả đơn đã cấp → trạng thái trở lại "paid" (chờ cấp phát), cộng lại số lượng kho
+router.patch("/:id/undispense", protect, adminOrDoctorOnly, async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "ID lịch hẹn không hợp lệ." });
+    }
+
+    const appointment = await Appointment.findById(req.params.id);
+    if (!appointment) {
+      return res.status(404).json({ message: "Không tìm thấy lịch hẹn." });
+    }
+
+    if (appointment.prescriptionStatus !== "dispensed") {
+      return res.status(400).json({ message: "Chỉ có thể hoàn trả đơn đã được cấp phát." });
+    }
+
+    // Cộng lại kho thuốc
+    const Medicine = require("../models/Medicine");
+    for (const item of appointment.prescription) {
+      if (item.medicineId) {
+        await Medicine.findByIdAndUpdate(item.medicineId, {
+          $inc: { quantity: item.qty }
+        });
+      }
+    }
+
+    // Chuyển trạng thái về "paid" (đã thanh toán, chờ cấp phát)
+    appointment.prescriptionStatus = "paid";
+    appointment.updatedBy = `${req.user.fullName || 'Dược sĩ'} (${req.user.phone || 'N/A'})`;
+    appointment.updatedByRole = req.user.role || 'nurse';
+
+    await appointment.save();
+
+    logActivity(`Hoàn trả đơn thuốc về chờ cấp phát (Mã: ${appointment.appointmentCode})`, `Dược sĩ: ${req.user.fullName || req.user.phone}`, req.ip || "127.0.0.1", "Thành công");
+
+    return res.json({
+      message: "Hoàn trả đơn thuốc thành công. Đơn đã chuyển về trạng thái chờ cấp phát.",
+      appointment,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+});
+
 module.exports = router;
