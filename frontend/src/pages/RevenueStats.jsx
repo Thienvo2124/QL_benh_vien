@@ -218,7 +218,7 @@ const RevenueStats = () => {
                     {/* Bar */}
                     <div 
                       style={{ height: `${Math.max(heightPercent, 3)}%` }} 
-                      className={`w-full rounded-t-lg transition-all duration-300 group-hover:bg-[#004e92] ${
+                      className={`w-12 max-w-full rounded-t-lg transition-all duration-300 group-hover:bg-[#004e92] ${
                         timeframe === 'monthly' 
                           ? 'bg-blue-100 text-[#004e92]' 
                           : 'bg-emerald-100 text-emerald-700'
