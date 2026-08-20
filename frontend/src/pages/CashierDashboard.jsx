@@ -1716,6 +1716,7 @@ const CashierDashboard = () => {
                     <th className="p-5 font-medium">Thời gian</th>
                     <th className="p-5 font-medium">Lệ phí</th>
                     <th className="p-5 font-medium text-center">Thanh toán</th>
+                    <th className="p-5 font-medium text-center">Tình trạng</th>
                     <th className="p-5 font-medium text-center w-48">Thao tác</th>
                   </tr>
                 </thead>
@@ -1761,6 +1762,15 @@ const CashierDashboard = () => {
                                 : 'bg-amber-50 text-amber-700'
                             }`}>
                               {isPaid ? '✓ Đã thu tiền' : '⏰ Chờ thu tiền'}
+                            </span>
+                          </td>
+                          <td className="p-5 text-center">
+                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${
+                              app.status === 'completed'
+                                ? 'bg-blue-50 text-blue-700'
+                                : 'bg-gray-100 text-gray-500'
+                            }`}>
+                              {app.status === 'completed' ? '🩺 Đã khám' : '⏳ Chưa khám'}
                             </span>
                           </td>
                           <td className="p-5 text-center">
