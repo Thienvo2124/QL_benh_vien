@@ -7,6 +7,7 @@ const SummaryRecords = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [staffRoleFilter, setStaffRoleFilter] = useState('all'); // all | admin | doctor | nurse | cashier
+  const [sortOrder, setSortOrder] = useState('newest'); // newest | oldest
   
   // Data States
   const [staffList, setStaffList] = useState([]);
@@ -137,6 +138,36 @@ const SummaryRecords = () => {
            p.cccd?.toLowerCase().includes(term);
   });
 
+  const sortedStaff = [...filteredStaff].sort((a, b) => {
+    const dateA = new Date(a.createdAt || 0);
+    const dateB = new Date(b.createdAt || 0);
+    return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+  });
+
+  const sortedPatients = [...filteredPatients].sort((a, b) => {
+    const dateA = new Date(a.lastVisit || 0);
+    const dateB = new Date(b.lastVisit || 0);
+    return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+  });
+
+  const sortedAppointments = [...filteredAppointments].sort((a, b) => {
+    const dateA = new Date(a.createdAt || a.date || 0);
+    const dateB = new Date(b.createdAt || b.date || 0);
+    return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+  });
+
+  const sortedPrescriptions = [...filteredPrescriptions].sort((a, b) => {
+    const dateA = new Date(a.createdAt || a.date || 0);
+    const dateB = new Date(b.createdAt || b.date || 0);
+    return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+  });
+
+  const sortedMedicines = [...filteredMedicines].sort((a, b) => {
+    const dateA = new Date(a.createdAt || 0);
+    const dateB = new Date(b.createdAt || 0);
+    return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+  });
+
   return (
     <div className="space-y-8 font-sans">
       {/* Header */}
@@ -178,23 +209,38 @@ const SummaryRecords = () => {
         })}
       </div>
 
-      {/* Search Input & Sub-tabs */}
+      {/* Search & Sort Filters */}
       <div className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 space-y-4">
-        <div className="relative max-w-md">
-          <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={
-              activeTab === 'staff' ? "Tìm kiếm tài khoản theo tên, email, sđt, vị trí..." :
-              activeTab === 'patient' ? "Tìm kiếm bệnh nhân theo tên, sđt, địa chỉ..." :
-              activeTab === 'prescription' ? "Tìm kiếm đơn thuốc theo tên bệnh nhân, mã HSBN, thuốc..." :
-              activeTab === 'billing' ? "Tìm kiếm giao dịch theo tên bệnh nhân, mã số, phòng khám..." :
-              "Tìm kiếm thuốc theo tên, mã số, phân loại..."
-            }
-            className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] focus:bg-white transition-all font-medium"
-          />
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="relative flex-1 min-w-[280px] max-w-md">
+            <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={
+                activeTab === 'staff' ? "Tìm kiếm tài khoản theo tên, email, sđt, vị trí..." :
+                activeTab === 'patient' ? "Tìm kiếm bệnh nhân theo tên, sđt, địa chỉ..." :
+                activeTab === 'prescription' ? "Tìm kiếm đơn thuốc theo tên bệnh nhân, mã HSBN, thuốc..." :
+                activeTab === 'billing' ? "Tìm kiếm giao dịch theo tên bệnh nhân, mã số, phòng khám..." :
+                "Tìm kiếm thuốc theo tên, mã số, phân loại..."
+              }
+              className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] focus:bg-white transition-all font-medium"
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-gray-400" />
+            <span className="text-sm font-semibold text-gray-700">Sắp xếp:</span>
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value)}
+              className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-medium focus:outline-none focus:border-[#004e92] cursor-pointer"
+            >
+              <option value="newest">Mới nhất</option>
+              <option value="oldest">Cũ nhất</option>
+            </select>
+          </div>
         </div>
 
         {/* Sub-tabs for Staff Role Filter */}
@@ -243,8 +289,8 @@ const SummaryRecords = () => {
                   </tr>
                 </thead>
                 <tbody className="text-sm divide-y divide-gray-100 font-semibold text-gray-700">
-                  {filteredStaff.length > 0 ? (
-                    filteredStaff.map((u, i) => (
+                  {sortedStaff.length > 0 ? (
+                    sortedStaff.map((u, i) => (
                       <tr key={u._id} className="hover:bg-blue-50/10 transition-colors">
                         <td className="p-5 text-center text-gray-400 font-bold">{i + 1}</td>
                         <td className="p-5">
@@ -292,8 +338,8 @@ const SummaryRecords = () => {
                   </tr>
                 </thead>
                 <tbody className="text-sm divide-y divide-gray-100 font-semibold text-gray-700">
-                  {filteredPatients.length > 0 ? (
-                    filteredPatients.map((p, i) => (
+                  {sortedPatients.length > 0 ? (
+                    sortedPatients.map((p, i) => (
                       <tr key={p.phone} className="hover:bg-blue-50/10 transition-colors">
                         <td className="p-5 text-center text-gray-400 font-bold">{i + 1}</td>
                         <td className="p-5">
@@ -346,8 +392,8 @@ const SummaryRecords = () => {
                   </tr>
                 </thead>
                 <tbody className="text-sm divide-y divide-gray-100 font-semibold text-gray-700">
-                  {filteredAppointments.length > 0 ? (
-                    filteredAppointments.map((app, i) => {
+                  {sortedAppointments.length > 0 ? (
+                    sortedAppointments.map((app, i) => {
                       const hasExamPaid = app.paymentStatus === 'paid';
                       const hasPrescriptionPaid = app.prescriptionStatus === 'paid';
                       
@@ -415,8 +461,8 @@ const SummaryRecords = () => {
                   </tr>
                 </thead>
                 <tbody className="text-sm divide-y divide-gray-100 font-semibold text-gray-700">
-                  {filteredPrescriptions.length > 0 ? (
-                    filteredPrescriptions.map((app, i) => {
+                  {sortedPrescriptions.length > 0 ? (
+                    sortedPrescriptions.map((app, i) => {
                       const cost = app.prescription ? app.prescription.reduce((s, item) => s + (item.price * item.qty), 0) : 0;
                       const disc = app.bhyt ? cost * 0.8 : 0;
                       const finalCost = cost - disc;
@@ -484,8 +530,8 @@ const SummaryRecords = () => {
                   </tr>
                 </thead>
                 <tbody className="text-sm divide-y divide-gray-100 font-semibold text-gray-700">
-                  {filteredMedicines.length > 0 ? (
-                    filteredMedicines.map((m, i) => (
+                  {sortedMedicines.length > 0 ? (
+                    sortedMedicines.map((m, i) => (
                       <tr key={m._id} className="hover:bg-blue-50/10 transition-colors">
                         <td className="p-5 text-center text-gray-400 font-bold">{i + 1}</td>
                         <td className="p-5">

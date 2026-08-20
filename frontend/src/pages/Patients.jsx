@@ -13,6 +13,7 @@ const Patients = () => {
   const [search, setSearch] = useState('');
   const [selectedDept, setSelectedDept] = useState('Tất cả');
   const [activeTab, setActiveTab] = useState('waiting'); // waiting | history
+  const [sortOrder, setSortOrder] = useState('newest'); // newest | oldest
   
   // Modal state
   const [activeModal, setActiveModal] = useState(null); // 'view', 'new', 'prescription', or null
@@ -123,7 +124,8 @@ const Patients = () => {
     medicines: app.prescription || [],
     advice: app.advice || '',
     updatedBy: app.updatedBy || '',
-    updatedByRole: app.updatedByRole || ''
+    updatedByRole: app.updatedByRole || '',
+    rawDate: app.createdAt || app.date || 0
   }));
 
   const records = dbRecords;
@@ -316,6 +318,12 @@ const Patients = () => {
     return matchSearch && matchDept;
   });
 
+  const sortedRecords = [...filteredRecords].sort((a, b) => {
+    const dateA = new Date(a.rawDate);
+    const dateB = new Date(b.rawDate);
+    return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+  });
+
   const handlePrintPrescription = () => {
     window.print();
   };
@@ -331,6 +339,12 @@ const Patients = () => {
       code.toLowerCase().includes(search.toLowerCase());
     const matchesDept = selectedDept === 'Tất cả' || app.dept === selectedDept;
     return matchesSearch && matchesDept;
+  });
+
+  const sortedWaitingList = [...filteredWaitingList].sort((a, b) => {
+    const dateA = new Date(a.createdAt || a.date || 0);
+    const dateB = new Date(b.createdAt || b.date || 0);
+    return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
   });
 
   return (
@@ -437,21 +451,36 @@ const Patients = () => {
           />
         </div>
 
-        <div className="flex items-center gap-3">
-          <Filter className="w-4 h-4 text-gray-400" />
-          <span className="text-sm font-semibold text-gray-700">Chuyên khoa:</span>
-          <select
-            value={selectedDept}
-            onChange={(e) => setSelectedDept(e.target.value)}
-            className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-medium focus:outline-none focus:border-[#004e92] cursor-pointer"
-          >
-            <option value="Tất cả">Tất cả chuyên khoa</option>
-            {departments.map((dept) => (
-              <option key={dept.slug} value={dept.name}>
-                {dept.name}
-              </option>
-            ))}
-          </select>
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-gray-400" />
+            <span className="text-sm font-semibold text-gray-700">Chuyên khoa:</span>
+            <select
+              value={selectedDept}
+              onChange={(e) => setSelectedDept(e.target.value)}
+              className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-medium focus:outline-none focus:border-[#004e92] cursor-pointer"
+            >
+              <option value="Tất cả">Tất cả chuyên khoa</option>
+              {departments.map((dept) => (
+                <option key={dept.slug} value={dept.name}>
+                  {dept.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-gray-400" />
+            <span className="text-sm font-semibold text-gray-700">Sắp xếp:</span>
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value)}
+              className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-medium focus:outline-none focus:border-[#004e92] cursor-pointer"
+            >
+              <option value="newest">Mới nhất</option>
+              <option value="oldest">Cũ nhất</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -471,8 +500,8 @@ const Patients = () => {
                 </tr>
               </thead>
               <tbody className="text-sm divide-y divide-gray-100">
-                {filteredWaitingList.length > 0 ? (
-                  filteredWaitingList.map((app) => (
+                {sortedWaitingList.length > 0 ? (
+                  sortedWaitingList.map((app) => (
                     <tr key={app._id} className="hover:bg-blue-50/20 transition-colors">
                       <td className="p-5 text-center">
                         <span className="bg-blue-50 text-[#004e92] text-sm font-black px-3 py-1.5 rounded-xl border border-blue-100 shadow-sm">
@@ -566,8 +595,8 @@ const Patients = () => {
                 </tr>
               </thead>
               <tbody className="text-sm divide-y divide-gray-100">
-                {filteredRecords.length > 0 ? (
-                  filteredRecords.map((rec) => (
+                {sortedRecords.length > 0 ? (
+                  sortedRecords.map((rec) => (
                     <tr key={rec.id} className="hover:bg-blue-50/20 transition-colors">
                       <td className="p-5 text-center">
                         {rec.queueNumber ? (
