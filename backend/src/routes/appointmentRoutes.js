@@ -8,20 +8,25 @@ const { sendBookingConfirmation } = require("../utils/emailService");
 const router = express.Router();
 const VALID_STATUSES = ["pending", "approved", "rejected", "completed"];
 
-const generateAppointmentCode = () =>
-  `BV${Math.floor(Math.random() * 900000 + 100000)}`;
-
 const createUniqueAppointmentCode = async () => {
-  for (let attempt = 0; attempt < 5; attempt += 1) {
-    const appointmentCode = generateAppointmentCode();
-    const existing = await Appointment.exists({ appointmentCode });
+  const now = new Date();
+  const day = now.getDate();
+  const month = now.getMonth() + 1;
+  const year = now.getFullYear();
+  const prefix = `HSBN${day}${month}${year}`;
 
-    if (!existing) {
-      return appointmentCode;
-    }
-  }
+  const start = new Date(now);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(now);
+  end.setHours(23, 59, 59, 999);
 
-  return `BV${Date.now().toString().slice(-8)}`;
+  // Dem so luong benh nhan duoc tao trong ngay de cap so
+  const count = await Appointment.countDocuments({
+    createdAt: { $gte: start, $lte: end }
+  });
+
+  const sequentialNum = count + 1;
+  return `${prefix}-${sequentialNum}`;
 };
 
 const normalizeText = (value) => (typeof value === "string" ? value.trim() : "");

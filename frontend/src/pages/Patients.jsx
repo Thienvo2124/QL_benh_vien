@@ -100,7 +100,8 @@ const Patients = () => {
   const waitingList = appointments.filter(app => app.status === 'approved' && app.paymentStatus === 'paid');
 
   const dbRecords = appointments.filter(app => app.status === 'completed').map(app => ({
-    id: app._id,
+    id: app.appointmentCode || app._id,
+    dbId: app._id,
     queueNumber: app.queueNumber,
     patientName: app.name,
     age: calculateAge(app.dob),
@@ -154,7 +155,7 @@ const Patients = () => {
   };
 
   const handleOpenEditModal = (rec) => {
-    setEditingRecordId(rec.id);
+    setEditingRecordId(rec.dbId);
     setNewPatientName(rec.patientName);
     setNewAge(rec.age);
     setNewGender(rec.gender || 'Nam');
@@ -617,7 +618,7 @@ const Patients = () => {
                             <Pencil className="w-4 h-4 transform group-hover:scale-110 transition-transform" />
                           </button>
                           <button
-                            onClick={() => handleDeleteRecord(rec.id, rec.patientName)}
+                            onClick={() => handleDeleteRecord(rec.dbId, rec.patientName)}
                             className="p-2.5 bg-red-50 hover:bg-red-600 text-red-600 hover:text-white rounded-xl transition-all shadow-sm group"
                             title="Xóa Hồ sơ Bệnh án"
                           >
