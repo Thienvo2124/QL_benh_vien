@@ -141,6 +141,95 @@ const CashierDashboard = () => {
     fetchAppointments();
   }, [fetchAppointments]);
 
+  // Tự động kiểm tra đối soát giao dịch chuyển khoản qua SePay (polling mỗi 2 giây)
+  useEffect(() => {
+    if (!showReceiptModal || !receiptData || !receiptData.isPending || receiptData.paymentMethod !== 'Chuyển khoản') {
+      return;
+    }
+
+    const appId = receiptData.type === 'exam' ? receiptData.appId : receiptData.id;
+    if (!appId) return;
+
+    let isSubscribed = true;
+    console.log(`Bắt đầu tự động kiểm tra thanh toán qua SePay cho ca khám: ${appId}`);
+
+    const intervalId = setInterval(async () => {
+      try {
+        const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+        const response = await fetch(`${API_BASE_URL}/api/appointments/${appId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (!response.ok) return;
+        const app = await response.json();
+        
+        if (!isSubscribed) return;
+
+        if (receiptData.type === 'exam' && app.paymentStatus === 'paid') {
+          console.log("SePay phát hiện tiền đã về! Tự động phê duyệt thanh toán phí khám.");
+          // Phát âm thanh báo hiệu
+          try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 note
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.15);
+          } catch (e) {
+            console.log("Audio not allowed yet:", e);
+          }
+
+          setReceiptData(prev => ({
+            ...prev,
+            isPending: false,
+            queueNumber: app.queueNumber,
+            fee: app.initialFee
+          }));
+          
+          fetchAppointments();
+          clearInterval(intervalId);
+        } else if (receiptData.type === 'prescription' && app.prescriptionStatus === 'paid') {
+          console.log("SePay phát hiện tiền đã về! Tự động phê duyệt thanh toán đơn thuốc.");
+          // Phát âm thanh báo hiệu
+          try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.15);
+          } catch (e) {
+            console.log("Audio not allowed yet:", e);
+          }
+
+          setReceiptData(prev => ({
+            ...prev,
+            isPending: false
+          }));
+
+          fetchAppointments();
+          clearInterval(intervalId);
+        }
+      } catch (error) {
+        console.error("Lỗi khi kiểm tra đối soát tự động:", error);
+      }
+    }, 2000);
+
+    return () => {
+      isSubscribed = false;
+      clearInterval(intervalId);
+    };
+  }, [showReceiptModal, receiptData, fetchAppointments]);
+
   // Khởi tạo quy trình thu phí khám (mở modal chờ xác nhận)
   const handleInitiatePayExamFee = (app, chosenMethod) => {
     setReceiptData({
@@ -1767,13 +1856,15 @@ const CashierDashboard = () => {
                 )}
               </div>
 
-              {/* VietQR Bank Transfer Code Block */}
+              {/* VietQR Bank Transfer Code Block (Tự động nhận diện thanh toán qua SePay) */}
               {receiptData.isPending && receiptData.paymentMethod === 'Chuyển khoản' && (
                 <div className="bg-slate-50 border border-blue-100 rounded-2xl p-4 flex flex-col items-center text-center space-y-3 print:hidden">
-                  <span className="text-xs text-[#004e92] font-bold uppercase tracking-wider">Quét mã chuyển khoản VietQR</span>
+                  <span className="text-xs text-[#004e92] font-bold uppercase tracking-wider flex items-center gap-1.5 animate-pulse">
+                    ⏰ Đang chờ quét mã chuyển khoản tự động
+                  </span>
                   <img 
-                    src={`https://img.vietqr.io/image/MB-190021159999-print.png?amount=${receiptData.type === 'prescription' ? receiptData.finalCost : (receiptData.fee || 150000)}&addInfo=${encodeURIComponent(receiptData.type === 'prescription' ? `TToan don thuoc ${receiptData.id}` : `TToan phi kham ${receiptData.code}`)}&accountName=BENH%20VIEN%20NHAN%20DAN`}
-                    alt="VietQR Payment Code"
+                    src={`https://qr.sepay.vn/img?acc=190021159999&bank=MBBank&amount=${receiptData.type === 'prescription' ? receiptData.finalCost : (receiptData.fee || 150000)}&des=${encodeURIComponent(receiptData.type === 'prescription' ? `TToan don thuoc ${receiptData.id}` : `TToan phi kham ${receiptData.code}`)}&template=compact`}
+                    alt="SePay QR Code"
                     className="w-44 h-44 object-contain rounded-xl border border-gray-100 shadow-sm bg-white p-1"
                   />
                   <div className="text-xs text-gray-600 space-y-0.5 font-semibold">
