@@ -4,89 +4,6 @@ import API_BASE_URL from '../config/api';
 import departments from '../data/departments';
 import { AuthContext } from '../contexts/AuthContext';
 
-const initialRecords = [
-  {
-    id: 'HS-2026-001',
-    queueNumber: 1,
-    patientName: 'Nguyễn Văn A',
-    age: 31,
-    gender: 'Nam',
-    weight: '62 kg',
-    phone: '0901234567',
-    address: 'Số 1 Nơ Trang Long, P. Gia Định, Hà Nội',
-    bhyt: 'DN4797931234567',
-    lastVisit: '28/06/2026',
-    dept: 'Da liễu & Dị ứng',
-    doctor: 'BS. CKII Nguyễn Tuấn Lâm',
-    symptoms: 'Mẩn ngứa quanh cổ và cánh tay, xuất hiện nhiều về đêm, da khô đỏ.',
-    diagnosis: 'Viêm da dị ứng tiếp xúc / Mề đay mãn tính.',
-    treatment: 'Dùng thuốc kháng histamin giảm ngứa, bôi kem đặc trị tại chỗ và kiêng xà phòng mạnh.',
-    status: 'Đang điều trị',
-    patientCode: '0029187302',
-    orderCode: '000000432904',
-    treatCode: '000000128400',
-    medicines: [
-      { name: 'Cetirizine 10mg (Cetimed 10mg)', qty: '20', unit: 'Viên', usage: 'Uống tối 1 viên sau ăn' },
-      { name: 'Hightamine 5.0mg + 25mg... (Vitamin A+D2+B1+B2+PP+B6+B12+C+E + B5 + acid folic)', qty: '40', unit: 'Viên', usage: 'Uống ngày 2 lần sáng chiều mỗi lần 1 viên' },
-      { name: 'Kẽm (dưới dạng kẽm gluconat 10mg) (Conipa pure 10ml)', qty: '20', unit: 'Ống', usage: 'Uống sáng 1 ống' },
-      { name: 'Mometason furoat 0.1% (Locgoda 0.1% 15g)', qty: '02', unit: 'Tuýp', usage: 'Bôi chỗ ngứa ngày 2 lần sáng chiều, bôi mỏng trong 7-10 ngày' }
-    ],
-    advice: 'Đã tư vấn kỹ cho bệnh nhân về đơn thuốc và đơn tư vấn và bệnh nhân đồng ý sử dụng, khám lại sau 3 tuần.'
-  },
-  {
-    id: 'HS-2025-102',
-    queueNumber: 2,
-    patientName: 'Trần Thị B',
-    age: 45,
-    gender: 'Nữ',
-    weight: '55 kg',
-    phone: '0988777123',
-    address: 'Chung cư Sunview, Quận Đống Đa, Hà Nội',
-    bhyt: 'HT3797939876543',
-    lastVisit: '15/12/2025',
-    dept: 'Tim mạch',
-    doctor: 'BS. Trần Thị B',
-    symptoms: 'Hồi hộp, thỉnh thoảng nhói tim khi làm việc nặng.',
-    diagnosis: 'Huyết áp hơi cao do căng thẳng công việc (Stress).',
-    treatment: 'Điều chỉnh chế độ ăn giảm mặn, không thức khuya, theo dõi chỉ số huyết áp hàng ngày.',
-    status: 'Theo dõi định kỳ',
-    patientCode: '0029187999',
-    orderCode: '000000432888',
-    treatCode: '000000128555',
-    medicines: [
-      { name: 'Amlodipine 5mg (Amlor 5mg)', qty: '30', unit: 'Viên', usage: 'Uống 1 viên vào buổi sáng sau ăn' },
-      { name: 'Magnesium B6 (Magnerot 500mg)', qty: '60', unit: 'Viên', usage: 'Uống ngày 2 lần sáng tối, mỗi lần 1 viên' }
-    ],
-    advice: 'Kiểm tra huyết áp đều đặn mỗi sáng, hạn chế ăn mặn và tập thể dục nhẹ nhàng 30 phút mỗi ngày.'
-  },
-  {
-    id: 'HS-2026-045',
-    queueNumber: 3,
-    patientName: 'Lê Hoàng C',
-    age: 28,
-    gender: 'Nam',
-    weight: '70 kg',
-    phone: '0912345678',
-    address: 'Phố Cổ, Quận Hoàn Kiếm, Hà Nội',
-    bhyt: 'GD4797935555666',
-    lastVisit: '25/05/2026',
-    dept: 'Nha khoa',
-    doctor: 'BS. Lê Trọng N',
-    symptoms: 'Đau nhức răng hàm dưới bên phải, sưng mộng răng.',
-    diagnosis: 'Viêm tủy răng R46, sâu răng mức độ 3.',
-    treatment: 'Điều trị tủy, hàn composite phục hồi thân răng.',
-    status: 'Đã khỏi',
-    patientCode: '0029187777',
-    orderCode: '000000432777',
-    treatCode: '000000128777',
-    medicines: [
-      { name: 'Ibuprofen 400mg', qty: '15', unit: 'Viên', usage: 'Uống 1 viên sau ăn khi đau nhức nhiều' },
-      { name: 'Amoxicillin 500mg (Curam 500mg)', qty: '20', unit: 'Viên', usage: 'Uống 2 viên/ngày chia 2 lần sáng tối' }
-    ],
-    advice: 'Vệ sinh răng miệng sạch sẽ sau bữa ăn, sử dụng chỉ nha khoa và nước súc miệng sinh lý.'
-  }
-];
-
 const Patients = () => {
   const { user } = useContext(AuthContext);
   const [appointments, setAppointments] = useState([]);
@@ -208,7 +125,7 @@ const Patients = () => {
     updatedByRole: app.updatedByRole || ''
   }));
 
-  const records = [...dbRecords, ...initialRecords];
+  const records = dbRecords;
 
   const handleAddMedicine = () => {
     if (!selectedMedId) return;
@@ -237,10 +154,6 @@ const Patients = () => {
   };
 
   const handleOpenEditModal = (rec) => {
-    if (rec.id.startsWith('HS-2026') || rec.id.startsWith('HS-2025')) {
-      alert("Không thể chỉnh sửa hồ sơ bệnh án mẫu / lịch sử (dữ liệu mặc định).");
-      return;
-    }
     setEditingRecordId(rec.id);
     setNewPatientName(rec.patientName);
     setNewAge(rec.age);
@@ -260,10 +173,6 @@ const Patients = () => {
   };
 
   const handleDeleteRecord = async (appId, patientName) => {
-    if (appId.startsWith('HS-2026') || appId.startsWith('HS-2025')) {
-      alert("Không thể xóa hồ sơ bệnh án mẫu / lịch sử (dữ liệu mặc định).");
-      return;
-    }
     if (!window.confirm(`Bạn có chắc chắn muốn XÓA hoàn toàn hồ sơ bệnh án của bệnh nhân ${patientName}? Hành động này không thể hoàn tác.`)) {
       return;
     }
