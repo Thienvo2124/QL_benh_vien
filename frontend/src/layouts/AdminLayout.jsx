@@ -44,7 +44,7 @@ const AdminLayout = () => {
           {user?.role === 'admin' && (
             <Link to="/dashboard/users" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/users' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
               <Users className="w-5 h-5 mr-3" />
-              Người dùng
+              Quản lý người dùng
             </Link>
           )}
 
