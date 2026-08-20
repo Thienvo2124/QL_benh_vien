@@ -9,6 +9,7 @@ const Trash = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [notification, setNotification] = useState('');
   const [activeTab, setActiveTab] = useState('appointments'); // appointments | cashier | medical_records | pharmacy | medicines
+  const [cashierSubTab, setCashierSubTab] = useState('reception'); // reception | issued | info | prescription
 
   // Tải danh sách lịch hẹn trong thùng rác
   const fetchAppointmentsTrash = useCallback(async () => {
@@ -116,10 +117,20 @@ const Trash = () => {
   // 1. Lịch hẹn (Đăng ký chưa khám & Chưa đóng tiền)
   const trashAppointments = deletedAppointments.filter(app => app.status !== 'completed' && app.paymentStatus === 'unpaid');
 
-  // 2. Quầy thu ngân (Chưa thanh toán phí khám hoặc phí đơn thuốc)
-  const trashBilling = deletedAppointments.filter(app => app.paymentStatus === 'unpaid' || app.prescriptionStatus === 'unpaid');
+  // 2. Quầy thu ngân (Chứa các dữ liệu bị xóa tương ứng 4 phần):
+  // 2.1 Duyệt Phí & Cấp Số: Chưa thanh toán tiền khám và chưa khám xong
+  const cashierUnpaid = deletedAppointments.filter(app => app.paymentStatus === 'unpaid' && app.status !== 'completed');
 
-  // 3. Hồ sơ bệnh án (Bác sĩ đã hoàn thành khám bệnh)
+  // 2.2 Số Đã Cấp: Đã đóng tiền khám và chưa khám xong
+  const cashierIssued = deletedAppointments.filter(app => app.paymentStatus === 'paid' && app.status !== 'completed');
+
+  // 2.3 Thông Tin Khám Bệnh: Đã hoàn thành khám (status === 'completed')
+  const cashierInfo = deletedAppointments.filter(app => app.status === 'completed');
+
+  // 2.4 Thu Tiền Đơn Thuốc: Đơn thuốc đang chờ thu tiền (prescriptionStatus !== 'none')
+  const cashierPrescription = deletedAppointments.filter(app => app.prescriptionStatus && app.prescriptionStatus !== 'none');
+
+  // 3. Hồ sơ bệnh án (Bác sĩ đã hoàn thành khám bệnh - tương tự mục 2.3)
   const trashMedicalRecords = deletedAppointments.filter(app => app.status === 'completed');
 
   // 4. Quầy cấp thuốc (Đã hoàn thành đóng tiền thuốc, chờ cấp thuốc)
@@ -132,7 +143,12 @@ const Trash = () => {
   const getActiveTabRecords = () => {
     switch (activeTab) {
       case 'appointments': return trashAppointments;
-      case 'cashier': return trashBilling;
+      case 'cashier': 
+        if (cashierSubTab === 'reception') return cashierUnpaid;
+        if (cashierSubTab === 'issued') return cashierIssued;
+        if (cashierSubTab === 'info') return cashierInfo;
+        if (cashierSubTab === 'prescription') return cashierPrescription;
+        return [];
       case 'medical_records': return trashMedicalRecords;
       case 'pharmacy': return trashPharmacy;
       case 'medicines': return trashMedicines;
@@ -159,6 +175,9 @@ const Trash = () => {
     const code = rec.appointmentCode || '';
     return name.toLowerCase().includes(query) || phone.includes(query) || code.toLowerCase().includes(query);
   });
+
+  // Tổng số lượng hiển thị trên nhãn Quầy thu ngân
+  const cashierTotalCount = cashierUnpaid.length + cashierIssued.length + cashierInfo.length + cashierPrescription.length;
 
   return (
     <div className="space-y-8 animate-fadeIn">
@@ -203,7 +222,7 @@ const Trash = () => {
               : 'border-transparent text-gray-400 hover:text-gray-600'
           }`}
         >
-          <DollarSign className="w-4 h-4" /> Quầy thu ngân ({trashBilling.length})
+          <DollarSign className="w-4 h-4" /> Quầy thu ngân ({cashierTotalCount})
         </button>
 
         <button
@@ -239,6 +258,52 @@ const Trash = () => {
           <Pill className="w-4 h-4" /> Kho thuốc ({trashMedicines.length})
         </button>
       </div>
+
+      {/* SUB-TABS DÀNH RIÊNG CHO QUẦY THU NGÂN */}
+      {activeTab === 'cashier' && (
+        <div className="flex flex-wrap border border-gray-200 bg-gray-50/50 p-2 rounded-2xl gap-2 animate-fadeIn">
+          <button
+            onClick={() => { setCashierSubTab('reception'); setSearchQuery(''); }}
+            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+              cashierSubTab === 'reception'
+                ? 'bg-[#004e92] text-white shadow-sm'
+                : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'
+            }`}
+          >
+            2. Duyệt Phí & Cấp Số ({cashierUnpaid.length})
+          </button>
+          <button
+            onClick={() => { setCashierSubTab('issued'); setSearchQuery(''); }}
+            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+              cashierSubTab === 'issued'
+                ? 'bg-[#004e92] text-white shadow-sm'
+                : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'
+            }`}
+          >
+            3. Số Đã Cấp ({cashierIssued.length})
+          </button>
+          <button
+            onClick={() => { setCashierSubTab('info'); setSearchQuery(''); }}
+            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+              cashierSubTab === 'info'
+                ? 'bg-[#004e92] text-white shadow-sm'
+                : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'
+            }`}
+          >
+            4. Thông Tin Khám Bệnh ({cashierInfo.length})
+          </button>
+          <button
+            onClick={() => { setCashierSubTab('prescription'); setSearchQuery(''); }}
+            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+              cashierSubTab === 'prescription'
+                ? 'bg-[#004e92] text-white shadow-sm'
+                : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'
+            }`}
+          >
+            5. Thu Tiền Đơn Thuốc ({cashierPrescription.length})
+          </button>
+        </div>
+      )}
 
       {/* SEARCH BAR */}
       <div className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 flex flex-wrap items-center justify-between gap-4">
