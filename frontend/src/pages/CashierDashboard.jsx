@@ -952,7 +952,7 @@ const CashierDashboard = () => {
               : 'border-transparent text-gray-400 hover:text-gray-600'
           }`}
         >
-          <CheckCircle className="w-4 h-4" /> 3. Số Đã Cấp ({issuedAppointments.length})
+          <CheckCircle className="w-4 h-4" /> 3. Hồ sơ bệnh án ({issuedAppointments.length})
         </button>
         <button
           onClick={() => setActiveTab('info')}
@@ -1091,7 +1091,7 @@ const CashierDashboard = () => {
         </div>
       )}
 
-      {/* TAB 3: SỐ ĐÃ CẤP */}
+      {/* TAB 3: HỒ SƠ BỆNH ÁN */}
       {activeTab === 'issued' && (
         <div className="space-y-4 print:hidden">
           {/* SEARCH BAR & FILTERS */}
@@ -1100,7 +1100,7 @@ const CashierDashboard = () => {
               <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Tìm kiếm số đã cấp (Tên, SĐT, Mã LH...)"
+                placeholder="Tìm kiếm hồ sơ bệnh án (Tên, SĐT, Mã LH...)"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] focus:bg-white transition-colors font-medium"
