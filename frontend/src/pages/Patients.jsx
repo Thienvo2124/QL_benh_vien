@@ -1200,122 +1200,170 @@ const Patients = () => {
             </div>
 
             {/* BẢNG BIỂU ĐƠN THUỐC CHÍNH (SỬ DỤNG FONT-SANS ĐẢM BẢO KHÔNG BAO GIỜ BỊ LỖI DẤU TIẾNG VIỆT) */}
-            <div className="space-y-6 font-sans">
-              
-              {/* HEADER BIỂU MẪU */}
-              <div className="flex justify-between items-start border-b-2 border-gray-800 pb-6">
-                <div className="space-y-1">
-                  <div className="font-bold text-base uppercase tracking-wider text-gray-800">BỘ Y TẾ</div>
-                  <div className="font-bold text-lg uppercase tracking-wide text-[#004e92]">BỆNH VIỆN NHÂN DÂN</div>
-                  <div className="text-xs font-semibold text-gray-700 italic">PK Yêu cầu {currentRecord.dept}</div>
-                  <div className="text-xs text-gray-600">Điện thoại: 1900 6951</div>
+            {(() => {
+              const getFormattedPrescriptionDate = () => {
+                if (!currentRecord.lastVisit) return `Hà Nội, ngày ${new Date().getDate()} tháng ${new Date().getMonth() + 1} năm ${new Date().getFullYear()}`;
+                const parts = currentRecord.lastVisit.split('/');
+                if (parts.length === 3) {
+                  return `Hà Nội, ngày ${parts[0]} tháng ${parts[1]} năm ${parts[2]}`;
+                }
+                return `Hà Nội, ngày ${new Date().getDate()} tháng ${new Date().getMonth() + 1} năm ${new Date().getFullYear()}`;
+              };
+
+              const getDoctorLastName = (fullName) => {
+                if (!fullName) return "Bác sĩ";
+                const cleanName = fullName.replace(/^(BS\.|ThS\.|TS\.|CKI\.|CKII\.|PGS\.|GS\.)\s*/i, '');
+                const parts = cleanName.split(' ');
+                if (parts.length >= 2) {
+                  return parts.slice(-2).join(' ');
+                }
+                return cleanName;
+              };
+
+              return (
+                <div className="space-y-6 font-sans">
                   
-                  {/* Barcode Mockup */}
-                  <div className="pt-2">
-                    <div className="font-mono text-xl tracking-[0.25em] font-black select-none text-gray-800 scale-y-150 origin-left">
-                      ||| | |||| | || | |||| ||
-                    </div>
-                    <div className="text-[10px] font-mono font-bold text-gray-700 mt-1">
-                      {currentRecord.treatCode || '000000128400'}
-                    </div>
-                  </div>
-                  <div className="text-xs text-gray-600 pt-1">Mã điều trị:</div>
-                </div>
-
-                <div className="text-right space-y-1 flex flex-col items-end">
-                  <div className="w-14 h-14 rounded-full border-2 border-[#004e92] flex items-center justify-center text-[#004e92] font-bold mb-2 shadow-sm">
-                    <ShieldPlus className="w-8 h-8" />
-                  </div>
-                  <div className="text-xs font-bold text-gray-800">
-                    Mã BN: <span className="font-mono">{currentRecord.patientCode || '0029187302'}</span>
-                  </div>
-                  <div className="text-xs font-bold text-gray-800">
-                    Mã y lệnh: <span className="font-mono">{currentRecord.orderCode || '000000432904'}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* TIÊU ĐỀ CHÍNH */}
-              <div className="text-center py-4">
-                <h1 className="text-3xl font-extrabold tracking-wider uppercase text-gray-900 font-sans">ĐƠN THUỐC</h1>
-              </div>
-
-              {/* THÔNG TIN HÀNH CHÍNH BỆNH NHÂN */}
-              <div className="space-y-2 text-sm text-gray-900 border-b border-gray-300 pb-6">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div className="flex-1 min-w-[240px]">
-                    <span className="font-semibold">Họ và tên:</span> <strong className="font-bold uppercase text-base">{currentRecord.patientName}</strong>
-                  </div>
-                  <div className="flex items-center gap-6">
-                    <div><span className="font-semibold">Tuổi:</span> <strong>{currentRecord.age}</strong></div>
-                    <div><span className="font-semibold">Cân nặng:</span> <strong>{currentRecord.weight || '58 kg'}</strong></div>
-                    <div><span className="font-semibold">Giới tính:</span> <strong>{currentRecord.gender}</strong></div>
-                  </div>
-                </div>
-                <div>
-                  <span className="font-semibold">Địa chỉ liên hệ:</span> <span className="italic">{currentRecord.address || 'Số 1 Nơ Trang Long, P. Gia Định, Hà Nội'}</span>
-                </div>
-                <div>
-                  <span className="font-semibold">Chẩn đoán chính:</span> <strong className="text-base text-gray-900">{currentRecord.diagnosis}</strong>
-                </div>
-              </div>
-
-              {/* DANH SÁCH THUỐC */}
-              <div className="space-y-4 pt-2">
-                <div className="font-bold text-base text-gray-900 underline underline-offset-4 mb-4">
-                  Thuốc điều trị:
-                </div>
-
-                <div className="space-y-6">
-                  {currentRecord.medicines.map((med, index) => (
-                    <div key={index} className="flex items-start justify-between gap-6 text-sm">
-                      <div className="space-y-1 flex-1">
-                        <div className="font-bold text-gray-900 text-base font-sans">
-                          {index + 1}. {med.name}
-                        </div>
-                        <div className="text-xs text-gray-700 italic pl-4 font-sans">
-                          {med.usage}
+                  {/* HEADER BIỂU MẪU */}
+                  <div className="flex justify-between items-start border-b-2 border-gray-800 pb-5">
+                    <div className="space-y-1.5">
+                      <div className="font-bold text-xs uppercase tracking-wider text-gray-500">SỞ Y TẾ HÀ NỘI</div>
+                      <div className="font-extrabold text-xl uppercase tracking-wide text-[#004e92]">BỆNH VIỆN NHÂN DÂN</div>
+                      <div className="text-xs font-bold text-gray-700">Chuyên khoa: {currentRecord.dept || 'Phòng khám tổng quát'}</div>
+                      <div className="text-xs text-gray-600">Hotline: 1900 6951 — Địa chỉ: Số 12 Đường Chu Văn An, Hà Nội</div>
+                      
+                      {/* Barcode realistic CSS styling */}
+                      <div className="pt-2 flex items-center gap-3">
+                        <div>
+                          <div 
+                            style={{ 
+                              background: 'repeating-linear-gradient(90deg, #111, #111 1.5px, #fff 1.5px, #fff 5px, #111 5px, #111 7px, #fff 7px, #fff 9px)', 
+                              height: '35px', 
+                              width: '160px' 
+                            }} 
+                            className="border border-gray-200 rounded-sm"
+                          />
+                          <div className="text-[10px] font-mono font-bold text-gray-700 mt-1 pl-1">
+                            Mã điều trị: {currentRecord.treatCode || 'DT-423749'}
+                          </div>
                         </div>
                       </div>
-                      <div className="font-bold text-base text-gray-900 flex items-center gap-6 flex-shrink-0 pt-1 font-sans">
-                        <span className="w-16 text-right">X {med.qty}</span>
-                        <span className="w-12 text-left">{med.unit}</span>
+                    </div>
+
+                    <div className="text-right space-y-1 flex flex-col items-end">
+                      {/* QR Code link for modern verification */}
+                      <img 
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=75x75&data=${currentRecord.id || 'HSBN-123'}`} 
+                        alt="Mã QR Xác thực"
+                        className="w-16 h-16 border border-gray-200 p-1 bg-white rounded-md mb-2 shadow-sm shrink-0" 
+                      />
+                      <div className="text-xs font-bold text-gray-800">
+                        Mã BN: <span className="font-mono">{currentRecord.patientCode || '0029187302'}</span>
+                      </div>
+                      <div className="text-xs font-bold text-gray-800">
+                        Mã y lệnh: <span className="font-mono">{currentRecord.orderCode || '000000432904'}</span>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
+                  </div>
 
-              {/* LỜI DẶN BÁC SĨ */}
-              <div className="pt-8 space-y-2 border-t border-gray-300">
-                <div className="font-bold text-sm text-gray-900 underline underline-offset-2 font-sans">
-                  Lời dặn bác sĩ:
-                </div>
-                <div className="text-sm text-gray-800 italic pl-6 leading-relaxed font-sans">
-                  {currentRecord.advice || 'Đã tư vấn kỹ cho bệnh nhân về đơn thuốc và đơn tư vấn và bệnh nhân đồng ý sử dụng, khám lại sau 3 tuần.'}
-                </div>
-              </div>
+                  {/* TIÊU ĐỀ CHÍNH */}
+                  <div className="text-center py-2">
+                    <h1 className="text-3xl font-extrabold tracking-wider uppercase text-gray-900 font-sans">ĐƠN THUỐC</h1>
+                  </div>
 
-              {/* PHẦN CHỮ KÝ PHÍA DƯỚI */}
-              <div className="pt-12 flex justify-end items-start text-right pr-4">
-                <div className="space-y-1 text-center w-64">
-                  <div className="text-sm font-semibold text-gray-800 italic">
-                    Hà Nội, Ngày 28 Tháng 06 Năm 2026
+                  {/* THÔNG TIN HÀNH CHÍNH BỆNH NHÂN */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2.5 gap-x-6 text-sm text-gray-800 border-b border-gray-300 pb-5">
+                    <div className="flex gap-2">
+                      <span className="text-gray-500 min-w-[90px]">Họ và tên:</span>
+                      <strong className="text-gray-900 uppercase font-bold text-base">{currentRecord.patientName}</strong>
+                    </div>
+                    <div className="flex gap-4 justify-between md:justify-start">
+                      <div className="flex gap-1.5"><span className="text-gray-500">Tuổi:</span><strong>{currentRecord.age}</strong></div>
+                      <div className="flex gap-1.5"><span className="text-gray-500">Giới tính:</span><strong>{currentRecord.gender}</strong></div>
+                      <div className="flex gap-1.5"><span className="text-gray-500">Cân nặng:</span><strong>{currentRecord.weight || '58 kg'}</strong></div>
+                    </div>
+                    <div className="flex gap-2 md:col-span-2">
+                      <span className="text-gray-500 min-w-[90px]">Địa chỉ:</span>
+                      <span className="text-gray-900 font-medium">{currentRecord.address || 'Số 1 Nơ Trang Long, P. Gia Định, Hà Nội'}</span>
+                    </div>
+                    <div className="flex gap-2 md:col-span-2">
+                      <span className="text-gray-500 min-w-[90px]">Chẩn đoán chính:</span>
+                      <strong className="text-gray-900 text-sm font-bold">{currentRecord.diagnosis}</strong>
+                    </div>
                   </div>
-                  <div className="font-bold text-base text-gray-900 pt-1 font-sans">
-                    Bác sĩ khám bệnh
-                  </div>
-                  {/* Mô phỏng chữ ký */}
-                  <div className="py-6 font-mono text-2xl text-blue-800 font-bold select-none opacity-80 italic transform -rotate-12">
-                    Tuấn Lâm
-                  </div>
-                  <div className="font-bold text-base text-gray-900 border-t border-gray-300 pt-2 font-sans">
-                    {currentRecord.doctor}
-                  </div>
-                </div>
-              </div>
 
-            </div>
+                  {/* DANH SÁCH THUỐC KÊ TOA CHUYÊN NGHIỆP */}
+                  <div className="space-y-3 pt-2 min-h-[160px]">
+                    <div className="font-extrabold text-sm text-[#004e92] uppercase tracking-wider mb-2">
+                      Chỉ định thuốc điều trị:
+                    </div>
+
+                    {currentRecord.medicines.length === 0 ? (
+                      <div className="text-center py-10 text-gray-400 italic bg-gray-50 rounded-2xl border border-dashed border-gray-200 text-xs">
+                        Không có thuốc điều trị nào được chỉ định trong bệnh án này.
+                      </div>
+                    ) : (
+                      <div className="border border-gray-300 rounded-xl overflow-hidden shadow-sm">
+                        <table className="w-full text-left border-collapse text-xs">
+                          <thead>
+                            <tr className="bg-gray-100 font-bold border-b border-gray-300 text-gray-700">
+                              <th className="p-3 w-10 text-center">STT</th>
+                              <th className="p-3">Tên thuốc / Hoạt chất & Cách dùng</th>
+                              <th className="p-3 w-28 text-center">Số lượng</th>
+                              <th className="p-3 w-24 text-center">Đơn vị</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200">
+                            {currentRecord.medicines.map((med, index) => (
+                              <tr key={index} className="hover:bg-gray-50/50">
+                                <td className="p-3 text-center font-bold text-gray-500">{index + 1}</td>
+                                <td className="p-3">
+                                  <div className="font-bold text-gray-900 text-sm">{med.name}</div>
+                                  <div className="text-[11px] text-gray-500 italic mt-0.5 pl-2 border-l-2 border-[#004e92]">{med.usage}</div>
+                                </td>
+                                <td className="p-3 text-center font-bold text-base text-[#004e92]">x{med.qty}</td>
+                                <td className="p-3 text-center text-gray-700 font-medium">{med.unit}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* LỜI DẶN BÁC SĨ */}
+                  <div className="pt-5 space-y-2 border-t border-gray-300">
+                    <div className="font-bold text-sm text-gray-900 uppercase tracking-wider font-sans">
+                      Lời dặn của bác sĩ:
+                    </div>
+                    <div className="text-sm text-gray-700 italic pl-6 leading-relaxed font-sans border-l-2 border-amber-500 bg-amber-50/30 py-1.5 rounded-r-lg">
+                      {currentRecord.advice || 'Đã tư vấn kỹ cho bệnh nhân về đơn thuốc và đơn tư vấn và bệnh nhân đồng ý sử dụng, khám lại đúng hẹn.'}
+                    </div>
+                  </div>
+
+                  {/* PHẦN CHỮ KÝ PHÍA DƯỚI */}
+                  <div className="pt-8 flex justify-end items-start text-right pr-4">
+                    <div className="space-y-1 text-center w-64">
+                      <div className="text-xs font-semibold text-gray-800 italic">
+                        {getFormattedPrescriptionDate()}
+                      </div>
+                      <div className="font-bold text-sm text-gray-900 pt-1 font-sans">
+                        Bác sĩ điều trị
+                      </div>
+                      <div className="text-xs text-gray-500 italic">(Ký và ghi rõ họ tên)</div>
+                      
+                      {/* Mô phỏng chữ ký tay vẽ tinh xảo */}
+                      <div className="py-4 font-serif text-3xl text-blue-700 font-bold select-none opacity-80 italic transform -rotate-6 tracking-wider">
+                        {getDoctorLastName(currentRecord.doctor)}
+                      </div>
+                      <div className="font-extrabold text-sm text-gray-900 border-t border-gray-300 pt-2 font-sans">
+                        {currentRecord.doctor}
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              );
+            })()}
 
             {/* Thêm nút Đóng ở tận cùng phía dưới biểu mẫu để thao tác thuận tiện nhất */}
             <div className="mt-12 pt-6 border-t border-gray-200 flex justify-center print:hidden">
