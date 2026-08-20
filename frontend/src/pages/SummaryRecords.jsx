@@ -6,6 +6,7 @@ const SummaryRecords = () => {
   const [activeTab, setActiveTab] = useState('staff'); // staff | patient | billing | medicine
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [staffRoleFilter, setStaffRoleFilter] = useState('all'); // all | admin | doctor | nurse | cashier
   
   // Data States
   const [staffList, setStaffList] = useState([]);
@@ -63,12 +64,13 @@ const SummaryRecords = () => {
 
   // Filtered lists based on search
   const filteredStaff = staffArr.filter(u => {
+    const matchesRole = staffRoleFilter === 'all' || u.role === staffRoleFilter;
     const term = searchQuery.toLowerCase();
-    return u.fullName?.toLowerCase().includes(term) ||
+    const matchesSearch = u.fullName?.toLowerCase().includes(term) ||
            u.email?.toLowerCase().includes(term) ||
            u.phone?.includes(term) ||
-           u.position?.toLowerCase().includes(term) ||
-           u.role?.toLowerCase().includes(term);
+           u.position?.toLowerCase().includes(term);
+    return matchesRole && matchesSearch;
   });
 
   const filteredAppointments = appointmentsArr.filter(app => {
@@ -139,7 +141,7 @@ const SummaryRecords = () => {
       {/* Tabs Menu */}
       <div className="bg-gray-200/60 p-1.5 rounded-2xl flex flex-wrap gap-2 w-full shadow-inner border border-gray-300/40">
         {[
-          { id: 'staff', label: 'Hồ sơ Nhân sự', icon: User, count: staffArr.length },
+          { id: 'staff', label: 'Quản lý người dùng', icon: User, count: staffArr.length },
           { id: 'patient', label: 'Hồ sơ Bệnh nhân', icon: FileText, count: uniquePatients.length },
           { id: 'billing', label: 'Lịch sử Giao dịch', icon: DollarSign, count: appointmentsArr.length },
           { id: 'medicine', label: 'Danh mục Thuốc', icon: Pill, count: medicinesArr.length }
@@ -162,8 +164,8 @@ const SummaryRecords = () => {
         })}
       </div>
 
-      {/* Search Input */}
-      <div className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100">
+      {/* Search Input & Sub-tabs */}
+      <div className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 space-y-4">
         <div className="relative max-w-md">
           <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
@@ -171,7 +173,7 @@ const SummaryRecords = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={
-              activeTab === 'staff' ? "Tìm kiếm nhân viên theo tên, email, sđt, vị trí..." :
+              activeTab === 'staff' ? "Tìm kiếm tài khoản theo tên, email, sđt, vị trí..." :
               activeTab === 'patient' ? "Tìm kiếm bệnh nhân theo tên, sđt, địa chỉ..." :
               activeTab === 'billing' ? "Tìm kiếm giao dịch theo tên bệnh nhân, mã số, phòng khám..." :
               "Tìm kiếm thuốc theo tên, mã số, phân loại..."
@@ -179,6 +181,32 @@ const SummaryRecords = () => {
             className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] focus:bg-white transition-all font-medium"
           />
         </div>
+
+        {/* Sub-tabs for Staff Role Filter */}
+        {activeTab === 'staff' && (
+          <div className="flex flex-wrap gap-2 border-t pt-4 border-gray-100">
+            {[
+              { id: 'all', label: 'Tất cả', count: staffArr.length },
+              { id: 'admin', label: 'Quản trị viên', count: staffArr.filter(u => u.role === 'admin').length },
+              { id: 'doctor', label: 'Bác sĩ', count: staffArr.filter(u => u.role === 'doctor').length },
+              { id: 'nurse', label: 'Dược sĩ / Y tá', count: staffArr.filter(u => u.role === 'nurse').length },
+              { id: 'cashier', label: 'Thu ngân', count: staffArr.filter(u => u.role === 'cashier').length }
+            ].map(sub => (
+              <button
+                key={sub.id}
+                type="button"
+                onClick={() => setStaffRoleFilter(sub.id)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+                  staffRoleFilter === sub.id
+                    ? 'bg-blue-50 text-[#004e92] border-blue-200 shadow-sm'
+                    : 'bg-white hover:bg-gray-50 text-gray-500 border-gray-200'
+                }`}
+              >
+                {sub.label} ({sub.count})
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* TAB CONTENT */}
