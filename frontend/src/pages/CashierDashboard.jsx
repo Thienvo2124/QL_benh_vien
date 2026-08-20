@@ -84,7 +84,7 @@ const CashierDashboard = () => {
     dob: '',
     gender: 'Nam',
     dept: '',
-    doctor: 'BS. CKII Nguyễn Tuấn Lâm',
+    doctor: '',
     date: new Date().toLocaleDateString('sv-SE'),
     time: getCurrentTimeStr(),
     reason: 'Đến khám trực tiếp tại quầy',
@@ -130,7 +130,7 @@ const CashierDashboard = () => {
       dob: app.dob,
       gender: app.gender,
       dept: app.dept,
-      doctor: !app.doctor || app.doctor === 'Hệ thống tự phân công' || app.doctor.includes('phân công') ? 'BS. CKII Nguyễn Tuấn Lâm' : app.doctor,
+      doctor: !app.doctor || app.doctor === 'Hệ thống tự phân công' || app.doctor.includes('phân công') ? '' : app.doctor,
       date: app.date,
       time: app.time,
       fee: app.initialFee || 150000,
@@ -167,7 +167,7 @@ const CashierDashboard = () => {
           dob: data.appointment.dob,
           gender: data.appointment.gender,
           dept: data.appointment.dept,
-          doctor: !data.appointment.doctor || data.appointment.doctor === 'Hệ thống tự phân công' || data.appointment.doctor.includes('phân công') ? 'BS. CKII Nguyễn Tuấn Lâm' : data.appointment.doctor,
+          doctor: !data.appointment.doctor || data.appointment.doctor === 'Hệ thống tự phân công' || data.appointment.doctor.includes('phân công') ? '' : data.appointment.doctor,
           date: data.appointment.date,
           time: data.appointment.time,
           fee: data.appointment.initialFee,
@@ -237,7 +237,7 @@ const CashierDashboard = () => {
       dob: app.dob,
       gender: app.gender,
       dept: app.dept,
-      doctor: !app.doctor || app.doctor === 'Hệ thống tự phân công' || app.doctor.includes('phân công') ? 'BS. CKII Nguyễn Tuấn Lâm' : app.doctor,
+      doctor: !app.doctor || app.doctor === 'Hệ thống tự phân công' || app.doctor.includes('phân công') ? '' : app.doctor,
       date: app.date,
       time: app.time,
       fee: app.initialFee || 150000,
@@ -378,7 +378,7 @@ const CashierDashboard = () => {
           dob: '',
           gender: 'Nam',
           dept: '',
-          doctor: 'BS. CKII Nguyễn Tuấn Lâm',
+          doctor: '',
           date: new Date().toLocaleDateString('sv-SE'),
           time: getCurrentTimeStr(),
           reason: 'Đến khám trực tiếp tại quầy',
@@ -681,7 +681,7 @@ const CashierDashboard = () => {
                           <span className="bg-blue-50 text-[#004e92] text-xs font-bold px-2.5 py-1 rounded-full border border-blue-100">
                             {app.dept}
                           </span>
-                          <span className="text-xs text-gray-400 block mt-1">BS: {!app.doctor || app.doctor === 'Hệ thống tự phân công' || app.doctor.includes('phân công') ? 'BS. CKII Nguyễn Tuấn Lâm' : app.doctor}</span>
+                          <span className="text-xs text-gray-400 block mt-1">BS: {!app.doctor || app.doctor === 'Hệ thống tự phân công' || app.doctor.includes('phân công') ? '' : app.doctor}</span>
                         </td>
                         <td className="p-5">
                           <span className="font-bold text-gray-700">{app.time}</span>
@@ -817,7 +817,7 @@ const CashierDashboard = () => {
                           </span>
                         </td>
                         <td className="p-5 text-gray-700 font-semibold">
-                          {!app.doctor || app.doctor === 'Hệ thống tự phân công' || app.doctor.includes('phân công') ? 'BS. CKII Nguyễn Tuấn Lâm' : app.doctor}
+                          {!app.doctor || app.doctor === 'Hệ thống tự phân công' || app.doctor.includes('phân công') ? '' : app.doctor}
                         </td>
                         <td className="p-5 font-bold text-gray-700">
                           {app.time}
