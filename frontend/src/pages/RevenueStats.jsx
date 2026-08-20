@@ -138,12 +138,12 @@ const RevenueStats = () => {
     }
 
     if (tx.dept) {
-      if (chartType === 'revenue') {
-        localDeptMap[tx.dept] = (localDeptMap[tx.dept] || 0) + tx.totalFee;
-      } else {
-        if (tx.status === 'completed') {
-          localDeptMap[tx.dept] = (localDeptMap[tx.dept] || 0) + 1;
-        }
+      if (!localDeptMap[tx.dept]) {
+        localDeptMap[tx.dept] = { revenue: 0, count: 0 };
+      }
+      localDeptMap[tx.dept].revenue += tx.totalFee || 0;
+      if (tx.status === 'completed') {
+        localDeptMap[tx.dept].count += 1;
       }
     }
   });
@@ -154,8 +154,15 @@ const RevenueStats = () => {
 
   const localDeptData = Object.keys(localDeptMap).map(dept => ({
     dept,
-    value: localDeptMap[dept]
-  })).sort((a, b) => b.value - a.value);
+    revenue: localDeptMap[dept].revenue,
+    count: localDeptMap[dept].count
+  })).sort((a, b) => {
+    if (chartType === 'revenue') {
+      return b.revenue - a.revenue;
+    } else {
+      return b.count - a.count;
+    }
+  });
 
   // 4. Generate Chart Data (Supporting dynamic switch between Doanh thu and Số bệnh nhân đã khám)
   let localChartData = [];
@@ -238,7 +245,7 @@ const RevenueStats = () => {
   }
 
   const maxVal = localChartData.reduce((max, item) => Math.max(max, item.value || 0), 0) || 1;
-  const maxDeptRevenue = localDeptData.reduce((max, item) => Math.max(max, item.value || 0), 0) || 1;
+  const maxDeptRevenue = localDeptData.reduce((max, item) => Math.max(max, chartType === 'revenue' ? (item.revenue || 0) : (item.count || 0)), 0) || 1;
 
   // Payment method breakdowns
   const totalPayMethodRev = localCashRev + localTransferRev || 1;
@@ -528,16 +535,25 @@ const RevenueStats = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {localDeptData.length > 0 ? (
             localDeptData.map((item, idx) => {
-              const percentage = ((item.value || 0) / maxDeptRevenue) * 100;
+              const currentValue = chartType === 'revenue' ? (item.revenue || 0) : (item.count || 0);
+              const percentage = (currentValue / maxDeptRevenue) * 100;
               
               return (
                 <div key={idx} className="space-y-1.5">
                   <div className="flex justify-between items-center text-sm">
                     <span className="font-bold text-gray-700">{item.dept}</span>
-                    <span className="font-mono font-bold text-gray-900">
-                      {chartType === 'revenue' 
-                        ? `${(item.value || 0).toLocaleString('vi-VN')} đ` 
-                        : `${item.value || 0} lượt khám`}
+                    <span className="font-mono font-bold text-gray-900 flex items-center gap-1.5">
+                      {chartType === 'revenue' ? (
+                        <>
+                          <span className="text-gray-900">{(item.revenue || 0).toLocaleString('vi-VN')} đ</span>
+                          <span className="text-[11px] text-gray-400 font-sans font-semibold">({item.count || 0} lượt)</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-indigo-600">{item.count || 0} lượt khám</span>
+                          <span className="text-[11px] text-gray-400 font-sans font-semibold">({(item.revenue || 0).toLocaleString('vi-VN')} đ)</span>
+                        </>
+                      )}
                     </span>
                   </div>
                   <div className="h-2 w-full bg-gray-50 rounded-full overflow-hidden">
