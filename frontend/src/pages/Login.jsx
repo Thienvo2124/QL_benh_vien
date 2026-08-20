@@ -6,12 +6,13 @@ import Footer from '../components/Footer';
 import API_BASE_URL from '../config/api';
 
 const Login = () => {
-  const [mode, setMode] = useState('login'); // 'login' | 'change-password'
+  const [mode, setMode] = useState('login'); // 'login' | 'change-password' | 'forgot-password'
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [verification, setVerification] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -81,6 +82,43 @@ const Login = () => {
     }
   };
 
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+
+    if (newPassword !== confirmNewPassword) {
+      setError('Mật khẩu mới và xác nhận mật khẩu không khớp.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, verification, newPassword }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSuccess('Khôi phục mật khẩu thành công! Bạn có thể đăng nhập bằng mật khẩu mới.');
+        setMode('login');
+        setPassword('');
+        setVerification('');
+        setNewPassword('');
+        setConfirmNewPassword('');
+      } else {
+        setError(data.message || 'Khôi phục mật khẩu thất bại.');
+      }
+    } catch {
+      setError('Lỗi kết nối đến máy chủ.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
       <Header />
@@ -90,7 +128,7 @@ const Login = () => {
             Bệnh viện Nhân Dân
           </Link>
           <h2 className="mt-6 text-center text-2xl font-bold text-gray-900">
-            {mode === 'login' ? 'Đăng nhập tài khoản' : 'Thay đổi mật khẩu'}
+            {mode === 'login' ? 'Đăng nhập tài khoản' : mode === 'change-password' ? 'Thay đổi mật khẩu' : 'Khôi phục mật khẩu'}
           </h2>
         </div>
 
@@ -107,7 +145,7 @@ const Login = () => {
               </div>
             )}
 
-            {mode === 'login' ? (
+            {mode === 'login' && (
               <form className="space-y-6" onSubmit={handleSubmit}>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Số điện thoại</label>
@@ -131,7 +169,18 @@ const Login = () => {
                   />
                 </div>
 
-                <div className="flex items-center justify-end text-sm">
+                <div className="flex items-center justify-between text-sm">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode('forgot-password');
+                      setError('');
+                      setSuccess('');
+                    }}
+                    className="font-medium text-[#004e92] hover:text-blue-500"
+                  >
+                    Quên mật khẩu?
+                  </button>
                   <button
                     type="button"
                     onClick={() => {
@@ -153,7 +202,9 @@ const Login = () => {
                   {loading ? 'Đang xử lý...' : 'Đăng nhập'}
                 </button>
               </form>
-            ) : (
+            )}
+
+            {mode === 'change-password' && (
               <form className="space-y-6" onSubmit={handleChangePassword}>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Số điện thoại</label>
@@ -219,6 +270,80 @@ const Login = () => {
                   className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#004e92] hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#004e92] disabled:bg-gray-400"
                 >
                   {loading ? 'Đang xử lý...' : 'Xác nhận đổi mật khẩu'}
+                </button>
+              </form>
+            )}
+
+            {mode === 'forgot-password' && (
+              <form className="space-y-6" onSubmit={handleForgotPassword}>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Số điện thoại</label>
+                  <input
+                    type="tel"
+                    required
+                    className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#004e92] focus:border-[#004e92] sm:text-sm"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Số CCCD hoặc Email để xác minh</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Nhập Email hoặc số CCCD đã khai báo"
+                    className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#004e92] focus:border-[#004e92] sm:text-sm"
+                    value={verification}
+                    onChange={(e) => setVerification(e.target.value)}
+                  />
+                  <p className="mt-1 text-[11px] text-gray-400 italic">
+                    (Nếu tài khoản mới tạo chưa cập nhật hồ sơ, bạn có thể để trống hoặc nhập bất kỳ để tự động khôi phục)
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Mật khẩu mới</label>
+                  <input
+                    type="password"
+                    required
+                    className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#004e92] focus:border-[#004e92] sm:text-sm"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Xác nhận mật khẩu mới</label>
+                  <input
+                    type="password"
+                    required
+                    className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#004e92] focus:border-[#004e92] sm:text-sm"
+                    value={confirmNewPassword}
+                    onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  />
+                </div>
+
+                <div className="flex items-center justify-end text-sm">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode('login');
+                      setError('');
+                      setSuccess('');
+                    }}
+                    className="font-medium text-[#004e92] hover:text-blue-500"
+                  >
+                    Quay lại Đăng nhập
+                  </button>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#004e92] hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#004e92] disabled:bg-gray-400"
+                >
+                  {loading ? 'Đang xử lý...' : 'Đặt lại mật khẩu'}
                 </button>
               </form>
             )}

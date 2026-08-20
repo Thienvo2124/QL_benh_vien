@@ -115,4 +115,53 @@ router.post("/change-password", async (req, res) => {
   }
 });
 
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { phone, verification, newPassword } = req.body;
+
+    if (!phone || !newPassword) {
+      return res.status(400).json({ message: "Vui lòng nhập số điện thoại và mật khẩu mới." });
+    }
+
+    const user = await User.findOne({ phone });
+    if (!user) {
+      return res.status(400).json({ message: "Số điện thoại không tồn tại trên hệ thống." });
+    }
+
+    // Check if the user has email or idCard set in DB
+    const dbEmail = user.email ? user.email.trim().toLowerCase() : "";
+    const dbIdCard = user.idCard ? user.idCard.trim() : "";
+
+    if (dbEmail || dbIdCard) {
+      if (!verification) {
+        return res.status(400).json({ 
+          message: "Tài khoản đã được liên kết thông tin bảo mật. Vui lòng nhập đúng Email hoặc CCCD để xác minh." 
+        });
+      }
+      
+      const inputVer = verification.trim().toLowerCase();
+      const matchEmail = dbEmail && inputVer === dbEmail;
+      const matchIdCard = dbIdCard && verification.trim() === dbIdCard;
+
+      if (!matchEmail && !matchIdCard) {
+        logActivity("Khôi phục mật khẩu thất bại (Xác minh không khớp)", `Tài khoản: ${phone}`, req.ip || "127.0.0.1", "Thất bại");
+        return res.status(400).json({ message: "Thông tin xác minh (Email hoặc CCCD) không chính xác." });
+      }
+    }
+
+    // Reset password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    user.password = hashedPassword;
+    await user.save();
+
+    logActivity("Khôi phục mật khẩu thành công", `Tài khoản: ${phone}`, req.ip || "127.0.0.1", "Thành công");
+
+    res.json({ message: "Đặt lại mật khẩu thành công!" });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+});
+
 module.exports = router;
