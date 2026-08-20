@@ -2026,24 +2026,26 @@ const CashierDashboard = () => {
                   >
                     Đóng / Hủy bỏ
                   </button>
-                  <button
-                    onClick={async () => {
-                      if (receiptData.type === 'exam') {
-                        const updatedApp = await handlePayExamFeeConfirm(receiptData.appId, receiptData.paymentMethod);
-                        if (updatedApp) {
+                  {receiptData.paymentMethod !== 'Chuyển khoản' && (
+                    <button
+                      onClick={async () => {
+                        if (receiptData.type === 'exam') {
+                          const updatedApp = await handlePayExamFeeConfirm(receiptData.appId, receiptData.paymentMethod);
+                          if (updatedApp) {
+                            // Tự động in sau khi thanh toán thành công
+                            setTimeout(() => window.print(), 500);
+                          }
+                        } else {
+                          handlePayPrescriptionConfirm(receiptData.id, receiptData.paymentMethod);
                           // Tự động in sau khi thanh toán thành công
                           setTimeout(() => window.print(), 500);
                         }
-                      } else {
-                        handlePayPrescriptionConfirm(receiptData.id, receiptData.paymentMethod);
-                        // Tự động in sau khi thanh toán thành công
-                        setTimeout(() => window.print(), 500);
-                      }
-                    }}
-                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-2xl transition-colors shadow-lg text-sm flex items-center justify-center gap-1.5"
-                  >
-                    ✓ Xác nhận thanh toán
-                  </button>
+                      }}
+                      className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-2xl transition-colors shadow-lg text-sm flex items-center justify-center gap-1.5"
+                    >
+                      ✓ Xác nhận thanh toán
+                    </button>
+                  )}
                 </>
               ) : (
                 <>
