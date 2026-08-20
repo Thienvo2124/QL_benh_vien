@@ -3,74 +3,76 @@ import { FileText, Calendar, Clock, User, Pill, CheckCircle, Search, Award, Prin
 import { AuthContext } from '../contexts/AuthContext';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import API_BASE_URL from '../config/api';
 
-const sampleRecords = [
-  {
-    id: 'HS-2026-001',
-    patientName: 'Nguyễn Văn A',
-    age: 31,
-    gender: 'Nam',
-    weight: '62 kg',
-    address: 'Số 1 Nơ Trang Long, P. Gia Định, Hà Nội',
-    date: '28/06/2026',
-    dept: 'Da liễu & Dị ứng',
-    doctor: 'BS. CKII Nguyễn Tuấn Lâm',
-    symptoms: 'Mẩn ngứa quanh cổ và cánh tay, xuất hiện nhiều về đêm, da khô đỏ.',
-    diagnosis: 'Viêm da dị ứng tiếp xúc / Mề đay mãn tính.',
-    treatment: 'Dùng thuốc kháng histamin giảm ngứa, bôi kem đặc trị tại chỗ và kiêng xà phòng mạnh.',
-    patientCode: '0029187302',
-    orderCode: '000000432904',
-    treatCode: '000000128400',
-    medicines: [
-      { name: 'Cetirizine 10mg (Cetimed 10mg)', qty: '20', unit: 'Viên', usage: 'Uống tối 1 viên sau ăn' },
-      { name: 'Hightamine 5.0mg + 25mg... (Vitamin A+D2+B1+B2+PP+B6+B12+C+E + B5 + acid folic)', qty: '40', unit: 'Viên', usage: 'Uống ngày 2 lần sáng chiều mỗi lần 1 viên' },
-      { name: 'Kẽm (dưới dạng kẽm gluconat 10mg) (Conipa pure 10ml)', qty: '20', unit: 'Ống', usage: 'Uống sáng 1 ống' },
-      { name: 'Mometason furoat 0.1% (Locgoda 0.1% 15g)', qty: '02', unit: 'Tuýp', usage: 'Bôi chỗ ngứa ngày 2 lần sáng chiều, bôi mỏng trong 7-10 ngày' }
-    ],
-    advice: 'Đã tư vấn kỹ cho bệnh nhân về đơn thuốc và đơn tư vấn và bệnh nhân đồng ý sử dụng, khám lại sau 3 tuần.'
-  },
-  {
-    id: 'HS-2025-102',
-    patientName: 'Nguyễn Văn A',
-    age: 31,
-    gender: 'Nam',
-    weight: '60 kg',
-    address: 'Số 1 Nơ Trang Long, P. Gia Định, Hà Nội',
-    date: '15/12/2025',
-    dept: 'Tim mạch',
-    doctor: 'BS. Trần Thị B',
-    symptoms: 'Hồi hộp, thỉnh thoảng nhói tim khi làm việc nặng.',
-    diagnosis: 'Huyết áp hơi cao do căng thẳng công việc (Stress).',
-    treatment: 'Điều chỉnh chế độ ăn giảm mặn, không thức khuya, theo dõi chỉ số huyết áp hàng ngày.',
-    patientCode: '0029187302',
-    orderCode: '000000432888',
-    treatCode: '000000128555',
-    medicines: [
-      { name: 'Amlodipine 5mg (Amlor 5mg)', qty: '30', unit: 'Viên', usage: 'Uống 1 viên vào buổi sáng sau ăn' },
-      { name: 'Magnesium B6 (Magnerot 500mg)', qty: '60', unit: 'Viên', usage: 'Uống ngày 2 lần sáng tối, mỗi lần 1 viên' }
-    ],
-    advice: 'Kiểm tra huyết áp đều đặn mỗi sáng, hạn chế ăn mặn và tập thể dục nhẹ nhàng 30 phút mỗi ngày.'
-  }
-];
+const getCurrentYear = () => new Date().getFullYear();
 
 const MyRecords = () => {
   const { user } = useContext(AuthContext);
   const [search, setSearch] = useState('');
   const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
-
-  // Lọc bệnh án của chính user đăng nhập dựa trên Tên bệnh nhân
-  const myRecords = sampleRecords.filter(rec => 
-    user?.fullName && rec.patientName.toLowerCase() === user.fullName.toLowerCase()
-  );
-
+  const [records, setRecords] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedRecord, setSelectedRecord] = useState(null);
 
-  // Chọn bệnh án đầu tiên khi danh sách tải xong hoặc khi người dùng thay đổi
-  useEffect(() => {
-    setSelectedRecord(myRecords[0] || null);
-  }, [user?.fullName]);
+  const calculateAge = (dobString) => {
+    if (!dobString) return 30;
+    const year = new Date(dobString).getFullYear();
+    const currentYear = new Date().getFullYear();
+    return currentYear - year || 30;
+  };
 
-  const filteredRecords = myRecords.filter(rec => 
+  useEffect(() => {
+    const fetchMyRecords = async () => {
+      setLoading(true);
+      try {
+        const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+        const res = await fetch(`${API_BASE_URL}/api/appointments/my`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          // Chỉ lấy các ca khám đã hoàn thành hoặc đã được bác sĩ chẩn đoán kê đơn
+          const completedApp = data.filter(app => app.diagnosis || app.status === 'completed');
+          const mapped = completedApp.map(app => ({
+            id: app.appointmentCode || app._id,
+            patientName: app.name,
+            age: calculateAge(app.dob),
+            gender: app.gender || 'Nam',
+            weight: app.weight || '60 kg',
+            address: app.address || '',
+            date: new Date(app.date).toLocaleDateString('vi-VN'),
+            dept: app.dept,
+            doctor: app.doctor || 'Bác sĩ hệ thống',
+            symptoms: app.symptoms || '',
+            diagnosis: app.diagnosis || '',
+            treatment: app.treatment || '',
+            patientCode: app.appointmentCode || '',
+            orderCode: app.appointmentCode ? 'HD-' + app.appointmentCode.slice(-6) : '',
+            treatCode: app.appointmentCode ? 'DT-' + app.appointmentCode.slice(-6) : '',
+            medicines: app.prescription || [],
+            advice: app.advice || ''
+          }));
+          setRecords(mapped);
+          if (mapped.length > 0) {
+            setSelectedRecord(mapped[0]);
+          }
+        }
+      } catch (err) {
+        console.error('Lỗi khi tải lịch sử khám bệnh:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchMyRecords();
+    }
+  }, [user]);
+
+  const filteredRecords = records.filter(rec => 
     rec.dept.toLowerCase().includes(search.toLowerCase()) || 
     rec.doctor.toLowerCase().includes(search.toLowerCase()) ||
     rec.diagnosis.toLowerCase().includes(search.toLowerCase())
@@ -255,7 +257,7 @@ const MyRecords = () => {
             ) : (
               <div className="bg-white p-12 rounded-3xl text-center text-gray-500 border border-gray-100 shadow-sm flex flex-col items-center justify-center min-h-[300px]">
                 <FileText className="w-12 h-12 text-gray-300 mb-3" />
-                {myRecords.length === 0 ? (
+                {records.length === 0 ? (
                   <p className="font-medium">Bạn chưa có lịch sử khám bệnh hoặc hồ sơ bệnh án nào tại Bệnh viện.</p>
                 ) : (
                   <p className="font-medium">Chọn một hồ sơ bệnh án bên trái để xem chi tiết.</p>
