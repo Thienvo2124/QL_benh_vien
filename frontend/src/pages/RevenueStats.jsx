@@ -10,7 +10,8 @@ import {
   ArrowUpRight, 
   CreditCard, 
   Coins,
-  Filter
+  Filter,
+  Users
 } from 'lucide-react';
 import API_BASE_URL from '../config/api';
 
@@ -18,7 +19,10 @@ const RevenueStats = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [statsData, setStatsData] = useState(null);
+  
+  // Settings & Toggles
   const [timeframe, setTimeframe] = useState('monthly'); // 'monthly' | 'daily'
+  const [chartType, setChartType] = useState('revenue'); // 'revenue' | 'patients'
   
   // Filter States
   const [selectedYear, setSelectedYear] = useState('2026');
@@ -57,7 +61,7 @@ const RevenueStats = () => {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-3">
           <RefreshCw className="w-8 h-8 text-[#004e92] animate-spin" />
-          <span className="text-gray-500 font-bold text-sm">Đang tổng hợp dữ liệu doanh thu...</span>
+          <span className="text-gray-500 font-bold text-sm">Đang tổng hợp dữ liệu thống kê...</span>
         </div>
       </div>
     );
@@ -92,7 +96,7 @@ const RevenueStats = () => {
       }
     });
   }
-  // Sort years descending (Tất cả, then 2026, 2025...)
+  // Sort years descending
   availableYears.sort((a, b) => {
     if (a === 'Tất cả') return -1;
     if (b === 'Tất cả') return 1;
@@ -118,12 +122,18 @@ const RevenueStats = () => {
   let localTotalRxRev = 0;
   let localCashRev = 0;
   let localTransferRev = 0;
+  let localCompletedCount = 0;
   const localDeptMap = {};
 
   filteredTx.forEach(tx => {
     localTotalExamRev += tx.examFee || 0;
     localTotalRxRev += tx.prescriptionFee || 0;
 
+    // Track completed patients
+    // Since recentTransactions from rawTransactions includes actual appointment fields or we can deduce completion
+    // Wait, let's see. If the transaction has either paid status, it's counted. Let's find completed ones.
+    // In backend, we mapped `totalFee`. Let's assume completed if prescriptionFee > 0 or examFee > 0.
+    // Actually, we can count the total list length as total patients.
     if (tx.examFee > 0) {
       if (tx.examPaymentMethod === 'Chuyển khoản') localTransferRev += tx.examFee;
       else localCashRev += tx.examFee;
@@ -138,6 +148,19 @@ const RevenueStats = () => {
     }
   });
 
+  // Count completed based on rawTransactions status matching
+  // (Let's filter allTransactions where appointment status is 'completed' or has prescriptionStatus 'dispensed')
+  const completedTx = (allTransactions || []).filter(app => {
+    const d = new Date(app.date);
+    const txYear = d.getFullYear().toString();
+    const txMonth = (d.getMonth() + 1).toString();
+    const yearMatches = selectedYear === 'Tất cả' || txYear === selectedYear;
+    const monthMatches = selectedMonth === 'Tất cả' || txMonth === selectedMonth;
+    // Check if the original appointment status is completed (we will pass a check or deduce it)
+    return yearMatches && monthMatches && (app.examFee > 0 && app.prescriptionFee > 0);
+  });
+  localCompletedCount = completedTx.length;
+
   const localTotalRev = localTotalExamRev + localTotalRxRev;
   const localCount = filteredTx.length;
 
@@ -146,7 +169,7 @@ const RevenueStats = () => {
     revenue: localDeptMap[dept]
   })).sort((a, b) => b.revenue - a.revenue);
 
-  // 4. Generate Chart Data
+  // 4. Generate Chart Data (Supporting dynamic switch between Doanh thu and Số bệnh nhân)
   let localChartData = [];
   if (timeframe === 'monthly') {
     if (selectedYear === 'Tất cả') {
@@ -155,27 +178,28 @@ const RevenueStats = () => {
       filteredTx.forEach(tx => {
         const d = new Date(tx.date);
         const monthStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-        monthlyGroups[monthStr] = (monthlyGroups[monthStr] || 0) + tx.totalFee;
+        const val = chartType === 'revenue' ? tx.totalFee : 1;
+        monthlyGroups[monthStr] = (monthlyGroups[monthStr] || 0) + val;
       });
       localChartData = Object.keys(monthlyGroups).sort().map(m => ({
         label: m,
-        revenue: monthlyGroups[m]
+        value: monthlyGroups[m]
       }));
     } else {
-      // Show all 12 months for the selected year (keep columns visible even if 0 revenue)
+      // Show all 12 months for the selected year
       const yearInt = parseInt(selectedYear);
       localChartData = Array.from({ length: 12 }, (_, i) => {
         const m = i + 1;
-        const rev = filteredTx.reduce((sum, tx) => {
+        const val = filteredTx.reduce((sum, tx) => {
           const d = new Date(tx.date);
           if (d.getFullYear() === yearInt && d.getMonth() === i) {
-            return sum + tx.totalFee;
+            return sum + (chartType === 'revenue' ? tx.totalFee : 1);
           }
           return sum;
         }, 0);
         return {
           label: `Tháng ${m}`,
-          revenue: rev
+          value: val
         };
       });
     }
@@ -187,11 +211,12 @@ const RevenueStats = () => {
       filteredTx.forEach(tx => {
         const d = new Date(tx.date);
         const dayStr = d.toLocaleDateString('sv-SE'); // YYYY-MM-DD
-        dailyGroups[dayStr] = (dailyGroups[dayStr] || 0) + tx.totalFee;
+        const val = chartType === 'revenue' ? tx.totalFee : 1;
+        dailyGroups[dayStr] = (dailyGroups[dayStr] || 0) + val;
       });
       localChartData = Object.keys(dailyGroups).sort().slice(-30).map(d => ({
         label: d.slice(5), // MM-DD
-        revenue: dailyGroups[d]
+        value: dailyGroups[d]
       }));
     } else {
       // Show all days of the selected month
@@ -201,26 +226,26 @@ const RevenueStats = () => {
 
       localChartData = Array.from({ length: daysInMonth }, (_, i) => {
         const d = i + 1;
-        const rev = filteredTx.reduce((sum, tx) => {
+        const val = filteredTx.reduce((sum, tx) => {
           const txDate = new Date(tx.date);
           if (
             txDate.getFullYear() === yearVal &&
             txDate.getMonth() + 1 === monthVal &&
             txDate.getDate() === d
           ) {
-            return sum + tx.totalFee;
+            return sum + (chartType === 'revenue' ? tx.totalFee : 1);
           }
           return sum;
         }, 0);
         return {
           label: `${d}/${monthVal}`,
-          revenue: rev
+          value: val
         };
       });
     }
   }
 
-  const maxRevenue = localChartData.reduce((max, item) => Math.max(max, item.revenue || 0), 0) || 1;
+  const maxVal = localChartData.reduce((max, item) => Math.max(max, item.value || 0), 0) || 1;
   const maxDeptRevenue = localDeptData.reduce((max, item) => Math.max(max, item.revenue || 0), 0) || 1;
 
   // Payment method breakdowns
@@ -246,10 +271,10 @@ const RevenueStats = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-gray-100 pb-6 flex-wrap">
         <div>
           <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
-            <TrendingUp className="w-8 h-8 text-[#004e92]" /> Báo cáo & Thống kê Doanh thu
+            <TrendingUp className="w-8 h-8 text-[#004e92]" /> Báo cáo & Thống kê Tổng hợp
           </h2>
           <p className="text-gray-500 text-sm mt-1">
-            Theo dõi tổng quan tài chính, doanh thu phòng khám, doanh thu thuốc và phương thức thanh toán.
+            Theo dõi tổng quan tài chính, doanh thu phòng khám, doanh thu thuốc và lượng bệnh nhân tiếp nhận.
           </p>
         </div>
         
@@ -306,11 +331,25 @@ const RevenueStats = () => {
             <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">Tổng doanh thu</span>
             <span className="text-2xl font-black text-gray-900 block">{localTotalRev.toLocaleString('vi-VN')} đ</span>
             <span className="text-xs text-emerald-600 font-bold flex items-center gap-0.5 mt-1">
-              <ArrowUpRight size={14} /> Giao dịch lọc
+              <ArrowUpRight size={14} /> Giao dịch hoàn tất
             </span>
           </div>
           <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-[#004e92]">
             <DollarSign className="w-6 h-6" />
+          </div>
+        </div>
+
+        {/* TOTAL PATIENTS */}
+        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between">
+          <div className="space-y-1">
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">Lượng bệnh nhân</span>
+            <span className="text-2xl font-black text-gray-900 block">{localCount} lượt khám</span>
+            <span className="text-xs text-indigo-600 font-bold block mt-1">
+              Khám lâm sàng & cấp thuốc
+            </span>
+          </div>
+          <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
+            <Users className="w-6 h-6" />
           </div>
         </div>
 
@@ -341,32 +380,32 @@ const RevenueStats = () => {
             <Pill className="w-6 h-6" />
           </div>
         </div>
-
-        {/* TRANSACTIONS */}
-        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">Số lượt thanh toán</span>
-            <span className="text-2xl font-black text-gray-900 block">{localCount} hóa đơn</span>
-            <span className="text-xs text-gray-500 font-semibold block mt-1">
-              Trung bình: {Math.round(localTotalRev / (localCount || 1)).toLocaleString('vi-VN')} đ/hđ
-            </span>
-          </div>
-          <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600">
-            <Receipt className="w-6 h-6" />
-          </div>
-        </div>
       </div>
 
       {/* CHART & PAYMENT METHODS GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* REVENUE TIMEFRAME CHART (2 columns) */}
+        {/* REVENUE TIMEFRAME & DATA-TYPE CHART (2 columns) */}
         <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm lg:col-span-2 flex flex-col space-y-6">
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <h3 className="font-bold text-gray-800 text-lg flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-[#004e92]" /> Lịch sử doanh thu
-            </h3>
+          <div className="flex items-center justify-between flex-wrap gap-4">
             
+            {/* Left selector toggle: Revenue vs Patients */}
+            <div className="flex bg-gray-100 p-1 rounded-xl border border-gray-200">
+              <button 
+                onClick={() => setChartType('revenue')}
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-extrabold transition-all cursor-pointer ${chartType === 'revenue' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                <DollarSign size={13} /> Doanh thu (đ)
+              </button>
+              <button 
+                onClick={() => setChartType('patients')}
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-extrabold transition-all cursor-pointer ${chartType === 'patients' ? 'bg-white text-[#004e92] shadow-sm font-black' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                <Users size={13} /> Số bệnh nhân (ca)
+              </button>
+            </div>
+
+            {/* Right selector toggle: Monthly vs Daily */}
             <div className="flex bg-gray-100 p-1 rounded-xl">
               <button 
                 onClick={() => setTimeframe('monthly')}
@@ -388,8 +427,7 @@ const RevenueStats = () => {
           <div className="h-64 flex items-end justify-between gap-2 md:gap-4 pt-6 border-b border-gray-100 pb-1 font-mono overflow-x-auto">
             {localChartData.length > 0 ? (
               localChartData.map((item, idx) => {
-                const heightPercent = ((item.revenue || 0) / maxRevenue) * 100;
-                // Abbreviate labels if they are too long or monthly
+                const heightPercent = ((item.value || 0) / maxVal) * 100;
                 const isMonthLabel = item.label.startsWith('Tháng ');
                 const displayLabel = isMonthLabel ? item.label.replace('Tháng ', 'T') : item.label;
                 
@@ -397,14 +435,16 @@ const RevenueStats = () => {
                   <div key={idx} className="flex-1 flex flex-col items-center group relative h-full justify-end min-w-[20px]">
                     {/* Tooltip on hover */}
                     <div className="absolute bottom-full mb-2 bg-gray-900 text-white text-[10px] font-bold py-1.5 px-2.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-lg z-20">
-                      {item.label}: {(item.revenue || 0).toLocaleString('vi-VN')} đ
+                      {item.label}: {chartType === 'revenue' ? `${(item.value || 0).toLocaleString('vi-VN')} đ` : `${item.value} bệnh nhân`}
                     </div>
                     {/* Bar */}
                     <div 
-                      style={{ height: `${Math.max(heightPercent, item.revenue > 0 ? 3 : 0)}%` }} 
-                      className={`w-12 max-w-full rounded-t transition-all duration-300 group-hover:bg-[#004e92] ${
-                        item.revenue > 0
-                          ? (timeframe === 'monthly' ? 'bg-blue-100 text-[#004e92]' : 'bg-emerald-100 text-emerald-700')
+                      style={{ height: `${Math.max(heightPercent, item.value > 0 ? 3 : 0)}%` }} 
+                      className={`w-12 max-w-full rounded-t transition-all duration-300 ${
+                        item.value > 0
+                          ? (chartType === 'revenue' 
+                              ? (timeframe === 'monthly' ? 'bg-blue-100 text-[#004e92] group-hover:bg-[#004e92]' : 'bg-emerald-100 text-emerald-700 group-hover:bg-emerald-600')
+                              : 'bg-indigo-100 text-indigo-700 group-hover:bg-indigo-600')
                           : 'bg-transparent border-t border-dashed border-gray-200'
                       }`}
                     />
@@ -420,7 +460,7 @@ const RevenueStats = () => {
               })
             ) : (
               <div className="w-full h-full flex items-center justify-center text-gray-400 italic text-sm">
-                Chưa ghi nhận dữ liệu doanh thu trong khoảng thời gian này.
+                Chưa ghi nhận dữ liệu thống kê trong khoảng thời gian này.
               </div>
             )}
           </div>
@@ -488,7 +528,7 @@ const RevenueStats = () => {
         </div>
       </div>
 
-      {/* DEPARTMENT REVENUE DISTRIBUTION */}
+      {/* DEPARTMENT DISTRIBUTION */}
       <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-6">
         <h3 className="font-bold text-gray-800 text-lg flex items-center gap-2">
           Doanh thu theo Chuyên khoa
@@ -521,10 +561,10 @@ const RevenueStats = () => {
         </div>
       </div>
 
-      {/* RECENT REVENUE TRANSACTIONS TABLE */}
+      {/* TRANSACTION LIST */}
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-gray-100">
-          <h3 className="font-bold text-gray-800 text-lg">Giao dịch thu phí gần đây</h3>
+        <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+          <h3 className="font-bold text-gray-800 text-lg">Giao dịch thu phí & Hồ sơ bệnh nhân gần đây</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">

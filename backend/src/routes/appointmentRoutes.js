@@ -263,11 +263,7 @@ router.get("/revenue-stats", protect, async (req, res) => {
     }
 
     const appointments = await Appointment.find({
-      isDeleted: { $ne: true },
-      $or: [
-        { paymentStatus: "paid" },
-        { prescriptionStatus: { $in: ["paid", "dispensed"] } }
-      ]
+      isDeleted: { $ne: true }
     });
 
     let totalExamRevenue = 0;
