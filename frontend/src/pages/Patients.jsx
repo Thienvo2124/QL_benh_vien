@@ -100,7 +100,8 @@ const Patients = () => {
   const waitingList = appointments.filter(app => app.status === 'approved' && app.paymentStatus === 'paid');
 
   const dbRecords = appointments.filter(app => app.status === 'completed').map(app => ({
-    id: app._id,
+    id: app.appointmentCode || app._id,
+    dbId: app._id,
     queueNumber: app.queueNumber,
     patientName: app.name,
     age: calculateAge(app.dob),
@@ -154,7 +155,7 @@ const Patients = () => {
   };
 
   const handleOpenEditModal = (rec) => {
-    setEditingRecordId(rec.id);
+    setEditingRecordId(rec.dbId);
     setNewPatientName(rec.patientName);
     setNewAge(rec.age);
     setNewGender(rec.gender || 'Nam');
@@ -617,7 +618,7 @@ const Patients = () => {
                             <Pencil className="w-4 h-4 transform group-hover:scale-110 transition-transform" />
                           </button>
                           <button
-                            onClick={() => handleDeleteRecord(rec.id, rec.patientName)}
+                            onClick={() => handleDeleteRecord(rec.dbId, rec.patientName)}
                             className="p-2.5 bg-red-50 hover:bg-red-600 text-red-600 hover:text-white rounded-xl transition-all shadow-sm group"
                             title="Xóa Hồ sơ Bệnh án"
                           >
@@ -688,70 +689,70 @@ const Patients = () => {
                 </div>
               </div>
 
-              {/* Thông tin y khoa */}
-              <div className="space-y-4">
-                <div className="bg-blue-50/50 p-5 rounded-2xl border border-blue-100 space-y-2">
-                  <div className="text-xs font-bold text-[#004e92] uppercase tracking-wider flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 text-amber-600" /> Triệu chứng lâm sàng
+              {/* Thông tin y khoa - Gom vào một bảng phân vùng duy nhất */}
+              <div className="bg-slate-50 border border-gray-200 rounded-2xl p-5 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 divide-y md:divide-y-0 md:divide-x divide-gray-200">
+                  {/* Triệu chứng */}
+                  <div className="space-y-1 md:pr-4">
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+                      <AlertCircle className="w-3.5 h-3.5 text-amber-600" /> Triệu chứng lâm sàng
+                    </span>
+                    <p className="text-gray-800 text-sm font-medium leading-relaxed">
+                      {currentRecord.symptoms || <span className="text-gray-400 italic">Không ghi nhận</span>}
+                    </p>
                   </div>
-                  <p className="text-gray-800 font-medium pl-6 border-l-2 border-[#004e92]">
-                    {currentRecord.symptoms}
-                  </p>
-                </div>
-
-                <div className="bg-green-50/50 p-5 rounded-2xl border border-green-100 space-y-2">
-                  <div className="text-xs font-bold text-green-700 uppercase tracking-wider flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" /> Chẩn đoán bệnh lý
+                  {/* Chẩn đoán */}
+                  <div className="space-y-1 md:px-6 pt-4 md:pt-0">
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+                      <CheckCircle className="w-3.5 h-3.5 text-green-600" /> Chẩn đoán bệnh lý
+                    </span>
+                    <p className="text-[#004e92] text-base font-extrabold leading-relaxed">
+                      {currentRecord.diagnosis || <span className="text-gray-400 italic">Chưa chẩn đoán</span>}
+                    </p>
                   </div>
-                  <p className="text-gray-900 text-lg font-bold pl-6 border-l-2 border-green-500">
-                    {currentRecord.diagnosis}
-                  </p>
-                </div>
-
-                <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 space-y-2">
-                  <div className="text-xs font-bold text-gray-600 uppercase tracking-wider flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-blue-600" /> Phác đồ & Hướng dẫn điều trị
+                  {/* Phác đồ */}
+                  <div className="space-y-1 md:pl-6 pt-4 md:pt-0">
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-blue-500" /> Phác đồ & Lời khuyên
+                    </span>
+                    <p className="text-gray-700 text-sm italic leading-relaxed">
+                      {currentRecord.treatment || <span className="text-gray-400 italic">Chưa có hướng dẫn</span>}
+                    </p>
                   </div>
-                  <p className="text-gray-700 italic pl-6 border-l-2 border-blue-500">
-                    {currentRecord.treatment}
-                  </p>
                 </div>
               </div>
 
               {/* Thuốc */}
-              <div className="space-y-4">
-                <h4 className="font-bold text-gray-900 flex items-center gap-2 text-base border-b border-gray-100 pb-2">
-                  <Pill className="w-5 h-5 text-[#004e92]" /> Đơn thuốc chỉ định ({currentRecord.medicines.length})
+              <div className="space-y-3">
+                <h4 className="font-bold text-gray-900 flex items-center gap-2 text-sm border-b border-gray-100 pb-1.5">
+                  <Pill className="w-4 h-4 text-[#004e92]" /> Đơn thuốc chỉ định ({currentRecord.medicines.length})
                 </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {currentRecord.medicines.map((med, i) => (
-                    <div key={i} className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-lg">💊</div>
-                      <div>
-                        <div className="font-bold text-gray-900 text-sm">{med.name}</div>
-                        <div className="text-xs text-[#004e92] font-semibold bg-blue-50 px-2 py-0.5 rounded my-1 w-max border border-blue-100">
-                          SL: {med.qty} {med.unit}
+                {currentRecord.medicines.length === 0 ? (
+                  <p className="text-xs text-gray-400 italic">Không có thuốc chỉ định trong bệnh án này.</p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {currentRecord.medicines.map((med, i) => (
+                      <div key={i} className="bg-white p-3.5 rounded-xl border border-gray-200 shadow-sm flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-sm shrink-0 border border-blue-100">💊</div>
+                        <div className="space-y-0.5">
+                          <div className="font-bold text-gray-900 text-xs">{med.name}</div>
+                          <div className="text-[10px] text-[#004e92] font-semibold bg-blue-50 px-2 py-0.5 rounded w-max border border-blue-100">
+                            SL: {med.qty} {med.unit}
+                          </div>
+                          <div className="text-[11px] text-gray-500 leading-normal">{med.usage}</div>
                         </div>
-                        <div className="text-xs text-gray-500">{med.usage}</div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Nhật ký cập nhật của Bác sĩ - Chỉ Admin xem được */}
               {user?.role === 'admin' && (currentRecord.updatedBy || currentRecord.updatedByRole) && (
-                <div className="bg-red-50/50 p-5 rounded-2xl border border-red-100 space-y-2">
-                  <div className="text-xs font-bold text-red-700 uppercase tracking-wider flex items-center gap-2">
-                    <ShieldPlus className="w-4 h-4 text-red-600" /> Nhật ký sửa đổi (Chỉ Admin xem được)
-                  </div>
-                  <div className="text-xs text-gray-700 pl-6 border-l-2 border-red-500 space-y-1">
-                    <div>
-                      Người cập nhật cuối cùng: <strong className="text-gray-900">{currentRecord.updatedBy || 'N/A'}</strong>
-                    </div>
-                    <div>
-                      Vai trò tài khoản: <strong className="text-gray-900 capitalize">{currentRecord.updatedByRole || 'N/A'}</strong>
-                    </div>
+                <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-2.5 flex items-center gap-2 text-xs text-red-800">
+                  <ShieldPlus className="w-4 h-4 shrink-0 text-red-600" />
+                  <div>
+                    Nhật ký cập nhật cuối: <span className="font-bold">{currentRecord.updatedBy || 'N/A'}</span> ({currentRecord.updatedByRole || 'N/A'})
                   </div>
                 </div>
               )}
