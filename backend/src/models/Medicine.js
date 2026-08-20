@@ -48,6 +48,11 @@ const medicineSchema = new mongoose.Schema(
       type: Date,
       required: [true, "Vui lòng nhập ngày hết hạn"],
     },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
   },
   { timestamps: true }
 );

@@ -10,7 +10,7 @@ const router = express.Router();
 router.get("/", protect, adminOrDoctorOnly, async (req, res) => {
   try {
     const { search, category } = req.query;
-    const filter = {};
+    const filter = { isDeleted: { $ne: true } };
 
     if (search) {
       filter.name = { $regex: search, $options: "i" };
@@ -22,6 +22,46 @@ router.get("/", protect, adminOrDoctorOnly, async (req, res) => {
 
     const medicines = await Medicine.find(filter).sort({ name: 1 }).select("-__v");
     return res.json(medicines);
+  } catch (error) {
+    return res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+});
+
+// GET /api/medicines/trash
+// Lấy danh sách thuốc trong thùng rác
+router.get("/trash", protect, adminOrDoctorOnly, async (req, res) => {
+  try {
+    const medicines = await Medicine.find({ isDeleted: true })
+      .sort({ updatedAt: -1 })
+      .select("-__v");
+    return res.json(medicines);
+  } catch (error) {
+    return res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+});
+
+// PATCH /api/medicines/:id/restore
+// Khôi phục thuốc từ thùng rác
+router.patch("/:id/restore", protect, adminOrDoctorOnly, async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "ID thuốc không hợp lệ." });
+    }
+
+    const medicine = await Medicine.findById(req.params.id);
+    if (!medicine) {
+      return res.status(404).json({ message: "Không tìm thấy thuốc." });
+    }
+
+    medicine.isDeleted = false;
+    await medicine.save();
+
+    logActivity(`Khôi phục thuốc vào kho (${medicine.name})`, `Tài khoản: ${req.user.fullName || req.user.phone}`, req.ip || "127.0.0.1", "Thành công");
+
+    return res.json({
+      message: "Khôi phục thuốc thành công.",
+      medicine,
+    });
   } catch (error) {
     return res.status(500).json({ message: "Lỗi server", error: error.message });
   }
@@ -154,14 +194,17 @@ router.delete("/:id", protect, adminOrDoctorOnly, async (req, res) => {
       return res.status(400).json({ message: "ID thuốc không hợp lệ." });
     }
 
-    const medicine = await Medicine.findByIdAndDelete(req.params.id);
+    const medicine = await Medicine.findById(req.params.id);
     if (!medicine) {
       return res.status(404).json({ message: "Không tìm thấy thuốc." });
     }
 
-    logActivity(`Xóa thuốc khỏi kho (${medicine.name})`, `Tài khoản: ${req.user.fullName || req.user.phone}`, req.ip || "127.0.0.1", "Thành công");
+    medicine.isDeleted = true;
+    await medicine.save();
 
-    return res.json({ message: "Xóa thuốc thành công." });
+    logActivity(`Xóa thuốc khỏi kho (Đưa vào thùng rác) (${medicine.name})`, `Tài khoản: ${req.user.fullName || req.user.phone}`, req.ip || "127.0.0.1", "Thành công");
+
+    return res.json({ message: "Đưa thuốc vào thùng rác thành công." });
   } catch (error) {
     return res.status(500).json({ message: "Lỗi server", error: error.message });
   }
