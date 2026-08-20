@@ -1,6 +1,6 @@
 import { useContext, useState } from 'react';
 import { Link, Navigate, Outlet, useLocation } from 'react-router-dom';
-import { Activity, Calendar, Home, LogOut, Settings, Users, Pill, Globe, User, Shield, ChevronDown, Building, FileText, UserCheck, Bot, DollarSign, Clipboard, Newspaper } from 'lucide-react';
+import { Activity, Calendar, Home, LogOut, Settings, Users, Pill, Globe, User, Shield, ChevronDown, Building, FileText, UserCheck, Bot, DollarSign, Clipboard, Newspaper, Trash2 } from 'lucide-react';
 import { AuthContext } from '../contexts/AuthContext';
 
 const pathRoles = {
@@ -12,6 +12,7 @@ const pathRoles = {
   '/dashboard/patients': ['admin', 'doctor', 'nurse'],
   '/dashboard/chatbot-training': ['admin'],
   '/dashboard/appointments': ['admin', 'nurse', 'cashier'],
+  '/dashboard/trash': ['admin', 'cashier', 'nurse', 'doctor'],
 };
 
 const AdminLayout = () => {
@@ -81,6 +82,13 @@ const AdminLayout = () => {
             <Link to="/dashboard/medicines" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/medicines' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
               <Pill className="w-5 h-5 mr-3" />
               Kho thuốc
+            </Link>
+          )}
+
+          {['admin', 'cashier', 'nurse', 'doctor'].includes(user?.role) && (
+            <Link to="/dashboard/trash" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${location.pathname === '/dashboard/trash' ? 'bg-blue-800' : 'hover:bg-blue-800'}`}>
+              <Trash2 className="w-5 h-5 mr-3" />
+              Thùng rác
             </Link>
           )}
 
