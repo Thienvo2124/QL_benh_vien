@@ -429,8 +429,8 @@ const RevenueStats = () => {
                       className={`w-12 max-w-full rounded-t transition-all duration-300 ${
                         item.value > 0
                           ? (chartType === 'revenue' 
-                              ? (timeframe === 'monthly' ? 'bg-blue-100 text-[#004e92] group-hover:bg-[#004e92]' : 'bg-emerald-100 text-emerald-700 group-hover:bg-emerald-600')
-                              : 'bg-indigo-100 text-indigo-700 group-hover:bg-indigo-600')
+                              ? (timeframe === 'monthly' ? 'bg-[#004e92] hover:bg-blue-800' : 'bg-emerald-600 hover:bg-emerald-700')
+                              : 'bg-indigo-600 hover:bg-indigo-700')
                           : 'bg-transparent border-t border-dashed border-gray-200'
                       }`}
                     />
