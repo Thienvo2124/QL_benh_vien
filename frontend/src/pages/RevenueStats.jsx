@@ -138,7 +138,13 @@ const RevenueStats = () => {
     }
 
     if (tx.dept) {
-      localDeptMap[tx.dept] = (localDeptMap[tx.dept] || 0) + tx.totalFee;
+      if (chartType === 'revenue') {
+        localDeptMap[tx.dept] = (localDeptMap[tx.dept] || 0) + tx.totalFee;
+      } else {
+        if (tx.status === 'completed') {
+          localDeptMap[tx.dept] = (localDeptMap[tx.dept] || 0) + 1;
+        }
+      }
     }
   });
 
@@ -148,8 +154,8 @@ const RevenueStats = () => {
 
   const localDeptData = Object.keys(localDeptMap).map(dept => ({
     dept,
-    revenue: localDeptMap[dept]
-  })).sort((a, b) => b.revenue - a.revenue);
+    value: localDeptMap[dept]
+  })).sort((a, b) => b.value - a.value);
 
   // 4. Generate Chart Data (Supporting dynamic switch between Doanh thu and Số bệnh nhân đã khám)
   let localChartData = [];
@@ -232,7 +238,7 @@ const RevenueStats = () => {
   }
 
   const maxVal = localChartData.reduce((max, item) => Math.max(max, item.value || 0), 0) || 1;
-  const maxDeptRevenue = localDeptData.reduce((max, item) => Math.max(max, item.revenue || 0), 0) || 1;
+  const maxDeptRevenue = localDeptData.reduce((max, item) => Math.max(max, item.value || 0), 0) || 1;
 
   // Payment method breakdowns
   const totalPayMethodRev = localCashRev + localTransferRev || 1;
@@ -517,23 +523,29 @@ const RevenueStats = () => {
       {/* DEPARTMENT DISTRIBUTION */}
       <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-6">
         <h3 className="font-bold text-gray-800 text-lg flex items-center gap-2">
-          Doanh thu theo Chuyên khoa
+          {chartType === 'revenue' ? 'Doanh thu theo Chuyên khoa' : 'Lượt khám theo Chuyên khoa'}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {localDeptData.length > 0 ? (
             localDeptData.map((item, idx) => {
-              const percentage = ((item.revenue || 0) / maxDeptRevenue) * 100;
+              const percentage = ((item.value || 0) / maxDeptRevenue) * 100;
               
               return (
                 <div key={idx} className="space-y-1.5">
                   <div className="flex justify-between items-center text-sm">
                     <span className="font-bold text-gray-700">{item.dept}</span>
-                    <span className="font-mono font-bold text-gray-900">{(item.revenue || 0).toLocaleString('vi-VN')} đ</span>
+                    <span className="font-mono font-bold text-gray-900">
+                      {chartType === 'revenue' 
+                        ? `${(item.value || 0).toLocaleString('vi-VN')} đ` 
+                        : `${item.value || 0} lượt khám`}
+                    </span>
                   </div>
                   <div className="h-2 w-full bg-gray-50 rounded-full overflow-hidden">
                     <div 
                       style={{ width: `${percentage}%` }} 
-                      className="bg-[#004e92] h-full rounded-full transition-all duration-500"
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        chartType === 'revenue' ? 'bg-[#004e92]' : 'bg-indigo-600'
+                      }`}
                     />
                   </div>
                 </div>
@@ -541,7 +553,7 @@ const RevenueStats = () => {
             })
           ) : (
             <div className="col-span-2 text-center text-gray-400 italic text-sm py-4">
-              Không có dữ liệu doanh thu chuyên khoa trong khoảng thời gian lọc.
+              Không có dữ liệu {chartType === 'revenue' ? 'doanh thu' : 'lượt khám'} chuyên khoa trong khoảng thời gian lọc.
             </div>
           )}
         </div>
