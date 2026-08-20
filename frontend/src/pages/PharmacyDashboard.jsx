@@ -79,6 +79,35 @@ const PharmacyDashboard = () => {
     }
   };
 
+  const handleUndispenseConfirm = async (appId) => {
+    if (!window.confirm('Bạn có chắc muốn HOÀN TRẢ đơn này về trạng thái chờ cấp phát?\nSố lượng thuốc trong kho sẽ được cộng lại.')) return;
+    setLoading(true);
+    setErrorMsg('');
+    try {
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/appointments/${appId}/undispense`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setNotification(`↩️ Đã hoàn trả đơn thuốc về chờ cấp phát cho bệnh nhân: ${data.appointment.name}!`);
+        setSelectedApp(null);
+        fetchPrescriptions();
+        setTimeout(() => setNotification(''), 6000);
+      } else {
+        setErrorMsg(data.message || 'Lỗi khi hoàn trả đơn thuốc.');
+      }
+    } catch (error) {
+      console.error('Lỗi hoàn trả đơn:', error);
+      setErrorMsg('Lỗi kết nối máy chủ.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const formatDateSafe = (dateStr) => {
     if (!dateStr) return 'N/A';
     try {
@@ -313,9 +342,18 @@ const PharmacyDashboard = () => {
                 )}
 
                 {selectedApp.prescriptionStatus === 'dispensed' && (
-                  <div className="bg-green-50 border border-green-200 rounded-2xl p-4 text-center text-green-800 font-bold text-sm flex items-center justify-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                    Đã cấp phát hoàn tất
+                  <div className="space-y-3">
+                    <div className="bg-green-50 border border-green-200 rounded-2xl p-4 text-center text-green-800 font-bold text-sm flex items-center justify-center gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                      Đã cấp phát hoàn tất
+                    </div>
+                    <button
+                      onClick={() => handleUndispenseConfirm(selectedApp._id)}
+                      disabled={loading}
+                      className="w-full bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 font-bold py-3 px-6 rounded-2xl transition-all flex items-center justify-center gap-2 text-sm"
+                    >
+                      ↩️ Hoàn trả đơn về chờ cấp phát
+                    </button>
                   </div>
                 )}
               </div>
