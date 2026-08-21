@@ -142,9 +142,6 @@ const Dashboard = () => {
         <div className="p-6 border-b border-gray-100 flex justify-between items-center">
           <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
             Lịch hẹn đăng ký gần đây
-            <span className="text-xs bg-blue-50 text-[#004e92] border border-blue-200 px-2.5 py-1 rounded-full font-semibold">
-              Dữ liệu trực tiếp từ API
-            </span>
           </h3>
           <Link to="/dashboard/appointments" className="text-sm font-medium text-[#004e92] hover:underline">
             Xem tất cả
