@@ -84,7 +84,19 @@ const parseTemplate = (template, app, hours = 3) => {
 /**
  * Wrap the plain text parsed email in a beautiful HTML layout
  */
-const wrapInBeautifulLayout = (text, isReminder = false) => {
+const wrapInBeautifulLayout = async (text, isReminder = false) => {
+  let hospName = "BỆNH VIỆN NHÂN DÂN";
+  let hotline = "1900 2115";
+
+  try {
+    const hospSetting = await SystemSetting.findOne({ key: "hospName" });
+    const hotlineSetting = await SystemSetting.findOne({ key: "hotline" });
+    if (hospSetting && hospSetting.value) hospName = hospSetting.value.toUpperCase();
+    if (hotlineSetting && hotlineSetting.value) hotline = hotlineSetting.value;
+  } catch (err) {
+    console.error("[EmailService] Lỗi nạp cấu hình tên bệnh viện cho email:", err);
+  }
+
   const borderColor = isReminder ? "#ffccd5" : "#e0e0e0";
   const headerColor = isReminder ? "#e11d48" : "#004e92";
   const headerSubText = isReminder ? "Thông báo nhắc nhở lịch khám bệnh tự động" : "Uy tín - Tận tâm - Sức khỏe của bạn là sứ mệnh của chúng tôi";
@@ -95,7 +107,7 @@ const wrapInBeautifulLayout = (text, isReminder = false) => {
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 25px; border: 1px solid ${borderColor}; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
       <div style="text-align: center; border-bottom: 2px solid ${headerColor}; padding-bottom: 15px; margin-bottom: 20px;">
-        <h2 style="color: ${headerColor}; margin: 0; font-size: 22px; letter-spacing: 0.5px;">BỆNH VIỆN NHÂN DÂN</h2>
+        <h2 style="color: ${headerColor}; margin: 0; font-size: 22px; letter-spacing: 0.5px;">${hospName}</h2>
         <p style="color: #666; font-size: 13px; margin: 5px 0 0 0;">${headerSubText}</p>
       </div>
       
@@ -104,8 +116,8 @@ const wrapInBeautifulLayout = (text, isReminder = false) => {
       </div>
       
       <div style="margin-top: 30px; border-top: 1px solid #eeeeee; padding-top: 15px; text-align: center; font-size: 12px; color: #888;">
-        <p style="margin: 0;">Email này được gửi tự động từ hệ thống quản lý của Bệnh viện Nhân Dân.</p>
-        <p style="margin: 5px 0 0 0;">Mọi thắc mắc vui lòng liên hệ Hotline: <strong>1900 2115</strong></p>
+        <p style="margin: 0;">Email này được gửi tự động từ hệ thống quản lý của ${hospName}.</p>
+        <p style="margin: 5px 0 0 0;">Mọi thắc mắc vui lòng liên hệ Hotline: <strong>${hotline}</strong></p>
       </div>
     </div>
   `;
@@ -129,6 +141,8 @@ const sendBookingConfirmation = async (app) => {
   let subjectTemplate = DEFAULT_CONFIRM_SUBJECT;
   let contentTemplate = DEFAULT_CONFIRM_CONTENT;
 
+  let hospName = "Bệnh viện Nhân Dân";
+
   try {
     const userSetting = await SystemSetting.findOne({ key: "email_user" });
     if (userSetting && userSetting.value) fromUser = userSetting.value;
@@ -138,16 +152,19 @@ const sendBookingConfirmation = async (app) => {
 
     const bodySetting = await SystemSetting.findOne({ key: "email_confirm_content" });
     if (bodySetting && bodySetting.value) contentTemplate = bodySetting.value;
+
+    const hospSetting = await SystemSetting.findOne({ key: "hospName" });
+    if (hospSetting && hospSetting.value) hospName = hospSetting.value;
   } catch (err) {
     console.error("[EmailService] Lỗi nạp cấu hình mẫu email xác nhận từ DB:", err);
   }
 
   const subject = parseTemplate(subjectTemplate, app);
   const plainBody = parseTemplate(contentTemplate, app);
-  const html = wrapInBeautifulLayout(plainBody, false);
+  const html = await wrapInBeautifulLayout(plainBody, false);
 
   const mailOptions = {
-    from: `"Bệnh viện Nhân Dân" <${fromUser || "no-reply@gmail.com"}>`,
+    from: `"${hospName}" <${fromUser || "no-reply@gmail.com"}>`,
     to: app.email,
     subject: subject,
     html: html,
@@ -177,6 +194,8 @@ const sendAppointmentReminder = async (app, hours) => {
   let subjectTemplate = DEFAULT_REMINDER_SUBJECT;
   let contentTemplate = DEFAULT_REMINDER_CONTENT;
 
+  let hospName = "Bệnh viện Nhân Dân";
+
   try {
     const userSetting = await SystemSetting.findOne({ key: "email_user" });
     if (userSetting && userSetting.value) fromUser = userSetting.value;
@@ -186,16 +205,19 @@ const sendAppointmentReminder = async (app, hours) => {
 
     const bodySetting = await SystemSetting.findOne({ key: "email_reminder_content" });
     if (bodySetting && bodySetting.value) contentTemplate = bodySetting.value;
+
+    const hospSetting = await SystemSetting.findOne({ key: "hospName" });
+    if (hospSetting && hospSetting.value) hospName = hospSetting.value;
   } catch (err) {
     console.error("[EmailService] Lỗi nạp cấu hình mẫu email nhắc nhở từ DB:", err);
   }
 
   const subject = parseTemplate(subjectTemplate, app, hours);
   const plainBody = parseTemplate(contentTemplate, app, hours);
-  const html = wrapInBeautifulLayout(plainBody, true);
+  const html = await wrapInBeautifulLayout(plainBody, true);
 
   const mailOptions = {
-    from: `"Bệnh viện Nhân Dân" <${fromUser || "no-reply@gmail.com"}>`,
+    from: `"${hospName}" <${fromUser || "no-reply@gmail.com"}>`,
     to: app.email,
     subject: subject,
     html: html,
@@ -242,11 +264,17 @@ const sendTestEmail = async (toEmail, credentials = {}, templateData = null) => 
     },
   });
 
+  let hospName = "Bệnh viện Nhân Dân";
+  try {
+    const hospSetting = await SystemSetting.findOne({ key: "hospName" });
+    if (hospSetting && hospSetting.value) hospName = hospSetting.value;
+  } catch (err) {}
+
   let subject = `[SMTP Test] Kiểm tra kết nối hòm thư tự động thành công`;
   let html = `
     <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 20px auto; padding: 20px; border: 1px solid #10b981; border-radius: 10px; background-color: #f0fdf4;">
       <h3 style="color: #10b981; margin-top: 0;">🎉 Kết nối SMTP thành công!</h3>
-      <p>Hệ thống gửi thư tự động của <strong>Bệnh viện Nhân Dân</strong> đã kết nối thành công với tài khoản Gmail của bạn.</p>
+      <p>Hệ thống gửi thư tự động của <strong>${hospName}</strong> đã kết nối thành công với tài khoản Gmail của bạn.</p>
       <p style="font-size: 13px; color: #555;">Thời gian kiểm tra: ${new Date().toLocaleString("vi-VN")}</p>
     </div>
   `;
@@ -267,18 +295,18 @@ const sendTestEmail = async (toEmail, credentials = {}, templateData = null) => 
       const bodyTpl = templateData.content || DEFAULT_CONFIRM_CONTENT;
       subject = parseTemplate(subTpl, mockApp);
       const parsedBody = parseTemplate(bodyTpl, mockApp);
-      html = wrapInBeautifulLayout(parsedBody, false);
+      html = await wrapInBeautifulLayout(parsedBody, false);
     } else if (templateData.type === "reminder") {
       const subTpl = templateData.subject || DEFAULT_REMINDER_SUBJECT;
       const bodyTpl = templateData.content || DEFAULT_REMINDER_CONTENT;
       subject = parseTemplate(subTpl, mockApp, 3);
       const parsedBody = parseTemplate(bodyTpl, mockApp, 3);
-      html = wrapInBeautifulLayout(parsedBody, true);
+      html = await wrapInBeautifulLayout(parsedBody, true);
     }
   }
 
   const mailOptions = {
-    from: `"Bệnh viện Nhân Dân" <${user}>`,
+    from: `"${hospName}" <${user}>`,
     to: toEmail,
     subject: subject,
     html: html,

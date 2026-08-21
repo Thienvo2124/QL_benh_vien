@@ -1,29 +1,50 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import API_BASE_URL from '../config/api';
 
 const Footer = () => {
+  const [settings, setSettings] = useState({
+    hospName: "Bệnh viện Nhân Dân",
+    address: "Số 1 Nơ Trang Long, Phường Gia Định, TP.HCM",
+    emailContact: "info@bvndgiadinh.org.vn",
+    hotline: "(028) 3551 0063"
+  });
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/settings`)
+      .then(res => res.json())
+      .then(data => {
+        setSettings({
+          hospName: data.hospName || "Bệnh viện Nhân Dân",
+          address: data.address || "Số 1 Nơ Trang Long, Phường Gia Định, TP.HCM",
+          emailContact: data.emailContact || "info@bvndgiadinh.org.vn",
+          hotline: data.hotline || "(028) 3551 0063"
+        });
+      })
+      .catch(err => console.error("Lỗi tải cấu hình footer:", err));
+  }, []);
+
   return (
     <footer className="bg-[#1a252f] text-gray-300 pt-16 pb-8 font-sans border-t-4 border-red-600">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
           <div>
             <h3 className="text-white text-xl font-bold mb-6 uppercase tracking-wider relative inline-block after:content-[''] after:block after:w-1/2 after:h-1 after:bg-red-500 after:mt-2">
-              Bệnh viện<br />Nhân Dân
+              {settings.hospName}
             </h3>
             <ul className="space-y-4 text-sm">
               <li className="flex items-start gap-3">
                 <span className="text-red-500 font-bold mt-0.5">ĐC</span>
-                <span>Số 1 Nơ Trang Long, Phường Gia Định, TP.HCM</span>
+                <span>{settings.address}</span>
               </li>
               <li className="flex items-center gap-3">
                 <span className="text-red-500 font-bold">EM</span>
-                <a href="mailto:info@bvndgiadinh.org.vn" className="hover:text-white transition-colors">info@bvndgiadinh.org.vn</a>
+                <a href={`mailto:${settings.emailContact}`} className="hover:text-white transition-colors">{settings.emailContact}</a>
               </li>
               <li className="flex items-start gap-3">
                 <span className="text-red-500 font-bold mt-0.5">ĐT</span>
                 <div>
-                  <div className="font-semibold text-white">Tổng đài CSKH: <a href="tel:19008116" className="text-blue-400 hover:text-blue-300">1900 8116</a></div>
-                  <div className="font-semibold text-white mt-1">Đặt lịch khám: <a href="tel:19002115" className="text-blue-400 hover:text-blue-300">1900 2115</a></div>
-                  <div className="font-semibold text-red-400 mt-1">Cấp cứu: <a href="tel:02835510063" className="hover:text-red-300">(028) 3551 0063</a></div>
+                  <div className="font-semibold text-white">Hotline hỗ trợ: <a href={`tel:${settings.hotline.replace(/\D/g, '')}`} className="text-blue-400 hover:text-blue-300">{settings.hotline}</a></div>
                 </div>
               </li>
             </ul>
@@ -62,7 +83,7 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-gray-700 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
-          <p>Copyright © 2026 - Bản quyền thuộc về Bệnh viện Nhân Dân</p>
+          <p>Copyright © 2026 - Bản quyền thuộc về Bệnh viện</p>
           <div className="mt-4 md:mt-0 space-x-4">
             <Link to="/" className="hover:text-white transition-colors">Điều khoản sử dụng</Link>
             <Link to="/" className="hover:text-white transition-colors">Chính sách bảo mật</Link>
