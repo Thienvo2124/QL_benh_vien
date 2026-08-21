@@ -49,41 +49,57 @@ router.post("/sepay", (req, res) => {
       console.log("================================================");
 
       if (!actualContent) return;
-
       const contentUpper = actualContent.toUpperCase();
 
       // 1. KIỂM TRA PHÍ KHÁM LÂM SÀNG BAN ĐẦU (Quét mã HSBN)
-      const hsbnRegex = /HSBN\d+-\d+|HSBN\d+/;
-      const hsbnMatch = contentUpper.match(hsbnRegex);
+      const hsbnRegex = /HSBN\d+/;
+      const hsbnMatch = contentUpper.replace(/-/g, "").match(hsbnRegex);
 
       if (hsbnMatch) {
-        const appointmentCode = hsbnMatch[0];
-        const appointment = await Appointment.findOne({ appointmentCode, isDeleted: { $ne: true } });
+        const cleanRawCode = hsbnMatch[0]; // e.g. HSBN21820269
+        
+        // Chỉ quét các lịch hẹn trong vòng 7 ngày gần đây để tối ưu hiệu năng
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-        if (appointment && appointment.paymentStatus !== "paid") {
-          // Tính số thứ tự khám (STT) trong ngày
-          const dateStart = startOfDay(appointment.date);
-          const dateEnd = new Date(dateStart);
-          dateEnd.setDate(dateEnd.getDate() + 1);
+        const appointments = await Appointment.find({
+          createdAt: { $gte: sevenDaysAgo },
+          isDeleted: { $ne: true }
+        }).lean();
 
-          const count = await Appointment.countDocuments({
-            date: { $gte: dateStart, $lt: dateEnd },
-            paymentStatus: "paid",
-          });
+        // Khớp mã hồ sơ bằng cách loại bỏ dấu gạch ngang ở cả 2 phía
+        const matchedApp = appointments.find(app => {
+          const cleanDbCode = (app.appointmentCode || '').replace(/-/g, "");
+          return cleanDbCode === cleanRawCode;
+        });
 
-          appointment.paymentStatus = "paid";
-          appointment.paymentMethod = "Chuyển khoản";
-          appointment.queueNumber = count + 1;
-          appointment.status = "approved"; // Phê duyệt lịch khám
+        if (matchedApp && matchedApp.paymentStatus !== "paid") {
+          const appointment = await Appointment.findById(matchedApp._id);
+          if (appointment) {
+            // Tính số thứ tự khám (STT) trong ngày
+            const dateStart = startOfDay(appointment.date);
+            const dateEnd = new Date(dateStart);
+            dateEnd.setDate(dateEnd.getDate() + 1);
 
-          await appointment.save();
+            const count = await Appointment.countDocuments({
+              date: { $gte: dateStart, $lt: dateEnd },
+              paymentStatus: "paid",
+            });
 
-          logActivity(
-            `Thu phí khám ban đầu TỰ ĐỘNG (SePay) (Mã: ${appointment.appointmentCode}, STT: ${appointment.queueNumber})`,
-            `Hệ thống SePay (${gateway})`,
-            "127.0.0.1",
-            "Thành công"
-          );
+            appointment.paymentStatus = "paid";
+            appointment.paymentMethod = "Chuyển khoản";
+            appointment.queueNumber = count + 1;
+            appointment.status = "approved"; // Phê duyệt lịch khám
+
+            await appointment.save();
+
+            logActivity(
+              `Thu phí khám ban đầu TỰ ĐỘNG (SePay) (Mã: ${appointment.appointmentCode}, STT: ${appointment.queueNumber})`,
+              `Hệ thống SePay (${gateway})`,
+              "127.0.0.1",
+              "Thành công"
+            );
+          }
         }
         return;
       }
