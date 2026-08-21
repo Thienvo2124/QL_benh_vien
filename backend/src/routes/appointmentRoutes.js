@@ -10,22 +10,39 @@ const VALID_STATUSES = ["pending", "approved", "rejected", "completed"];
 
 const createUniqueAppointmentCode = async () => {
   const now = new Date();
-  const day = now.getDate();
-  const month = now.getMonth() + 1;
-  const year = now.getFullYear();
+  
+  // Format sang ngày giờ Việt Nam (GMT+7) để thống nhất mọi server
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    day: 'numeric',
+    month: 'numeric',
+    year: 'numeric'
+  });
+  
+  const parts = formatter.formatToParts(now);
+  const day = parts.find(p => p.type === 'day').value;
+  const month = parts.find(p => p.type === 'month').value;
+  const year = parts.find(p => p.type === 'year').value;
   const prefix = `HSBN${day}${month}${year}`;
 
-  const start = new Date(now);
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(now);
-  end.setHours(23, 59, 59, 999);
+  // Tìm các lịch hẹn đã có mã bắt đầu bằng prefix của ngày hôm nay
+  const regex = new RegExp(`^${prefix}-`);
+  const appointmentsToday = await Appointment.find({ appointmentCode: regex })
+    .select("appointmentCode")
+    .lean();
 
-  // Dem so luong benh nhan duoc tao trong ngay de cap so
-  const count = await Appointment.countDocuments({
-    createdAt: { $gte: start, $lte: end }
+  let maxNum = 0;
+  appointmentsToday.forEach(app => {
+    const codeParts = app.appointmentCode.split("-");
+    if (codeParts.length === 2) {
+      const num = parseInt(codeParts[1], 10);
+      if (!isNaN(num) && num > maxNum) {
+        maxNum = num;
+      }
+    }
   });
 
-  const sequentialNum = count + 1;
+  const sequentialNum = maxNum + 1;
   return `${prefix}-${sequentialNum}`;
 };
 

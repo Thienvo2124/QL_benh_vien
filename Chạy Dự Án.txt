@@ -1,0 +1,44 @@
+ CHẠY DỰ ÁN
+
+https://ql-benh-vien-1.onrender.com
+
+Dự án chia làm 2 phần: backend và frontend. Cần chạy riêng 2 terminal.
+1. Biến môi trường backend
+
+Tạo file backend/.env với nội dung mẫu:
+
+PORT=5000
+MONGO_URI=mongodb://localhost:27017/ql_benhvien
+JWT_SECRET=doi_chuoi_bi_mat_nay
+GEMINI_API_KEY=your_gemini_api_key
+
+2. Chạy backend
+
+cd backend
+npm install
+npm start
+node src/server.js
+
+3. Chạy frontend
+
+cd frontend
+npm install
+npm run dev
+
+4. mật khẩu admin
+
+1234567890
+123456
+
+
+admin123@gmail.com
+123456
+
+
+https://myaccount.google.com/
+Bảo mật -> bật Xác minh 2 bước
+Mật khẩu ứng dụng
+Đặt tên ứng dụng tùy ý (ví dụ: Gửi mail bệnh viện) rồi bấm Tạo (Create).
+Google sẽ cấp cho bạn một mật khẩu gồm 16 ký tự
+Hãy sao chép 16 ký tự đó, dán vào ô Mật khẩu ứng dụng Google (16 ký tự) trên trang cấu hình Admin của bạn 
+nhấn Lưu cấu hình Email, rồi bấm Gửi thử ngay một lần nữa nhé!
