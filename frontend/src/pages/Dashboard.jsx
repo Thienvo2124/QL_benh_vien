@@ -48,12 +48,6 @@ const Dashboard = () => {
   const patientUsers = users.filter(u => u.role === 'patient');
   const doctorUsers = users.filter(u => u.role === 'doctor');
   const pendingAppointments = appointments.filter(a => a.status === 'pending');
-  const approvedAppointments = appointments.filter(a => a.status === 'approved');
-
-  const handleDownloadReport = () => {
-    alert('🚧 Tính năng xuất báo cáo tự động (Excel/PDF) đang trong quá trình phát triển ở module tiếp theo!');
-  };
-
   const getStatusBadge = (status) => {
     switch (status) {
       case 'pending':
@@ -81,13 +75,6 @@ const Dashboard = () => {
           </h2>
           <p className="text-gray-500 text-sm mt-1">Các chỉ số được tổng hợp trực tiếp từ dữ liệu thực của hệ thống.</p>
         </div>
-        <button
-          onClick={handleDownloadReport}
-          className="bg-[#004e92] hover:bg-blue-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-2"
-        >
-          <Construction className="w-4 h-4 text-yellow-300 animate-pulse" />
-          Tải báo cáo (Đang cập nhật)
-        </button>
       </div>
 
       {/* Stats Cards - Dữ liệu thật */}
