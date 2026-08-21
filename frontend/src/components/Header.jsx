@@ -1,7 +1,8 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Shield, User, Settings, LogOut, ChevronDown, Calendar, Clock, FileText, UserCheck } from 'lucide-react';
 import { AuthContext } from '../contexts/AuthContext';
+import API_BASE_URL from '../config/api';
 
 const navItems = [
   ['/', 'Trang chủ'],
@@ -14,26 +15,41 @@ const Header = () => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const { user, logout } = useContext(AuthContext);
 
+  const [settings, setSettings] = useState({
+    hospName: "Bệnh viện Nhân Dân",
+    address: "Số 1 Nơ Trang Long, P. Gia Định, TP.HCM",
+    emailContact: "info@bvndgiadinh.org.vn",
+    hotline: "(028) 3551 0063"
+  });
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/settings`)
+      .then(res => res.json())
+      .then(data => {
+        setSettings({
+          hospName: data.hospName || "Bệnh viện Nhân Dân",
+          address: data.address || "Số 1 Nơ Trang Long, P. Gia Định, TP.HCM",
+          emailContact: data.emailContact || "info@bvndgiadinh.org.vn",
+          hotline: data.hotline || "(028) 3551 0063"
+        });
+      })
+      .catch(err => console.error("Lỗi tải cấu hình header:", err));
+  }, []);
+
   return (
     <header className="w-full font-sans shadow-md bg-white sticky top-0 z-50">
       <div className="bg-[#004e92] text-white py-2 px-4 md:px-10 flex flex-wrap justify-between items-center text-xs md:text-sm">
         <div className="flex gap-4 md:gap-6 items-center">
-          <a href="tel:19002115" className="flex items-center gap-2 hover:text-blue-200">
+          <a href={`tel:${settings.hotline.replace(/\D/g, '')}`} className="flex items-center gap-2 hover:text-blue-200">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
             </svg>
-            <span>Đặt hẹn khám: <strong>1900 2115</strong></span>
-          </a>
-          <a href="tel:02835510063" className="flex items-center gap-2 hover:text-red-300 text-red-200">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <span>Cấp cứu: <strong>(028) 3551 0063</strong></span>
+            <span>Tổng đài / Cấp cứu: <strong>{settings.hotline}</strong></span>
           </a>
         </div>
         <div className="hidden md:flex gap-4 items-center">
-          <a href="mailto:info@bvndgiadinh.org.vn" className="hover:text-blue-200">info@bvndgiadinh.org.vn</a>
-          <span>Số 1 Nơ Trang Long, P. Gia Định, TP.HCM</span>
+          <a href={`mailto:${settings.emailContact}`} className="hover:text-blue-200">{settings.emailContact}</a>
+          <span>{settings.address}</span>
         </div>
       </div>
 
@@ -44,8 +60,8 @@ const Header = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
           </div>
-          <h1 className="text-xl md:text-2xl font-bold text-[#004e92] leading-tight uppercase tracking-wide">
-            Bệnh viện<br />Nhân Dân
+          <h1 className="text-xl md:text-2xl font-bold text-[#004e92] leading-tight uppercase tracking-wide max-w-[250px] whitespace-pre-line">
+            {settings.hospName.replace(/(Bệnh viện)\s+/i, "$1\n")}
           </h1>
         </Link>
 
