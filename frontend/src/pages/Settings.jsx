@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect } from 'react';
-import { User, Building, Shield, FileText, Save, Key, Phone, Mail, MapPin, Clock, CheckCircle, Bell, Activity, DollarSign } from 'lucide-react';
+import { User, Building, Shield, FileText, Save, Key, Phone, Mail, MapPin, Clock, CheckCircle, Bell, Activity, DollarSign, Calendar } from 'lucide-react';
 import { AuthContext } from '../contexts/AuthContext';
 import API_BASE_URL from '../config/api';
 
@@ -308,6 +308,7 @@ Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
 
   const [logs, setLogs] = useState([]);
   const [logsLoading, setLogsLoading] = useState(false);
+  const [selectedLogDate, setSelectedLogDate] = useState('');
 
   const fetchLogs = async () => {
     setLogsLoading(true);
@@ -419,6 +420,16 @@ Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
       fetchPaymentRecords();
     }
   }, [activeTab]);
+
+  const filteredLogs = logs.filter(log => {
+    if (!selectedLogDate) return true;
+    const logDate = new Date(log.createdAt);
+    if (!isNaN(logDate.getTime())) {
+      const logDateStr = logDate.toLocaleDateString('sv-SE'); // YYYY-MM-DD
+      return logDateStr === selectedLogDate;
+    }
+    return false;
+  });
 
   return (
     <div className="space-y-8 font-sans">
@@ -1035,10 +1046,33 @@ Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
         {/* TAB 4: LOGS */}
         {activeTab === 'logs' && (
           <div className="space-y-6">
-            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+            <div className="flex flex-wrap justify-between items-center border-b border-gray-100 pb-3 gap-4">
               <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                 <Activity className="w-5 h-5 text-[#004e92]" /> Nhật ký Truy cập & Thao tác Hệ thống
               </h3>
+
+              {/* Date Filter */}
+              <div className="flex items-center gap-2 text-xs font-bold text-gray-600 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-200">
+                <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                <span>Lọc theo ngày:</span>
+                <div className="relative flex items-center">
+                  <input
+                    type="date"
+                    value={selectedLogDate}
+                    onChange={(e) => setSelectedLogDate(e.target.value)}
+                    className="bg-white border border-gray-200 rounded-lg px-2 py-0.5 text-xs font-bold focus:outline-none focus:border-[#004e92] cursor-pointer font-sans"
+                  />
+                  {selectedLogDate && (
+                    <button
+                      onClick={() => setSelectedLogDate('')}
+                      className="absolute right-2 text-red-500 hover:text-red-700 font-extrabold text-xs cursor-pointer"
+                      title="Xóa lọc ngày"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="overflow-x-auto">
@@ -1060,8 +1094,8 @@ Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
                         Đang tải nhật ký hoạt động...
                       </td>
                     </tr>
-                  ) : logs.length > 0 ? (
-                    logs.map((log) => (
+                  ) : filteredLogs.length > 0 ? (
+                    filteredLogs.map((log) => (
                       <tr key={log._id} className="hover:bg-blue-50/20 transition-colors">
                         <td className="p-4 font-bold text-[#004e92] text-xs font-mono">
                           LOG-{log._id ? log._id.substring(18).toUpperCase() : 'N/A'}
@@ -1086,7 +1120,7 @@ Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
                   ) : (
                     <tr>
                       <td colSpan="6" className="p-8 text-center text-gray-400 italic">
-                        Chưa có hoạt động nào được ghi nhận.
+                        Chưa có hoạt động nào được ghi nhận phù hợp với ngày lọc.
                       </td>
                     </tr>
                   )}
@@ -1095,7 +1129,7 @@ Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
             </div>
 
             <div className="pt-4 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500">
-              <span>Đang hiển thị {logs.length} sự kiện thao tác mới nhất trong hệ thống.</span>
+              <span>Đang hiển thị {filteredLogs.length} sự kiện thao tác.</span>
               <button 
                 onClick={() => alert('Đang xuất toàn bộ Log hệ thống ra file Excel...')}
                 className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-4 py-2 rounded-xl transition-colors shadow-sm"
