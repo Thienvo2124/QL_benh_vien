@@ -27,6 +27,7 @@ const RevenueStats = () => {
   // Filter States
   const [selectedYear, setSelectedYear] = useState('2026');
   const [selectedMonth, setSelectedMonth] = useState('Tất cả');
+  const [selectedDate, setSelectedDate] = useState('');
 
   const fetchStats = async () => {
     setLoading(true);
@@ -107,6 +108,11 @@ const RevenueStats = () => {
   const filteredTx = (allTransactions || []).filter(tx => {
     const d = new Date(tx.date);
     if (isNaN(d.getTime())) return false;
+    
+    if (selectedDate) {
+      const txDateStr = d.toLocaleDateString('sv-SE'); // YYYY-MM-DD
+      return txDateStr === selectedDate;
+    }
     
     const txYear = d.getFullYear().toString();
     const txMonth = (d.getMonth() + 1).toString();
@@ -282,6 +288,7 @@ const RevenueStats = () => {
               value={selectedYear}
               onChange={(e) => {
                 setSelectedYear(e.target.value);
+                setSelectedDate(''); // Clear date filter if year is changed
                 if (e.target.value === 'Tất cả') {
                   setSelectedMonth('Tất cả');
                 }
@@ -296,7 +303,10 @@ const RevenueStats = () => {
             {/* Month Selector */}
             <select
               value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
+              onChange={(e) => {
+                setSelectedMonth(e.target.value);
+                setSelectedDate(''); // Clear date filter if month is changed
+              }}
               disabled={selectedYear === 'Tất cả'}
               className="bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1 text-xs font-bold focus:outline-none focus:border-[#004e92] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -305,6 +315,39 @@ const RevenueStats = () => {
                 <option key={i+1} value={(i+1).toString()}>Tháng {i+1}</option>
               ))}
             </select>
+          </div>
+
+          {/* Specific Date Filter */}
+          <div className="flex items-center gap-2 bg-white px-3 py-2.5 rounded-2xl border border-gray-200 text-xs font-bold text-gray-600 shadow-sm">
+            <Calendar size={14} className="text-gray-400" />
+            <span>Lọc ngày:</span>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => {
+                setSelectedDate(e.target.value);
+                if (e.target.value) {
+                  setSelectedYear('Tất cả');
+                  setSelectedMonth('Tất cả');
+                  setTimeframe('daily');
+                }
+              }}
+              className="bg-gray-50 border border-gray-200 rounded-lg px-2 py-0.5 text-xs font-bold focus:outline-none focus:border-[#004e92] cursor-pointer font-sans"
+            />
+            {selectedDate && (
+              <button
+                onClick={() => {
+                  setSelectedDate('');
+                  setSelectedYear(new Date().getFullYear().toString());
+                  setSelectedMonth('Tất cả');
+                  setTimeframe('monthly');
+                }}
+                className="text-red-500 hover:text-red-700 font-extrabold text-xs ml-1 cursor-pointer"
+                title="Xóa lọc ngày"
+              >
+                ✕
+              </button>
+            )}
           </div>
 
           <button 
@@ -402,13 +445,14 @@ const RevenueStats = () => {
             <div className="flex bg-gray-100 p-1 rounded-xl">
               <button 
                 onClick={() => setTimeframe('monthly')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${timeframe === 'monthly' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                disabled={!!selectedDate}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${timeframe === 'monthly' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
               >
                 Theo Tháng
               </button>
               <button 
                 onClick={() => setTimeframe('daily')}
-                disabled={selectedYear === 'Tất cả'}
+                disabled={selectedYear === 'Tất cả' && !selectedDate}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${timeframe === 'daily' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
               >
                 Chi tiết ngày
