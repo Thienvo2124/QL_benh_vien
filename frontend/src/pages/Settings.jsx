@@ -517,7 +517,7 @@ Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
                 <input
                   type="email"
                   disabled
-                  value={user?.email || 'admin@gmail.com'}
+                  value={user?.email || user?.phone || ''}
                   className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-2xl text-sm text-gray-500 font-medium cursor-not-allowed"
                 />
               </div>
