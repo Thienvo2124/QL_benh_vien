@@ -26,16 +26,23 @@ router.get("/", async (req, res) => {
 
 router.put("/:id/role", async (req, res) => {
   try {
-    const { role } = req.body;
+    const { role, department } = req.body;
     
     // Validate role
     if (!["admin", "doctor", "nurse", "cashier", "patient"].includes(role)) {
       return res.status(400).json({ message: "Vai trò không hợp lệ" });
     }
 
+    const updateFields = { role };
+    if (role === "doctor") {
+      updateFields.department = department || "";
+    } else {
+      updateFields.department = ""; // Clear department for non-doctors
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id,
-      { role },
+      updateFields,
       { new: true }
     ).select("-password");
 

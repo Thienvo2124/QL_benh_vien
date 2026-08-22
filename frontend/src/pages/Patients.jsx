@@ -98,6 +98,12 @@ const Patients = () => {
     fetchAppointmentsAndMedicines();
   }, [fetchAppointmentsAndMedicines]);
 
+  useEffect(() => {
+    if (user && user.role === 'doctor' && user.department) {
+      setSelectedDept(user.department);
+    }
+  }, [user]);
+
   const waitingList = appointments.filter(app => app.status === 'approved' && app.paymentStatus === 'paid');
 
   const dbRecords = appointments.filter(app => app.status === 'completed').map(app => ({

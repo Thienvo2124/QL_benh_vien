@@ -41,6 +41,11 @@ const userSchema = new mongoose.Schema(
       enum: ["admin", "doctor", "nurse", "cashier", "patient"],
       default: "patient",
     },
+    department: {
+      type: String,
+      trim: true,
+      default: "",
+    },
   },
   { timestamps: true },
 );

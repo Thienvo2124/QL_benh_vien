@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Activity, Shield, User, Clock, ChevronDown, DollarSign } from 'lucide-react';
 import API_BASE_URL from '../config/api';
+import departments from '../data/departments';
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -37,13 +38,38 @@ const Users = () => {
       });
       if (response.ok) {
         // Cập nhật lại state cục bộ thay vì fetch lại toàn bộ để mượt hơn
-        setUsers(users.map(u => u._id === userId ? { ...u, role: newRole } : u));
+        setUsers(users.map(u => u._id === userId ? { ...u, role: newRole, department: newRole === 'doctor' ? '' : undefined } : u));
         alert('Cập nhật quyền thành công!');
       } else {
         alert('Có lỗi xảy ra khi cập nhật quyền.');
       }
     } catch (error) {
       console.error('Lỗi khi cập nhật quyền:', error);
+      alert('Lỗi kết nối.');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleChangeDepartment = async (userId, newDept) => {
+    setUpdatingId(userId);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/users/${userId}/role`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          role: 'doctor', 
+          department: newDept 
+        }),
+      });
+      if (response.ok) {
+        setUsers(users.map(u => u._id === userId ? { ...u, department: newDept } : u));
+        alert('Cập nhật chuyên khoa thành công!');
+      } else {
+        alert('Có lỗi xảy ra khi cập nhật chuyên khoa.');
+      }
+    } catch (error) {
+      console.error('Lỗi khi cập nhật chuyên khoa:', error);
       alert('Lỗi kết nối.');
     } finally {
       setUpdatingId(null);
@@ -90,19 +116,20 @@ const Users = () => {
                 <th className="p-4 font-medium">Email</th>
                 <th className="p-4 font-medium">Vai trò</th>
                 <th className="p-4 font-medium">Cấp quyền</th>
+                <th className="p-4 font-medium">Chuyên khoa</th>
                 <th className="p-4 font-medium">Ngày tham gia</th>
               </tr>
             </thead>
             <tbody className="text-sm">
               {loading ? (
                 <tr>
-                  <td colSpan="6" className="p-8 text-center text-gray-500">
+                  <td colSpan="7" className="p-8 text-center text-gray-500">
                     Đang tải dữ liệu...
                   </td>
                 </tr>
               ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="p-8 text-center text-gray-500">
+                  <td colSpan="7" className="p-8 text-center text-gray-500">
                     Không có dữ liệu người dùng nào phù hợp.
                   </td>
                 </tr>
@@ -151,6 +178,30 @@ const Users = () => {
                           <ChevronDown size={14} />
                         </div>
                       </div>
+                    </td>
+                    <td className="p-4">
+                      {user.role === 'doctor' ? (
+                        <div className="relative inline-block max-w-[200px]">
+                          <select 
+                            className="appearance-none bg-white border border-gray-300 text-gray-700 py-1.5 pl-3 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-blue-500 text-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            value={user.department || ""}
+                            onChange={(e) => handleChangeDepartment(user._id, e.target.value)}
+                            disabled={updatingId === user._id}
+                          >
+                            <option value="">Chưa phân khoa</option>
+                            {departments.map((dept) => (
+                              <option key={dept.slug} value={dept.name}>
+                                {dept.name}
+                              </option>
+                            ))}
+                          </select>
+                          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                            <ChevronDown size={14} />
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400 text-xs">-</span>
+                      )}
                     </td>
                     <td className="p-4 text-gray-600 flex items-center gap-1">
                       <Clock size={14} className="text-gray-400" />
