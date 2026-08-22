@@ -28,7 +28,7 @@ const Footer = () => {
   return (
     <footer className="bg-[#1a252f] text-gray-300 pt-16 pb-8 font-sans border-t-4 border-red-600">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-12">
           <div>
             <h3 className="text-white text-xl font-bold mb-6 uppercase tracking-wider relative inline-block after:content-[''] after:block after:w-1/2 after:h-1 after:bg-red-500 after:mt-2">
               {settings.hospName}
@@ -60,17 +60,6 @@ const Footer = () => {
               <li><Link to="/booking" className="hover:text-white hover:translate-x-1 inline-block transition-transform">Đặt lịch khám nhanh</Link></li>
               <li><Link to="/pricing" className="hover:text-white hover:translate-x-1 inline-block transition-transform">Bảng giá dịch vụ công khai</Link></li>
             </ul>
-          </div>
-
-          <div>
-            <h3 className="text-white text-lg font-bold mb-6 uppercase">Kết nối</h3>
-            <p className="text-sm mb-4">Đăng ký để nhận thông tin y tế hữu ích từ chúng tôi.</p>
-            <form className="flex mb-6">
-              <input type="email" placeholder="Email của bạn..." className="px-4 py-2 w-full bg-gray-800 text-white rounded-l focus:outline-none focus:ring-1 focus:ring-blue-500 border border-gray-700" />
-              <button type="button" className="bg-[#004e92] hover:bg-blue-600 px-4 py-2 rounded-r transition-colors" aria-label="Đăng ký nhận tin">
-                →
-              </button>
-            </form>
           </div>
         </div>
 
