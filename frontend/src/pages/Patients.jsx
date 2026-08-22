@@ -12,6 +12,7 @@ const Patients = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedDept, setSelectedDept] = useState('Tất cả');
+  const [selectedFilterDate, setSelectedFilterDate] = useState('');
   const [activeTab, setActiveTab] = useState('waiting'); // waiting | history
   const [sortOrder, setSortOrder] = useState('newest'); // newest | oldest
   
@@ -321,7 +322,18 @@ const Patients = () => {
     
     const matchDept = selectedDept === 'Tất cả' || rec.dept === selectedDept;
 
-    return matchSearch && matchDept;
+    let matchDate = true;
+    if (selectedFilterDate) {
+      const recDate = new Date(rec.rawDate);
+      if (!isNaN(recDate.getTime())) {
+        const recDateStr = recDate.toLocaleDateString('sv-SE'); // YYYY-MM-DD
+        matchDate = recDateStr === selectedFilterDate;
+      } else {
+        matchDate = false;
+      }
+    }
+
+    return matchSearch && matchDept && matchDate;
   });
 
   const sortedRecords = [...filteredRecords].sort((a, b) => {
@@ -344,7 +356,19 @@ const Patients = () => {
       phone.includes(search) ||
       code.toLowerCase().includes(search.toLowerCase());
     const matchesDept = selectedDept === 'Tất cả' || app.dept === selectedDept;
-    return matchesSearch && matchesDept;
+
+    let matchesDate = true;
+    if (selectedFilterDate) {
+      const appDate = new Date(app.date);
+      if (!isNaN(appDate.getTime())) {
+        const appDateStr = appDate.toLocaleDateString('sv-SE');
+        matchesDate = appDateStr === selectedFilterDate;
+      } else {
+        matchesDate = false;
+      }
+    }
+
+    return matchesSearch && matchesDept && matchesDate;
   });
 
   const sortedWaitingList = [...filteredWaitingList].sort((a, b) => {
@@ -473,6 +497,28 @@ const Patients = () => {
                 </option>
               ))}
             </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-gray-400" />
+            <span className="text-sm font-semibold text-gray-700">Ngày khám:</span>
+            <div className="relative flex items-center">
+              <input
+                type="date"
+                value={selectedFilterDate}
+                onChange={(e) => setSelectedFilterDate(e.target.value)}
+                className="pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-medium focus:outline-none focus:border-[#004e92] cursor-pointer font-sans"
+              />
+              {selectedFilterDate && (
+                <button
+                  onClick={() => setSelectedFilterDate('')}
+                  className="absolute right-3.5 text-red-500 hover:text-red-700 font-extrabold text-xs cursor-pointer"
+                  title="Xóa lọc ngày"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
