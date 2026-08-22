@@ -113,4 +113,89 @@ router.put("/:id/profile", async (req, res) => {
   }
 });
 
+// PUT /api/users/:id (Admin cập nhật thông tin người dùng bất kỳ)
+router.put("/:id", protect, adminOrDoctorOnly, async (req, res) => {
+  try {
+    const {
+      fullName,
+      email,
+      phone,
+      role,
+      department,
+      birthDate,
+      gender,
+      bhytCode,
+      idCard,
+      address
+    } = req.body;
+
+    if (phone) {
+      const existingUser = await User.findOne({ phone, _id: { $ne: req.params.id } });
+      if (existingUser) {
+        return res.status(400).json({ message: "Số điện thoại đã tồn tại ở tài khoản khác." });
+      }
+    }
+
+    const updateData = {
+      fullName,
+      email,
+      phone,
+      role,
+      department,
+      birthDate,
+      gender,
+      bhytCode,
+      idCard,
+      address
+    };
+
+    // Loại bỏ các trường không truyền (undefined)
+    Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
+
+    // Nếu thay đổi quyền và không phải bác sĩ thì xóa chuyên khoa
+    if (role && role !== "doctor") {
+      updateData.department = "";
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true }
+    ).select("-password");
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "Không tìm thấy người dùng." });
+    }
+
+    logActivity(`Cập nhật thông tin người dùng`, `Tài khoản: ${updatedUser.fullName || updatedUser.phone}`, req.ip || "127.0.0.1", "Thành công");
+
+    res.json({ message: "Cập nhật người dùng thành công", user: updatedUser });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+});
+
+// DELETE /api/users/:id (Admin xóa người dùng)
+router.delete("/:id", protect, adminOrDoctorOnly, async (req, res) => {
+  try {
+    // Chặn tự xóa tài khoản của chính mình
+    if (req.params.id === req.user.id.toString()) {
+      return res.status(400).json({ message: "Bạn không thể tự xóa tài khoản quản trị của chính mình." });
+    }
+
+    const userToDelete = await User.findById(req.params.id);
+    if (!userToDelete) {
+      return res.status(404).json({ message: "Không tìm thấy người dùng." });
+    }
+
+    await User.findByIdAndDelete(req.params.id);
+
+    logActivity(`Xóa tài khoản người dùng`, `Tài khoản bị xóa: ${userToDelete.fullName || userToDelete.phone}`, req.ip || "127.0.0.1", "Thành công");
+
+    res.json({ message: "Xóa tài khoản thành công." });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+});
+
 module.exports = router;
