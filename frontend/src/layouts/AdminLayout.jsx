@@ -219,14 +219,6 @@ const AdminLayout = () => {
                   {user?.role === 'doctor' && (
                     <>
                       <Link
-                        to="/dashboard/settings"
-                        onClick={() => setIsProfileMenuOpen(false)}
-                        className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
-                      >
-                        <UserCheck className="w-4 h-4 text-[#004e92]" />
-                        Hồ sơ & Chứng chỉ BS
-                      </Link>
-                      <Link
                         to="/dashboard/medicines"
                         onClick={() => setIsProfileMenuOpen(false)}
                         className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium gap-3"
