@@ -420,27 +420,28 @@ const RevenueStats = () => {
           <div className="h-64 flex items-end justify-between gap-2 md:gap-4 pt-6 border-b border-gray-100 pb-1 font-mono overflow-x-auto">
             {localChartData.length > 0 ? (
               localChartData.map((item, idx) => {
-                const heightPercent = ((item.value || 0) / maxVal) * 100;
+                const heightPercent = ((item.value || 0) / maxVal) * 80;
                 const isMonthLabel = item.label.startsWith('Tháng ');
                 const displayLabel = isMonthLabel ? item.label.replace('Tháng ', 'T') : item.label;
                 
                 return (
                   <div key={idx} className="flex-1 flex flex-col items-center group relative h-full justify-end min-w-[20px]">
-                    {/* Tooltip on hover */}
-                    <div className="absolute bottom-full mb-2 bg-gray-900 text-white text-[10px] font-bold py-1.5 px-2.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-lg z-20">
-                      {item.label}: {chartType === 'revenue' ? `${(item.value || 0).toLocaleString('vi-VN')} đ` : `${item.value} bệnh nhân`}
-                    </div>
                     {/* Bar */}
                     <div 
                       style={{ height: `${Math.max(heightPercent, item.value > 0 ? 3 : 0)}%` }} 
-                      className={`w-12 max-w-full rounded-t transition-all duration-300 ${
+                      className={`w-12 max-w-full rounded-t transition-all duration-300 relative ${
                         item.value > 0
                           ? (chartType === 'revenue' 
                               ? (timeframe === 'monthly' ? 'bg-[#004e92] hover:bg-blue-800' : 'bg-emerald-600 hover:bg-emerald-700')
                               : 'bg-indigo-600 hover:bg-indigo-700')
                           : 'bg-transparent border-t border-dashed border-gray-200'
                       }`}
-                    />
+                    >
+                      {/* Tooltip on hover */}
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-gray-900 text-white text-[10px] font-bold py-1.5 px-2.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-lg z-20">
+                        {item.label}: {chartType === 'revenue' ? `${(item.value || 0).toLocaleString('vi-VN')} đ` : `${item.value} bệnh nhân`}
+                      </div>
+                    </div>
                     {/* Label at bottom */}
                     <span 
                       className="text-[9px] md:text-[10px] text-gray-400 font-bold mt-2 select-none text-center truncate w-full"
