@@ -96,7 +96,7 @@ const Header = () => {
                       </div>
                       <div>
                         <div className="font-bold text-gray-900 text-base">{user.fullName || user.email?.split('@')[0] || 'Tài khoản'}</div>
-                        <div className="text-xs text-gray-500">{user.email || 'user@gmail.com'}</div>
+                        <div className="text-xs text-gray-500">{user.email || user.phone || ''}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5 bg-blue-50 text-[#004e92] text-xs font-semibold px-2.5 py-1 rounded-full w-max mt-1 border border-blue-100 shadow-sm">

@@ -46,10 +46,41 @@ const Settings = () => {
   });
   
   // Tab 1: Profile state
-  const [fullName, setFullName] = useState(user?.fullName || (user?.role === 'admin' ? 'Quản trị viên Hệ thống' : 'Bác sĩ Chuyên khoa'));
-  const [phone, setPhone] = useState(user?.phone || '0988777666');
-  const [position, setPosition] = useState(user?.role === 'admin' ? 'Giám đốc Công nghệ (CTO)' : 'Bác sĩ Trưởng Khoa');
-  const [dept, setDept] = useState(user?.role === 'admin' ? 'Ban Quản trị & Điều hành' : 'Khoa Nội Tổng hợp');
+  const [fullName, setFullName] = useState(user?.fullName || '');
+  const [phone, setPhone] = useState(user?.phone || '');
+  const [position, setPosition] = useState('');
+  const [dept, setDept] = useState('');
+
+  useEffect(() => {
+    if (user) {
+      setFullName(user.fullName || (
+        user.role === 'admin' ? 'Quản trị viên Hệ thống' :
+        user.role === 'doctor' ? 'Bác sĩ Chuyên khoa' :
+        user.role === 'nurse' ? 'Dược sĩ' :
+        user.role === 'cashier' ? 'Thu ngân' : 'Bệnh nhân'
+      ));
+      setPhone(user.phone || '');
+      
+      setPosition(
+        user.role === 'admin' ? 'Giám đốc Công nghệ (CTO)' :
+        user.role === 'doctor' ? 'Bác sĩ Chuyên khoa' :
+        user.role === 'nurse' ? 'Dược sĩ hệ thống' :
+        user.role === 'cashier' ? 'Thu ngân bệnh viện' : 'Bệnh nhân'
+      );
+      
+      setDept(
+        user.role === 'admin' ? 'Ban Quản trị & Điều hành' :
+        user.role === 'doctor' ? (user.department || 'Khoa Nội Tổng hợp') :
+        user.role === 'nurse' ? 'Khoa Dược & Cấp phát thuốc' :
+        user.role === 'cashier' ? 'Phòng Kế hoạch - Tài chính' : 'Bệnh nhân'
+      );
+      
+      // Khóa tab nếu vai trò không phải Admin
+      if (user.role !== 'admin' && !['profile', 'security'].includes(activeTab)) {
+        setActiveTab('profile');
+      }
+    }
+  }, [user, activeTab]);
   
   // Tab 2: System state
   const [hospName, setHospName] = useState('Bệnh viện Nhân Dân (Hà Nội)');
@@ -395,16 +426,31 @@ Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
       <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-wrap items-center justify-between gap-6">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 tracking-wide flex items-center gap-3">
-            <Building className="w-8 h-8 text-[#004e92]" /> Cấu hình & Quản trị Hệ thống
+            {user?.role === 'admin' ? (
+              <>
+                <Building className="w-8 h-8 text-[#004e92]" /> Cấu hình & Quản trị Hệ thống
+              </>
+            ) : (
+              <>
+                <User className="w-8 h-8 text-[#004e92]" /> Thông tin cá nhân
+              </>
+            )}
           </h2>
           <p className="text-gray-500 text-sm mt-1">
-            Thiết lập hồ sơ cá nhân, tinh chỉnh thông tin bệnh viện, tăng cường bảo mật và giám sát hoạt động.
+            {user?.role === 'admin'
+              ? 'Thiết lập hồ sơ cá nhân, tinh chỉnh thông tin bệnh viện, tăng cường bảo mật và giám sát hoạt động.'
+              : 'Xem thông tin cá nhân và thay đổi mật khẩu bảo mật tài khoản.'}
           </p>
         </div>
         <div className="bg-blue-50 border border-blue-100 px-4 py-2.5 rounded-2xl flex items-center gap-3 shadow-sm">
           <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
           <span className="text-xs font-bold text-[#004e92] uppercase tracking-wider">
-            Quyền: {user?.role === 'admin' ? 'Quản trị viên Toàn quyền' : 'Bác sĩ kiểm duyệt'}
+            Quyền: {
+              user?.role === 'admin' ? 'Quản trị viên Toàn quyền' :
+              user?.role === 'doctor' ? 'Bác sĩ chuyên khoa' :
+              user?.role === 'nurse' ? 'Dược sĩ hệ thống' :
+              user?.role === 'cashier' ? 'Thu ngân bệnh viện' : 'Bệnh nhân'
+            }
           </span>
         </div>
       </div>
@@ -419,28 +465,34 @@ Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
               : 'text-gray-600 hover:bg-gray-300/50'
           }`}
         >
-          <User className="w-4 h-4" /> Hồ sơ Quản trị
+          <User className="w-4 h-4" /> {user?.role === 'admin' ? 'Hồ sơ Quản trị' : 'Hồ sơ cá nhân'}
         </button>
-        <button
-          onClick={() => { setActiveTab('system'); setSuccessMsg(''); }}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all shrink-0 ${
-            activeTab === 'system'
-              ? 'bg-[#004e92] text-white shadow-lg transform -translate-y-0.5'
-              : 'text-gray-600 hover:bg-gray-300/50'
-          }`}
-        >
-          <Building className="w-4 h-4" /> Thông tin Bệnh viện
-        </button>
-        <button
-          onClick={() => { setActiveTab('email'); setSuccessMsg(''); }}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all shrink-0 ${
-            activeTab === 'email'
-              ? 'bg-[#004e92] text-white shadow-lg transform -translate-y-0.5'
-              : 'text-gray-600 hover:bg-gray-300/50'
-          }`}
-        >
-          <Mail className="w-4 h-4" /> Gửi Mail & Nhắc lịch
-        </button>
+
+        {user?.role === 'admin' && (
+          <>
+            <button
+              onClick={() => { setActiveTab('system'); setSuccessMsg(''); }}
+              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all shrink-0 ${
+                activeTab === 'system'
+                  ? 'bg-[#004e92] text-white shadow-lg transform -translate-y-0.5'
+                  : 'text-gray-600 hover:bg-gray-300/50'
+              }`}
+            >
+              <Building className="w-4 h-4" /> Thông tin Bệnh viện
+            </button>
+            <button
+              onClick={() => { setActiveTab('email'); setSuccessMsg(''); }}
+              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all shrink-0 ${
+                activeTab === 'email'
+                  ? 'bg-[#004e92] text-white shadow-lg transform -translate-y-0.5'
+                  : 'text-gray-600 hover:bg-gray-300/50'
+              }`}
+            >
+              <Mail className="w-4 h-4" /> Gửi Mail & Nhắc lịch
+            </button>
+          </>
+        )}
+
         <button
           onClick={() => { setActiveTab('security'); setSuccessMsg(''); }}
           className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all shrink-0 ${
@@ -451,36 +503,41 @@ Cảm ơn quý khách và chúc quý khách nhiều sức khỏe!`);
         >
           <Shield className="w-4 h-4" /> Bảo mật & Khóa
         </button>
-        <button
-          onClick={() => { setActiveTab('logs'); setSuccessMsg(''); }}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all shrink-0 ${
-            activeTab === 'logs'
-              ? 'bg-[#004e92] text-white shadow-lg transform -translate-y-0.5'
-              : 'text-gray-600 hover:bg-gray-300/50'
-          }`}
-        >
-          <FileText className="w-4 h-4" /> Nhật ký Hoạt động
-        </button>
-        <button
-          onClick={() => { setActiveTab('payment'); setSuccessMsg(''); }}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all shrink-0 ${
-            activeTab === 'payment'
-              ? 'bg-[#004e92] text-white shadow-lg transform -translate-y-0.5'
-              : 'text-gray-600 hover:bg-gray-300/50'
-          }`}
-        >
-          <DollarSign className="w-4 h-4" /> Tài khoản thanh toán
-        </button>
-        <button
-          onClick={() => { setActiveTab('fees'); setSuccessMsg(''); }}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all shrink-0 ${
-            activeTab === 'fees'
-              ? 'bg-[#004e92] text-white shadow-lg transform -translate-y-0.5'
-              : 'text-gray-600 hover:bg-gray-300/50'
-          }`}
-        >
-          <Activity className="w-4 h-4" /> Điều chỉnh lệ phí khám
-        </button>
+
+        {user?.role === 'admin' && (
+          <>
+            <button
+              onClick={() => { setActiveTab('logs'); setSuccessMsg(''); }}
+              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all shrink-0 ${
+                activeTab === 'logs'
+                  ? 'bg-[#004e92] text-white shadow-lg transform -translate-y-0.5'
+                  : 'text-gray-600 hover:bg-gray-300/50'
+              }`}
+            >
+              <FileText className="w-4 h-4" /> Nhật ký Hoạt động
+            </button>
+            <button
+              onClick={() => { setActiveTab('payment'); setSuccessMsg(''); }}
+              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all shrink-0 ${
+                activeTab === 'payment'
+                  ? 'bg-[#004e92] text-white shadow-lg transform -translate-y-0.5'
+                  : 'text-gray-600 hover:bg-gray-300/50'
+              }`}
+            >
+              <DollarSign className="w-4 h-4" /> Tài khoản thanh toán
+            </button>
+            <button
+              onClick={() => { setActiveTab('fees'); setSuccessMsg(''); }}
+              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all shrink-0 ${
+                activeTab === 'fees'
+                  ? 'bg-[#004e92] text-white shadow-lg transform -translate-y-0.5'
+                  : 'text-gray-600 hover:bg-gray-300/50'
+              }`}
+            >
+              <Activity className="w-4 h-4" /> Điều chỉnh lệ phí khám
+            </button>
+          </>
+        )}
       </div>
 
       {/* Message */}
