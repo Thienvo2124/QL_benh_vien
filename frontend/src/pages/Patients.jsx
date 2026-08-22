@@ -15,6 +15,9 @@ const Patients = () => {
   const [selectedFilterDate, setSelectedFilterDate] = useState('');
   const [activeTab, setActiveTab] = useState('waiting'); // waiting | history
   const [sortOrder, setSortOrder] = useState('newest'); // newest | oldest
+  const [waitingPage, setWaitingPage] = useState(1);
+  const [historyPage, setHistoryPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
   
   // Modal state
   const [activeModal, setActiveModal] = useState(null); // 'view', 'new', 'prescription', or null
@@ -104,6 +107,11 @@ const Patients = () => {
       setSelectedDept(user.department);
     }
   }, [user]);
+
+  useEffect(() => {
+    setWaitingPage(1);
+    setHistoryPage(1);
+  }, [search, selectedDept, selectedFilterDate, sortOrder, activeTab]);
 
   const waitingList = appointments.filter(app => app.status === 'approved' && app.paymentStatus === 'paid');
 
@@ -377,6 +385,59 @@ const Patients = () => {
     return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
   });
 
+  const paginatedWaitingList = sortedWaitingList.slice((waitingPage - 1) * ITEMS_PER_PAGE, waitingPage * ITEMS_PER_PAGE);
+  const totalWaitingPages = Math.ceil(sortedWaitingList.length / ITEMS_PER_PAGE);
+
+  const paginatedRecords = sortedRecords.slice((historyPage - 1) * ITEMS_PER_PAGE, historyPage * ITEMS_PER_PAGE);
+  const totalHistoryPages = Math.ceil(sortedRecords.length / ITEMS_PER_PAGE);
+
+  const renderPagination = (currentPage, totalPages, onPageChange) => {
+    if (totalPages <= 1) return null;
+    return (
+      <div className="flex items-center justify-between px-6 py-4 bg-white border-t border-gray-100 flex-wrap gap-4 print:hidden select-none">
+        <span className="text-xs text-gray-500 font-bold">
+          Trang {currentPage} / {totalPages}
+        </span>
+        <div className="flex gap-1">
+          <button
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          >
+            Trước
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1)
+            .filter(page => page === 1 || page === totalPages || Math.abs(page - currentPage) <= 2)
+            .map((page, index, array) => {
+              const showEllipsis = index > 0 && page - array[index - 1] > 1;
+              return (
+                <div key={page} className="flex gap-1">
+                  {showEllipsis && <span className="px-2 py-1 text-xs text-gray-400 font-bold">...</span>}
+                  <button
+                    onClick={() => onPageChange(page)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                      currentPage === page
+                        ? 'bg-[#004e92] text-white shadow-md'
+                        : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                </div>
+              );
+            })}
+          <button
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-bold text-[#004e92] hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          >
+            Sau
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="p-8 space-y-8 font-sans bg-gray-50/50 min-h-screen">
       
@@ -552,8 +613,8 @@ const Patients = () => {
                 </tr>
               </thead>
               <tbody className="text-sm divide-y divide-gray-100">
-                {sortedWaitingList.length > 0 ? (
-                  sortedWaitingList.map((app) => (
+                {paginatedWaitingList.length > 0 ? (
+                  paginatedWaitingList.map((app) => (
                     <tr key={app._id} className="hover:bg-blue-50/20 transition-colors">
                       <td className="p-5 text-center">
                         <span className="bg-blue-50 text-[#004e92] text-sm font-black px-3 py-1.5 rounded-xl border border-blue-100 shadow-sm">
@@ -628,6 +689,7 @@ const Patients = () => {
               </tbody>
             </table>
           </div>
+          {renderPagination(waitingPage, totalWaitingPages, setWaitingPage)}
         </div>
       )}
 
@@ -647,8 +709,8 @@ const Patients = () => {
                 </tr>
               </thead>
               <tbody className="text-sm divide-y divide-gray-100">
-                {sortedRecords.length > 0 ? (
-                  sortedRecords.map((rec) => (
+                {paginatedRecords.length > 0 ? (
+                  paginatedRecords.map((rec) => (
                     <tr key={rec.id} className="hover:bg-blue-50/20 transition-colors">
                       <td className="p-5 text-center">
                         {rec.queueNumber ? (
@@ -726,6 +788,7 @@ const Patients = () => {
               </tbody>
             </table>
           </div>
+          {renderPagination(historyPage, totalHistoryPages, setHistoryPage)}
         </div>
       )}
 

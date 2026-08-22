@@ -64,6 +64,11 @@ const CashierDashboard = () => {
   // Sort state
   const [sortBy, setSortBy] = useState('newest'); // newest | oldest
   const [receptionSourceFilter, setReceptionSourceFilter] = useState('all'); // all | offline | online
+  const [receptionPage, setReceptionPage] = useState(1);
+  const [issuedPage, setIssuedPage] = useState(1);
+  const [rxPage, setRxPage] = useState(1);
+  const [infoPage, setInfoPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
 
   // Edit Modal State
   const [showEditModal, setShowEditModal] = useState(false);
@@ -229,6 +234,13 @@ const CashierDashboard = () => {
     fetchAppointments();
     fetchSettings();
   }, [fetchAppointments, fetchSettings]);
+
+  useEffect(() => {
+    setReceptionPage(1);
+    setIssuedPage(1);
+    setRxPage(1);
+    setInfoPage(1);
+  }, [searchQuery, rxSearchQuery, infoSearchQuery, issuedDeptFilter, issuedStatusFilter, infoDeptFilter, infoTypeFilter, infoPaidFilter, infoExamFilter, sortBy, receptionSourceFilter, activeTab]);
 
   // Tự động kiểm tra đối soát giao dịch chuyển khoản qua SePay (polling mỗi 2 giây)
   useEffect(() => {
@@ -869,6 +881,65 @@ const CashierDashboard = () => {
   const sortedUnpaidPrescriptions = sortRecords(unpaidPrescriptions);
   const sortedAllAppointmentsFiltered = sortRecords(allAppointmentsFiltered);
 
+  const paginatedUnpaidAppointments = sortedUnpaidAppointments.slice((receptionPage - 1) * ITEMS_PER_PAGE, receptionPage * ITEMS_PER_PAGE);
+  const totalReceptionPages = Math.ceil(sortedUnpaidAppointments.length / ITEMS_PER_PAGE);
+
+  const paginatedIssuedAppointments = sortedIssuedAppointments.slice((issuedPage - 1) * ITEMS_PER_PAGE, issuedPage * ITEMS_PER_PAGE);
+  const totalIssuedPages = Math.ceil(sortedIssuedAppointments.length / ITEMS_PER_PAGE);
+
+  const paginatedUnpaidPrescriptions = sortedUnpaidPrescriptions.slice((rxPage - 1) * ITEMS_PER_PAGE, rxPage * ITEMS_PER_PAGE);
+  const totalRxPages = Math.ceil(sortedUnpaidPrescriptions.length / ITEMS_PER_PAGE);
+
+  const paginatedAllAppointmentsFiltered = sortedAllAppointmentsFiltered.slice((infoPage - 1) * ITEMS_PER_PAGE, infoPage * ITEMS_PER_PAGE);
+  const totalInfoPages = Math.ceil(sortedAllAppointmentsFiltered.length / ITEMS_PER_PAGE);
+
+  const renderPagination = (currentPage, totalPages, onPageChange) => {
+    if (totalPages <= 1) return null;
+    return (
+      <div className="flex items-center justify-between px-6 py-4 bg-white border-t border-gray-100 flex-wrap gap-4 print:hidden select-none">
+        <span className="text-xs text-gray-500 font-bold">
+          Trang {currentPage} / {totalPages}
+        </span>
+        <div className="flex gap-1">
+          <button
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          >
+            Trước
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1)
+            .filter(page => page === 1 || page === totalPages || Math.abs(page - currentPage) <= 2)
+            .map((page, index, array) => {
+              const showEllipsis = index > 0 && page - array[index - 1] > 1;
+              return (
+                <div key={page} className="flex gap-1">
+                  {showEllipsis && <span className="px-2 py-1 text-xs text-gray-400 font-bold">...</span>}
+                  <button
+                    onClick={() => onPageChange(page)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                      currentPage === page
+                        ? 'bg-[#004e92] text-white shadow-md'
+                        : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                </div>
+              );
+            })}
+          <button
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-bold text-[#004e92] hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          >
+            Sau
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   // Thống kê doanh thu nhanh (chỉ tính các hóa đơn đã thu trong session hiện tại)
   const paidExams = appointmentsArr.filter(app => app && app.paymentStatus === 'paid');
   const paidPrescriptions = rxBillsArr.filter(bill => bill && bill.status === 'paid');
@@ -1065,10 +1136,12 @@ const CashierDashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="text-sm divide-y divide-gray-100 font-medium">
-                  {sortedUnpaidAppointments.length > 0 ? (
-                    sortedUnpaidAppointments.map((app, index) => (
+                  {paginatedUnpaidAppointments.length > 0 ? (
+                    paginatedUnpaidAppointments.map((app, index) => (
                       <tr key={app._id} className="hover:bg-blue-50/20 transition-colors">
-                        <td className="p-5 text-center text-gray-400 font-bold">{index + 1}</td>
+                        <td className="p-5 text-center text-gray-400 font-bold">
+                          {(receptionPage - 1) * ITEMS_PER_PAGE + index + 1}
+                        </td>
                         <td className="p-5">
                           <span className="font-bold text-gray-900 text-base block">{app.name}</span>
                           <span className="text-xs text-gray-500 block mt-0.5">SĐT: {app.phone} {app.dob ? `| Năm sinh: ${getYearSafe(app.dob)}` : ''}</span>
@@ -1128,6 +1201,7 @@ const CashierDashboard = () => {
                 </tbody>
               </table>
             </div>
+            {renderPagination(receptionPage, totalReceptionPages, setReceptionPage)}
           </div>
         </div>
       )}
@@ -1212,8 +1286,8 @@ const CashierDashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="text-sm divide-y divide-gray-100">
-                  {sortedIssuedAppointments.length > 0 ? (
-                    sortedIssuedAppointments.map((app) => (
+                  {paginatedIssuedAppointments.length > 0 ? (
+                    paginatedIssuedAppointments.map((app) => (
                       <tr key={app._id} className="hover:bg-blue-50/20 transition-colors">
                         <td className="p-5 text-center">
                           <div className="flex flex-col items-center gap-1.5 justify-center">
@@ -1297,6 +1371,7 @@ const CashierDashboard = () => {
                 </tbody>
               </table>
             </div>
+            {renderPagination(issuedPage, totalIssuedPages, setIssuedPage)}
           </div>
         </div>
       )}
@@ -1557,8 +1632,8 @@ const CashierDashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="text-sm divide-y divide-gray-100 font-medium">
-                  {sortedUnpaidPrescriptions.length > 0 ? (
-                    sortedUnpaidPrescriptions.map((bill) => {
+                  {paginatedUnpaidPrescriptions.length > 0 ? (
+                    paginatedUnpaidPrescriptions.map((bill) => {
                       const totalCost = bill.items.reduce((sum, item) => sum + (item.price * item.qty), 0);
                       const hasBHYT = !!bill.bhyt;
                       const discount = hasBHYT ? totalCost * 0.8 : 0;
@@ -1654,6 +1729,7 @@ const CashierDashboard = () => {
                 </tbody>
               </table>
             </div>
+            {renderPagination(rxPage, totalRxPages, setRxPage)}
           </div>
         </div>
       )}
@@ -1770,14 +1846,16 @@ const CashierDashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="text-sm divide-y divide-gray-100">
-                  {sortedAllAppointmentsFiltered.length > 0 ? (
-                    sortedAllAppointmentsFiltered.map((app, index) => {
+                  {paginatedAllAppointmentsFiltered.length > 0 ? (
+                    paginatedAllAppointmentsFiltered.map((app, index) => {
                       const isPaid = app.paymentStatus === 'paid';
                       const isWalkIn = app.reason === 'Đến khám trực tiếp tại quầy' || !app.reason;
                       
                       return (
                         <tr key={app._id} className="hover:bg-blue-50/10 transition-colors">
-                          <td className="p-5 font-bold text-gray-700 text-center">{index + 1}</td>
+                          <td className="p-5 font-bold text-gray-700 text-center">
+                            {(infoPage - 1) * ITEMS_PER_PAGE + index + 1}
+                          </td>
                           <td className="p-5">
                             <div className="font-bold text-gray-900">{app.name}</div>
                             <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
@@ -1871,7 +1949,7 @@ const CashierDashboard = () => {
                     })
                   ) : (
                     <tr>
-                      <td colSpan="8" className="p-12 text-center text-gray-400">
+                      <td colSpan="9" className="p-12 text-center text-gray-400">
                         Không tìm thấy bệnh nhân nào phù hợp.
                       </td>
                     </tr>
@@ -1879,6 +1957,7 @@ const CashierDashboard = () => {
                 </tbody>
               </table>
             </div>
+            {renderPagination(infoPage, totalInfoPages, setInfoPage)}
           </div>
         </div>
       )}

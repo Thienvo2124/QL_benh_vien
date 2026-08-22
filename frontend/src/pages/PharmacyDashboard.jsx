@@ -13,6 +13,8 @@ const PharmacyDashboard = () => {
   const [notification, setNotification] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [selectedApp, setSelectedApp] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
 
   const fetchPrescriptions = useCallback(async () => {
     setLoading(true);
@@ -45,6 +47,10 @@ const PharmacyDashboard = () => {
   useEffect(() => {
     fetchPrescriptions();
   }, [fetchPrescriptions]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, activeTab]);
 
   // Xác nhận cấp phát thuốc
   const handleDispenseConfirm = async (appId) => {
@@ -133,6 +139,56 @@ const PharmacyDashboard = () => {
 
     return isTabMatch && isSearchMatch;
   });
+
+  const paginatedApps = filteredApps.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filteredApps.length / ITEMS_PER_PAGE);
+
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+    return (
+      <div className="flex items-center justify-between px-6 py-4 bg-white border-t border-gray-100 flex-wrap gap-4 print:hidden select-none">
+        <span className="text-xs text-gray-500 font-bold">
+          Trang {currentPage} / {totalPages}
+        </span>
+        <div className="flex gap-1">
+          <button
+            onClick={() => setCurrentPage(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          >
+            Trước
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1)
+            .filter(page => page === 1 || page === totalPages || Math.abs(page - currentPage) <= 2)
+            .map((page, index, array) => {
+              const showEllipsis = index > 0 && page - array[index - 1] > 1;
+              return (
+                <div key={page} className="flex gap-1">
+                  {showEllipsis && <span className="px-2 py-1 text-xs text-gray-400 font-bold">...</span>}
+                  <button
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                      currentPage === page
+                        ? 'bg-[#004e92] text-white shadow-md'
+                        : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                </div>
+              );
+            })}
+          <button
+            onClick={() => setCurrentPage(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-bold text-[#004e92] hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          >
+            Sau
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6 font-sans">
@@ -226,55 +282,58 @@ const PharmacyDashboard = () => {
                 <RefreshCw className="w-8 h-8 animate-spin mx-auto text-[#004e92] mb-3" />
                 Đang tải danh sách đơn thuốc...
               </div>
-            ) : filteredApps.length > 0 ? (
-              <div className="divide-y divide-gray-100">
-                {filteredApps.map((app) => (
-                  <div 
-                    key={app._id} 
-                    onClick={() => setSelectedApp(app)}
-                    className={`p-5 hover:bg-blue-50/20 transition-all cursor-pointer flex flex-wrap items-center justify-between gap-4 ${
-                      selectedApp?._id === app._id ? 'bg-blue-50/30 border-l-4 border-[#004e92]' : ''
-                    }`}
-                  >
-                    <div className="space-y-1.5 flex-1 min-w-[200px]">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold font-mono text-[#004e92] bg-blue-50 px-2.5 py-0.5 rounded-md border border-blue-100">
-                          {app.appointmentCode}
-                        </span>
-                        <span className="text-xs text-gray-400 font-medium">
-                          Khám ngày {formatDateSafe(app.date)}
-                        </span>
-                      </div>
-                      <h4 className="font-bold text-gray-900 text-base">{app.name}</h4>
-                      <div className="text-xs text-gray-500 flex items-center gap-1">
-                        <Phone className="w-3.5 h-3.5 text-gray-400" /> {app.phone}
-                        {app.bhyt && (
-                          <span className="ml-2 bg-purple-50 text-purple-700 font-semibold px-2 py-0.5 rounded text-[10px] border border-purple-100">
-                            BHYT: {app.bhyt}
+            ) : paginatedApps.length > 0 ? (
+              <>
+                <div className="divide-y divide-gray-100">
+                  {paginatedApps.map((app) => (
+                    <div 
+                      key={app._id} 
+                      onClick={() => setSelectedApp(app)}
+                      className={`p-5 hover:bg-blue-50/20 transition-all cursor-pointer flex flex-wrap items-center justify-between gap-4 ${
+                        selectedApp?._id === app._id ? 'bg-blue-50/30 border-l-4 border-[#004e92]' : ''
+                      }`}
+                    >
+                      <div className="space-y-1.5 flex-1 min-w-[200px]">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold font-mono text-[#004e92] bg-blue-50 px-2.5 py-0.5 rounded-md border border-blue-100">
+                            {app.appointmentCode}
                           </span>
-                        )}
+                          <span className="text-xs text-gray-400 font-medium">
+                            Khám ngày {formatDateSafe(app.date)}
+                          </span>
+                        </div>
+                        <h4 className="font-bold text-gray-900 text-base">{app.name}</h4>
+                        <div className="text-xs text-gray-500 flex items-center gap-1">
+                          <Phone className="w-3.5 h-3.5 text-gray-400" /> {app.phone}
+                          {app.bhyt && (
+                            <span className="ml-2 bg-purple-50 text-purple-700 font-semibold px-2 py-0.5 rounded text-[10px] border border-purple-100">
+                              BHYT: {app.bhyt}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <span className="text-xs font-bold text-gray-400 block uppercase">Tổng số thuốc</span>
-                        <span className="text-base font-extrabold text-gray-800">{app.prescription?.length || 0} loại</span>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <span className="text-xs font-bold text-gray-400 block uppercase">Tổng số thuốc</span>
+                          <span className="text-base font-extrabold text-gray-800">{app.prescription?.length || 0} loại</span>
+                        </div>
+                        
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedApp(app);
+                          }}
+                          className="px-4 py-2 bg-gray-100 hover:bg-[#004e92] text-gray-700 hover:text-white rounded-xl transition-all text-xs font-bold shadow-sm"
+                        >
+                          Xem chi tiết
+                        </button>
                       </div>
-                      
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedApp(app);
-                        }}
-                        className="px-4 py-2 bg-gray-100 hover:bg-[#004e92] text-gray-700 hover:text-white rounded-xl transition-all text-xs font-bold shadow-sm"
-                      >
-                        Xem chi tiết
-                      </button>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+                {renderPagination()}
+              </>
             ) : (
               <div className="p-16 text-center text-gray-400 italic">
                 <FileText className="w-12 h-12 mx-auto text-gray-300 mb-3" />
