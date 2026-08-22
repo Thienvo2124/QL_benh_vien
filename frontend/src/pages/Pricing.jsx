@@ -10,6 +10,8 @@ import {
 } from 'lucide-react';
 import API_BASE_URL from '../config/api';
 import departments from '../data/departments';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 const groups = [
   {
@@ -83,9 +85,11 @@ const Pricing = () => {
   };
 
   return (
-    <>
-      {/* Header / Hero Section */}
-      <section className="bg-gradient-to-r from-[#004e92] via-[#0060b0] to-[#1565c0] py-16 px-4 relative overflow-hidden shadow-inner">
+    <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-800">
+      <Header />
+      <main className="flex-grow">
+        {/* Header / Hero Section */}
+        <section className="bg-gradient-to-r from-[#004e92] via-[#0060b0] to-[#1565c0] py-16 px-4 relative overflow-hidden shadow-inner">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.08),transparent)] pointer-events-none"></div>
         <div className="container mx-auto relative z-10 text-center md:text-left">
           <h1 className="text-3xl md:text-4xl font-extrabold text-white uppercase tracking-wider mb-3 drop-shadow-sm">
@@ -195,7 +199,9 @@ const Pricing = () => {
           </div>
         </div>
       </section>
-    </>
+      </main>
+      <Footer />
+    </div>
   );
 };
 
