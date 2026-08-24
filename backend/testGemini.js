@@ -11,7 +11,7 @@ if (!apiKey) {
 console.log(`🔑 Đang kiểm tra API Key: ${apiKey.slice(0, 10)}...`);
 
 const genAI = new GoogleGenerativeAI(apiKey);
-const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash-lite" });
 
 async function test() {
   try {

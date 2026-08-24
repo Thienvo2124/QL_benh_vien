@@ -66,9 +66,9 @@ const askGemini = async (message, history = []) => {
 
   try {
     const systemPrompt = await getSystemPrompt();
-    // Sử dụng gemini-1.5-flash thế hệ mới có hỗ trợ lập luận tốt hơn và ổn định hơn
+    // Sử dụng gemini-3.5-flash-lite thế hệ mới nhất có hỗ trợ lập luận tốt hơn và rất ổn định
     const model = genAI.getGenerativeModel({ 
-      model: 'gemini-1.5-flash',
+      model: 'gemini-3.5-flash-lite',
       systemInstruction: systemPrompt
     });
 
