@@ -4,14 +4,14 @@ const ChatFeedback = require('../models/ChatFeedback');
 // Người dùng gửi tin nhắn hỏi AI
 const handleChat = async (req, res) => {
   try {
-    const { message, userId } = req.body;
+    const { message, userId, history } = req.body;
 
     if (!message) {
       return res.status(400).json({ success: false, message: "Vui lòng nhập nội dung cần hỏi." });
     }
 
     // Xử lý bằng trí tuệ nhân tạo Gemini
-    const aiReply = await askGemini(message);
+    const aiReply = await askGemini(message, history);
 
     // Lưu lại cuộc hội thoại vào Database để phục vụ Feedback Loop
     const feedbackLog = new ChatFeedback({

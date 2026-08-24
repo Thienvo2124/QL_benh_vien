@@ -11,6 +11,10 @@ const hospitalKnowledge = `
 BẠN LÀ AI?
 Bạn là "Y Tế AI Assistant" - Trợ lý bác sĩ ảo thông minh được phát triển độc quyền cho Bệnh viện Nhân Dân.
 
+HƯỚNG DẪN TƯ DUY & LẬP LUẬN (CHAIN OF THOUGHT):
+- Trước khi trả lời bệnh nhân, hãy tự lập luận thấu đáo trong suy nghĩ của bạn về triệu chứng của họ và động cơ thực sự đằng sau câu hỏi.
+- Trình bày câu trả lời một cách có chiều sâu, rõ ràng từng bước, có sự ân cần và đồng cảm y khoa.
+
 HƯỚNG DẪN GIỌNG ĐIỆU & PHONG CÁCH:
 - Trả lời bằng tiếng Việt một cách ân cần, nhẹ nhàng, lịch sự. Bắt đầu bằng "Dạ" khi trả lời bệnh nhân.
 - Xưng hô lịch thiệp: gọi bệnh nhân là "anh/chị" hoặc "bạn", xưng "em" hoặc "trợ lý y tế".
@@ -55,24 +59,51 @@ Câu trả lời chuẩn mực bắt buộc: "${q.correctedResponse}"`;
   return `${hospitalKnowledge}${trainedRules}\n\nLưu ý quan trọng: Nếu bệnh nhân hỏi những câu chào hỏi thông thường hoặc hỏi về danh tính của bạn, hãy lịch sự giới thiệu bạn là Trợ lý Y tế ảo của Bệnh viện Nhân Dân.`;
 };
 
-const askGemini = async (message) => {
+const askGemini = async (message, history = []) => {
   if (!genAI) {
     return 'Dạ, hiện tại kết nối với máy chủ trí tuệ nhân tạo đang gặp sự cố. Anh/chị vui lòng thử lại sau giây lát ạ!';
   }
 
   try {
     const systemPrompt = await getSystemPrompt();
-    // Sử dụng gemini-flash-latest tương thích và ổn định nhất, cấu hình systemInstruction khi khởi tạo model
+    // Sử dụng gemini-1.5-flash thế hệ mới có hỗ trợ lập luận tốt hơn và ổn định hơn
     const model = genAI.getGenerativeModel({ 
-      model: 'gemini-flash-latest',
+      model: 'gemini-1.5-flash',
       systemInstruction: systemPrompt
     });
 
+    // Tạo mảng contents hội thoại tuần tự xen kẽ (user - model) đúng chuẩn Gemini API
+    const contents = [];
+    let lastRole = null;
+
+    if (Array.isArray(history)) {
+      for (const msg of history) {
+        const role = msg.role === 'model' ? 'model' : 'user';
+        if (role !== lastRole) {
+          contents.push({
+            role: role,
+            parts: msg.parts || [{ text: msg.text || '' }]
+          });
+          lastRole = role;
+        }
+      }
+    }
+
+    // Nếu tin nhắn cuối cùng trong lịch sử trùng role với tin nhắn sắp gửi (user), hãy bỏ tin nhắn trùng đó để tránh lỗi API
+    if (lastRole === 'user') {
+      if (contents.length > 0) {
+        contents.pop();
+      }
+    }
+
+    // Đưa tin nhắn hiện tại của bệnh nhân vào cuối cuộc hội thoại
+    contents.push({ role: 'user', parts: [{ text: message }] });
+
     const result = await model.generateContent({
-      contents: [{ role: 'user', parts: [{ text: message }] }],
+      contents: contents,
       generationConfig: {
-        maxOutputTokens: 8192, // Tăng lên 8192 để tránh bị cắt cụt do tốn token suy nghĩ (thinking tokens) của các dòng Gemini mới
-        temperature: 0.4, // Đặt nhiệt độ thấp để tránh AI "bịa" thông tin y tế bừa bãi
+        maxOutputTokens: 8192,
+        temperature: 0.4,
       },
     });
 
