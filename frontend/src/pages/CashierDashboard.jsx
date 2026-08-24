@@ -2017,10 +2017,6 @@ const CashierDashboard = () => {
                 className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] focus:bg-white transition-colors font-medium"
               />
             </div>
-            
-            <div className="text-sm font-bold text-red-600 bg-red-50 border border-red-200 rounded-2xl px-4 py-3">
-              ⚠️ Các lịch hẹn dưới đây đã quá ngày hẹn khám nhưng chưa thanh toán.
-            </div>
           </div>
 
           {/* EXPIRED LIST TABLE */}
