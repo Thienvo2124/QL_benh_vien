@@ -1288,8 +1288,8 @@ const CashierDashboard = () => {
                   className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-[#004e92] cursor-pointer"
                 >
                   <option value="Tất cả">Tất cả</option>
-                  <option value="waiting">Chờ vào khám</option>
-                  <option value="completed">Đã khám xong</option>
+                  <option value="completed">✅ Đã khám</option>
+                  <option value="waiting">⏳ Chưa khám</option>
                 </select>
               </div>
 
