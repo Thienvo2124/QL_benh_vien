@@ -68,6 +68,7 @@ const CashierDashboard = () => {
   const [issuedPage, setIssuedPage] = useState(1);
   const [rxPage, setRxPage] = useState(1);
   const [infoPage, setInfoPage] = useState(1);
+  const [expiredPage, setExpiredPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
 
   // Edit Modal State
@@ -240,6 +241,7 @@ const CashierDashboard = () => {
     setIssuedPage(1);
     setRxPage(1);
     setInfoPage(1);
+    setExpiredPage(1);
   }, [searchQuery, rxSearchQuery, infoSearchQuery, issuedDeptFilter, issuedStatusFilter, infoDeptFilter, infoTypeFilter, infoPaidFilter, infoExamFilter, sortBy, receptionSourceFilter, activeTab]);
 
   // Tự động kiểm tra đối soát giao dịch chuyển khoản qua SePay (polling mỗi 2 giây)
@@ -768,14 +770,23 @@ const CashierDashboard = () => {
   // Đơn thuốc thực tế lấy hoàn toàn từ database
   const rxBillsArr = dbPrescriptionBills;
 
-  // Lọc danh sách lịch hẹn cần thu tiền khám
+  const getIsExpired = (app) => {
+    if (!app || !app.date) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const appDate = new Date(app.date);
+    appDate.setHours(0, 0, 0, 0);
+    return appDate < today;
+  };
+
+  // Lọc danh sách lịch hẹn cần thu tiền khám (chưa quá hạn)
   const unpaidAppointments = appointmentsArr.filter(app => {
     if (!app) return false;
     const name = app.name || '';
     const phone = app.phone || '';
     const code = app.appointmentCode || '';
     
-    const isUnpaid = app.paymentStatus === 'unpaid' && app.status !== 'rejected';
+    const isUnpaid = app.paymentStatus === 'unpaid' && app.status !== 'rejected' && !getIsExpired(app);
     const matchesSearch = searchQuery === '' || 
       name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       phone.includes(searchQuery) ||
@@ -786,8 +797,23 @@ const CashierDashboard = () => {
     return isUnpaid && matchesSearch && matchesSource;
   });
 
+  // Lọc danh sách lịch hẹn đã quá hạn thanh toán/khám
+  const expiredAppointments = appointmentsArr.filter(app => {
+    if (!app) return false;
+    const name = app.name || '';
+    const phone = app.phone || '';
+    const code = app.appointmentCode || '';
+
+    const isExpiredUnpaid = app.paymentStatus === 'unpaid' && app.status !== 'rejected' && getIsExpired(app);
+    const matchesSearch = searchQuery === '' || 
+      name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      phone.includes(searchQuery) ||
+      (code && code.toLowerCase().includes(searchQuery.toLowerCase()));
+    return isExpiredUnpaid && matchesSearch;
+  });
+
   // Tổng số chờ đóng phí theo từng nguồn (dùng để hiển thị badge)
-  const allUnpaidBase = appointmentsArr.filter(app => app && app.paymentStatus === 'unpaid' && app.status !== 'rejected');
+  const allUnpaidBase = appointmentsArr.filter(app => app && app.paymentStatus === 'unpaid' && app.status !== 'rejected' && !getIsExpired(app));
   const offlineUnpaidCount = allUnpaidBase.filter(app => app.bookingSource === 'offline').length;
   const onlineUnpaidCount = allUnpaidBase.filter(app => app.bookingSource !== 'offline').length;
 
@@ -880,6 +906,7 @@ const CashierDashboard = () => {
   const sortedIssuedAppointments = sortRecords(issuedAppointments);
   const sortedUnpaidPrescriptions = sortRecords(unpaidPrescriptions);
   const sortedAllAppointmentsFiltered = sortRecords(allAppointmentsFiltered);
+  const sortedExpiredAppointments = sortRecords(expiredAppointments);
 
   const paginatedUnpaidAppointments = sortedUnpaidAppointments.slice((receptionPage - 1) * ITEMS_PER_PAGE, receptionPage * ITEMS_PER_PAGE);
   const totalReceptionPages = Math.ceil(sortedUnpaidAppointments.length / ITEMS_PER_PAGE);
@@ -892,6 +919,9 @@ const CashierDashboard = () => {
 
   const paginatedAllAppointmentsFiltered = sortedAllAppointmentsFiltered.slice((infoPage - 1) * ITEMS_PER_PAGE, infoPage * ITEMS_PER_PAGE);
   const totalInfoPages = Math.ceil(sortedAllAppointmentsFiltered.length / ITEMS_PER_PAGE);
+
+  const paginatedExpiredAppointments = sortedExpiredAppointments.slice((expiredPage - 1) * ITEMS_PER_PAGE, expiredPage * ITEMS_PER_PAGE);
+  const totalExpiredPages = Math.ceil(sortedExpiredAppointments.length / ITEMS_PER_PAGE);
 
   const renderPagination = (currentPage, totalPages, onPageChange) => {
     if (totalPages <= 1) return null;
@@ -1064,6 +1094,16 @@ const CashierDashboard = () => {
         >
           <Pill className="w-4 h-4" /> 5. Thu Tiền Đơn Thuốc ({unpaidPrescriptions.length})
         </button>
+        <button
+          onClick={() => setActiveTab('expired')}
+          className={`pb-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
+            activeTab === 'expired'
+              ? 'border-red-500 text-red-500'
+              : 'border-transparent text-gray-400 hover:text-red-500'
+          }`}
+        >
+          <AlertCircle className="w-4 h-4" /> 6. Lịch Quá Hạn ({expiredAppointments.length})
+        </button>
       </div>
 
       {/* TAB 1: CHỜ ĐÓNG PHÍ KHÁM */}
@@ -1155,6 +1195,7 @@ const CashierDashboard = () => {
                         <td className="p-5">
                           <span className="font-bold text-gray-700">{app.time}</span>
                           <span className="text-xs text-gray-400 block mt-0.5">{formatDateSafe(app.date)}</span>
+                          <span className="text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100 font-bold block mt-1 w-max">Hạn: Hết ngày {formatDateSafe(app.date)}</span>
                         </td>
                         <td className="p-5 text-right font-black text-[#004e92]">
                           {(app.initialFee || 150000).toLocaleString('vi-VN')} đ
@@ -1958,6 +1999,110 @@ const CashierDashboard = () => {
               </table>
             </div>
             {renderPagination(infoPage, totalInfoPages, setInfoPage)}
+          </div>
+        </div>
+      )}
+      {/* TAB 6: LÌCH HẸN QUÁ HẠN */}
+      {activeTab === 'expired' && (
+        <div className="space-y-4 print:hidden">
+          {/* SEARCH BAR */}
+          <div className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 flex flex-wrap items-center justify-between gap-4">
+            <div className="relative flex-1 min-w-[280px] max-w-md">
+              <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Tìm bệnh nhân lịch quá hạn (Tên, SĐT, Mã LH...)"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-[#004e92] focus:bg-white transition-colors font-medium"
+              />
+            </div>
+            
+            <div className="text-sm font-bold text-red-600 bg-red-50 border border-red-200 rounded-2xl px-4 py-3">
+              ⚠️ Các lịch hẹn dưới đây đã quá ngày hẹn khám nhưng chưa thanh toán.
+            </div>
+          </div>
+
+          {/* EXPIRED LIST TABLE */}
+          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-100">
+                    <th className="p-5 font-medium w-16 text-center">STT</th>
+                    <th className="p-5 font-medium">Bệnh nhân & Liên hệ</th>
+                    <th className="p-5 font-medium">Khoa điều phối</th>
+                    <th className="p-5 font-medium">Ngày hẹn ban đầu</th>
+                    <th className="p-5 font-medium text-right">Lệ phí</th>
+                    <th className="p-5 font-medium text-center">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody className="text-sm divide-y divide-gray-100 font-medium">
+                  {paginatedExpiredAppointments.length > 0 ? (
+                    paginatedExpiredAppointments.map((app, index) => (
+                      <tr key={app._id} className="hover:bg-red-50/10 transition-colors">
+                        <td className="p-5 text-center text-gray-400 font-bold">
+                          {(expiredPage - 1) * ITEMS_PER_PAGE + index + 1}
+                        </td>
+                        <td className="p-5">
+                          <span className="font-bold text-gray-900 text-base block">{app.name}</span>
+                          <span className="text-xs text-gray-500 block mt-0.5">SĐT: {app.phone} {app.dob ? `| Năm sinh: ${getYearSafe(app.dob)}` : ''}</span>
+                        </td>
+                        <td className="p-5">
+                          <span className="bg-red-50 text-red-600 text-xs font-bold px-2.5 py-1 rounded-full border border-red-100">
+                            {app.dept}
+                          </span>
+                        </td>
+                        <td className="p-5">
+                          <span className="font-bold text-gray-700 block">{app.time}</span>
+                          <span className="text-xs text-red-500 font-bold block mt-1">Expired: {formatDateSafe(app.date)}</span>
+                        </td>
+                        <td className="p-5 text-right font-black text-red-600">
+                          {(app.initialFee || 150000).toLocaleString('vi-VN')} đ
+                        </td>
+                        <td className="p-5 text-center">
+                          <div className="flex gap-2 justify-center items-center">
+                            <button
+                              onClick={() => handleInitiatePayExamFee(app, 'Tiền mặt')}
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-3.5 rounded-xl transition-all text-xs flex items-center gap-1 shadow-sm"
+                            >
+                              💵 Tiền mặt
+                            </button>
+                            <button
+                              onClick={() => handleInitiatePayExamFee(app, 'Chuyển khoản')}
+                              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3.5 rounded-xl transition-all text-xs flex items-center gap-1 shadow-sm"
+                            >
+                              💳 Chuyển khoản
+                            </button>
+                            <button
+                              onClick={() => handleOpenEditModal(app)}
+                              className="p-2 bg-amber-50 hover:bg-amber-500 text-amber-600 hover:text-white rounded-xl transition-all shadow-sm border border-amber-200 hover:border-transparent flex items-center justify-center"
+                              title="Chỉnh sửa lịch hẹn"
+                            >
+                              <Pencil size={14} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteAppointment(app._id, app.name, app.queueNumber)}
+                              className="p-2 bg-red-50 hover:bg-red-600 text-red-600 hover:text-white rounded-xl transition-all shadow-sm border border-red-200 hover:border-transparent flex items-center justify-center"
+                              title="Xóa lịch hẹn quá hạn"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="6" className="p-12 text-center text-gray-400">
+                        Không có lịch hẹn quá hạn nào.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            {renderPagination(expiredPage, totalExpiredPages, setExpiredPage)}
           </div>
         </div>
       )}
