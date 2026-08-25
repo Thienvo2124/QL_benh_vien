@@ -1,12 +1,35 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const Appointment = require("../models/Appointment");
+const SystemSetting = require("../models/SystemSetting");
 const { adminOrDoctorOnly, protect } = require("../middleware/authMiddleware");
 const { logActivity } = require("../utils/logger");
 const { sendBookingConfirmation } = require("../utils/emailService");
 
 const router = express.Router();
 const VALID_STATUSES = ["pending", "approved", "rejected", "completed"];
+
+const deptFeeKeys = {
+  'Gói khám sức khỏe tổng quát Cơ Bản': 'deptfee_goi_kham_co_ban',
+  'Gói khám sức khỏe tổng quát Nâng Cao': 'deptfee_goi_kham_nang_cao',
+  'Gói khám sức khỏe tổng quát Chuyên Sâu': 'deptfee_goi_kham_chuyen_sau',
+  'Gói khám sức khỏe tổng quát VIP Gold': 'deptfee_goi_kham_vip_gold',
+  'Gói khám sức khỏe tổng quát VIP Platinum': 'deptfee_goi_kham_vip_platinum',
+  'Gói khám tầm soát ung thư tổng quát': 'deptfee_goi_kham_tam_soat_ung_thu_tong_quat',
+  'Gói khám tầm soát ung thư tiêu hóa': 'deptfee_goi_kham_tam_soat_ung_thu_tieu_hoa',
+  'Gói khám tầm soát đột quỵ': 'deptfee_goi_kham_tam_soat_dot_quy',
+  'Chẩn đoán hình ảnh (Xquang, CT, Mri, Đo loãng xương)': 'deptfee_chan_doan_hinh_anh',
+  'Nội tổng quát': 'deptfee_noi_tong_quat',
+  'Tai mũi họng': 'deptfee_tai_mui_hong',
+  'Mắt': 'deptfee_mat',
+  'Răng hàm mặt': 'deptfee_rang_ham_mat',
+  'Tim mạch': 'deptfee_tim_mach',
+  'Sản phụ khoa': 'deptfee_san_phu_khoa',
+  'Tuyến vú': 'deptfee_tuyen_vu',
+  'Hô hấp': 'deptfee_ho_hap',
+  'Dị ứng miễn dịch': 'deptfee_di_ung_mien_dich',
+  'Tư vấn giấc ngủ': 'deptfee_tu_van_giac_ngu'
+};
 
 const createUniqueAppointmentCode = async () => {
   const now = new Date();
@@ -135,6 +158,48 @@ router.post("/", async (req, res) => {
       });
     }
 
+    // Phân giải lệ phí khám ban đầu từ cấu hình hệ thống (Database)
+    let initialFee = 150000;
+    if (payload.dept) {
+      const settingKey = deptFeeKeys[payload.dept];
+      if (settingKey) {
+        try {
+          const setting = await SystemSetting.findOne({ key: settingKey });
+          if (setting && setting.value !== undefined) {
+            initialFee = Number(setting.value);
+          } else {
+            // Danh sách giá mặc định nếu chưa khởi tạo trong DB
+            const defaults = {
+              deptfee_goi_kham_co_ban: 1500000,
+              deptfee_goi_kham_nang_cao: 2500000,
+              deptfee_goi_kham_chuyen_sau: 4500000,
+              deptfee_goi_kham_vip_gold: 8000000,
+              deptfee_goi_kham_vip_platinum: 15000000,
+              deptfee_goi_kham_tam_soat_ung_thu_tong_quat: 3000000,
+              deptfee_goi_kham_tam_soat_ung_thu_tieu_hoa: 2200000,
+              deptfee_goi_kham_tam_soat_dot_quy: 2800000,
+              deptfee_chan_doan_hinh_anh: 150000,
+              deptfee_noi_tong_quat: 150000,
+              deptfee_tai_mui_hong: 150000,
+              deptfee_mat: 150000,
+              deptfee_rang_ham_mat: 150000,
+              deptfee_tim_mach: 150000,
+              deptfee_san_phu_khoa: 150000,
+              deptfee_tuyen_vu: 150000,
+              deptfee_ho_hap: 150000,
+              deptfee_di_ung_mien_dich: 150000,
+              deptfee_tu_van_giac_ngu: 150000
+            };
+            initialFee = defaults[settingKey] || 150000;
+          }
+        } catch (dbErr) {
+          console.error("Lỗi truy vấn SystemSetting khi đặt lịch:", dbErr);
+        }
+      }
+    }
+
+    const finalInitialFee = req.body.initialFee ? Number(req.body.initialFee) : initialFee;
+
     console.log('[DEBUG] bookingSource nhận được từ request:', req.body.bookingSource);
     const appointment = await Appointment.create({
       name: payload.name,
@@ -148,7 +213,7 @@ router.post("/", async (req, res) => {
       time: payload.time,
       reason: payload.reason,
       appointmentCode: await createUniqueAppointmentCode(),
-      initialFee: req.body.initialFee ? Number(req.body.initialFee) : 150000,
+      initialFee: finalInitialFee,
       bhyt: payload.bhyt || "",
       address: payload.address || "",
       cccd: payload.cccd || "",

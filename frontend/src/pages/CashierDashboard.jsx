@@ -1183,7 +1183,14 @@ const CashierDashboard = () => {
                           {(receptionPage - 1) * ITEMS_PER_PAGE + index + 1}
                         </td>
                         <td className="p-5">
-                          <span className="font-bold text-gray-900 text-base block">{app.name}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-gray-900 text-base block">{app.name}</span>
+                            {app.appointmentCode && (
+                              <span className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded-md font-mono tracking-wider">
+                                {app.appointmentCode}
+                              </span>
+                            )}
+                          </div>
                           <span className="text-xs text-gray-500 block mt-0.5">SĐT: {app.phone} {app.dob ? `| Năm sinh: ${getYearSafe(app.dob)}` : ''}</span>
                         </td>
                         <td className="p-5">
@@ -1898,7 +1905,14 @@ const CashierDashboard = () => {
                             {(infoPage - 1) * ITEMS_PER_PAGE + index + 1}
                           </td>
                           <td className="p-5">
-                            <div className="font-bold text-gray-900">{app.name}</div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-gray-900">{app.name}</span>
+                              {app.appointmentCode && (
+                                <span className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded-md font-mono tracking-wider">
+                                  {app.appointmentCode}
+                                </span>
+                              )}
+                            </div>
                             <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
                               <Phone size={12} className="text-gray-400" /> {app.phone}
                             </div>
@@ -2041,7 +2055,14 @@ const CashierDashboard = () => {
                           {(expiredPage - 1) * ITEMS_PER_PAGE + index + 1}
                         </td>
                         <td className="p-5">
-                          <span className="font-bold text-gray-900 text-base block">{app.name}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-gray-900 text-base block">{app.name}</span>
+                            {app.appointmentCode && (
+                              <span className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded-md font-mono tracking-wider">
+                                {app.appointmentCode}
+                              </span>
+                            )}
+                          </div>
                           <span className="text-xs text-gray-500 block mt-0.5">SĐT: {app.phone} {app.dob ? `| Năm sinh: ${getYearSafe(app.dob)}` : ''}</span>
                         </td>
                         <td className="p-5">
