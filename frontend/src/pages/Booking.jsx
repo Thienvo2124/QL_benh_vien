@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { User, Phone, Calendar, Clock, Stethoscope, CheckCircle, Bot, Sparkles, ChevronRight, ChevronLeft, UserCheck, UserPlus, FileText, Sun, SunDim, Check, Award, Star, Smile, Ticket, RefreshCw } from 'lucide-react';
 import API_BASE_URL from '../config/api';
 import departments from '../data/departments';
@@ -28,6 +28,14 @@ const initialForm = {
 
 const Booking = () => {
   const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
+
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(initialForm);
   const [isForSelf, setIsForSelf] = useState(true);
