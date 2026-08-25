@@ -119,7 +119,7 @@ manager.addAnswer('vi', 'disease.neuro', 'Dạ, triệu chứng như đau đầu
 manager.addAnswer('vi', 'emergency', '🚨 TÌNH TRẠNG KHẨN CẤP! Vui lòng gọi ngay 115 hoặc đưa bệnh nhân đến khoa Cấp cứu của bệnh viện gần nhất. Không nên chờ đợi tư vấn lúc này!');
 manager.addAnswer('vi', 'pharmacy.info', 'Dạ, mọi hướng dẫn về liều lượng và tác dụng phụ đều được bác sĩ ghi rõ trong "Đơn thuốc điện tử" ở mục Hồ sơ của anh/chị. Để an toàn, anh/chị không nên tự ý đổi thuốc nhé!');
 manager.addAnswer('vi', 'hospital.info', 'Dạ Bệnh viện Nhân Dân làm việc từ 7:00 - 17:00 (Thứ 2 đến Thứ 7). Bệnh viện có áp dụng thanh toán BHYT tất cả các tuyến ạ!');
-manager.addAnswer('vi', 'greetings.hello', 'Dạ, em là Y tế Trợ lý AI. Anh/chị đang cần hỗ trợ vấn đề gì ạ?');
+manager.addAnswer('vi', 'greetings.hello', 'Dạ, em là Assistant. Anh/chị đang cần hỗ trợ vấn đề gì ạ?');
 manager.addAnswer('vi', 'about.bot', 'Dạ vâng chính xác ạ! Em là AI Virtual Virtual (Bác sĩ Ảo) được phát triển độc quyền cho Bệnh viện Nhân Dân. Khác với các AI bên ngoài, bộ não của em được thiết kế riêng để đảm bảo bảo mật 100% dữ liệu y tế của bệnh viện!');
 
 // Câu trả lời mặc định khi AI không hiểu

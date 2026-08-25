@@ -101,7 +101,7 @@ const Chatbot = () => {
                 <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-[#000428] rounded-full"></div>
               </div>
               <div className="flex flex-col">
-                <h3 className="font-bold text-white text-base leading-tight">Y Tế AI Assistant</h3>
+                <h3 className="font-bold text-white text-base leading-tight">Assistant</h3>
                 <p className="text-xs text-blue-200 font-medium flex items-center gap-1">
                   <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
                   Trực tuyến hỗ trợ
