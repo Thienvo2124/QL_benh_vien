@@ -3,6 +3,25 @@ import { Plus, Pencil, Trash2, Eye, EyeOff, Pin, PinOff, Newspaper, X, Save, Ref
 import { AuthContext } from '../contexts/AuthContext';
 import API_BASE_URL from '../config/api';
 
+const getFullImageUrl = (url) => {
+  if (!url) return '';
+  if (url.startsWith('/')) {
+    return `${API_BASE_URL}${url}`;
+  }
+  try {
+    const parsed = new URL(url);
+    if ((parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') && 
+        !API_BASE_URL.includes('localhost') && !API_BASE_URL.includes('127.0.0.1')) {
+      return `${API_BASE_URL}${parsed.pathname}`;
+    }
+    if (parsed.hostname.includes('onrender.com') && 
+        (API_BASE_URL.includes('localhost') || API_BASE_URL.includes('127.0.0.1'))) {
+      return `${API_BASE_URL}${parsed.pathname}`;
+    }
+  } catch (e) {}
+  return url;
+};
+
 const CATEGORIES = ['Thong bao', 'Suc khoe', 'Hoat dong', 'Tuyen dung', 'Khac'];
 
 const emptyForm = { title: '', summary: '', content: '', imageUrl: '', category: 'Thong bao', author: 'Ban Quan tri', isPinned: false, isVisible: true };
@@ -154,7 +173,7 @@ const NewsAdmin = () => {
                 <tr key={item._id} className='hover:bg-blue-50/20 transition-colors'>
                   <td className='p-4'>
                     <div className='flex items-start gap-3'>
-                      {item.imageUrl && <img src={item.imageUrl} alt='' className='w-14 h-10 object-cover rounded-lg border border-gray-100 shrink-0' onError={e => e.target.style.display='none'} />}
+                      {item.imageUrl && <img src={getFullImageUrl(item.imageUrl)} alt='' className='w-14 h-10 object-cover rounded-lg border border-gray-100 shrink-0' onError={e => e.target.style.display='none'} />}
                       <div>
                         <div className='font-semibold text-gray-800 line-clamp-1 flex items-center gap-1'>{item.isPinned && <Pin className='w-3 h-3 text-orange-500 shrink-0' />}{item.title}</div>
                         <div className='text-xs text-gray-500 mt-0.5'>{item.author}</div>
@@ -231,7 +250,7 @@ const NewsAdmin = () => {
                     <div className='text-sm text-blue-600 font-medium'>Dang tai anh len...</div>
                   ) : form.imageUrl ? (
                     <div className='flex items-center gap-3'>
-                      <img src={form.imageUrl} alt='preview' className='h-20 rounded-lg object-cover border border-gray-100' onError={e => e.target.style.display='none'} />
+                      <img src={getFullImageUrl(form.imageUrl)} alt='preview' className='h-20 rounded-lg object-cover border border-gray-100' onError={e => e.target.style.display='none'} />
                       <div className='text-left'>
                         <p className='text-xs text-green-600 font-bold mb-1'>Da tai anh len</p>
                         <p className='text-xs text-gray-400 break-all line-clamp-2'>{form.imageUrl}</p>

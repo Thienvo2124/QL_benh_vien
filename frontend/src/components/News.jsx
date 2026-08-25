@@ -2,6 +2,25 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import API_BASE_URL from '../config/api';
 
+const getFullImageUrl = (url) => {
+  if (!url) return '';
+  if (url.startsWith('/')) {
+    return `${API_BASE_URL}${url}`;
+  }
+  try {
+    const parsed = new URL(url);
+    if ((parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') && 
+        !API_BASE_URL.includes('localhost') && !API_BASE_URL.includes('127.0.0.1')) {
+      return `${API_BASE_URL}${parsed.pathname}`;
+    }
+    if (parsed.hostname.includes('onrender.com') && 
+        (API_BASE_URL.includes('localhost') || API_BASE_URL.includes('127.0.0.1'))) {
+      return `${API_BASE_URL}${parsed.pathname}`;
+    }
+  } catch (e) {}
+  return url;
+};
+
 const News = () => {
   const [newsItems, setNewsItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -48,7 +67,7 @@ const News = () => {
               {item.imageUrl && (
                 <div className="h-56 overflow-hidden relative group">
                   <img
-                    src={item.imageUrl}
+                    src={getFullImageUrl(item.imageUrl)}
                     alt={item.title}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   />

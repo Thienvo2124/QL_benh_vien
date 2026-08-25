@@ -6,6 +6,25 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import API_BASE_URL from '../config/api';
 
+const getFullImageUrl = (url) => {
+  if (!url) return '';
+  if (url.startsWith('/')) {
+    return `${API_BASE_URL}${url}`;
+  }
+  try {
+    const parsed = new URL(url);
+    if ((parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') && 
+        !API_BASE_URL.includes('localhost') && !API_BASE_URL.includes('127.0.0.1')) {
+      return `${API_BASE_URL}${parsed.pathname}`;
+    }
+    if (parsed.hostname.includes('onrender.com') && 
+        (API_BASE_URL.includes('localhost') || API_BASE_URL.includes('127.0.0.1'))) {
+      return `${API_BASE_URL}${parsed.pathname}`;
+    }
+  } catch (e) {}
+  return url;
+};
+
 const NewsDetail = () => {
   const { id } = useParams();
   const [article, setArticle] = useState(null);
@@ -115,7 +134,7 @@ const NewsDetail = () => {
                       components={{
                         img: ({ src, alt }) => (
                           <div className='my-6 rounded-xl overflow-hidden shadow-md max-h-[400px] flex justify-center bg-gray-50 border border-gray-100'>
-                            <img src={src} alt={alt || ''} className='w-full h-auto max-h-[400px] object-contain' />
+                            <img src={getFullImageUrl(src)} alt={alt || ''} className='w-full h-auto max-h-[400px] object-contain' />
                           </div>
                         ),
                         p: ({ children }) => <p className='mb-4 text-gray-700 leading-relaxed'>{children}</p>,
@@ -154,7 +173,7 @@ const NewsDetail = () => {
                       >
                         {item.imageUrl && (
                           <img
-                            src={item.imageUrl}
+                            src={getFullImageUrl(item.imageUrl)}
                             alt=''
                             className='w-20 h-14 object-cover rounded-lg border border-gray-100 shrink-0 group-hover:opacity-90'
                           />
